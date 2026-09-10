@@ -615,6 +615,70 @@
     </div>
   </div>
 
+  <!-- Modal: Edit Developer Profile (Admin) -->
+  <div class="modal-overlay" id="modal-edit-dev">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Edit Employee / Developer Profile</h3>
+        <button class="modal-close-btn" id="btn-close-edit-dev">&times;</button>
+      </div>
+      <form id="form-edit-dev">
+        <input type="hidden" id="edit-dev-id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="edit-dev-name">Full Name *</label>
+            <input type="text" id="edit-dev-name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="edit-dev-role">Role / Job Title *</label>
+            <input type="text" id="edit-dev-role" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="edit-dev-email">Email Address</label>
+            <input type="email" id="edit-dev-email" class="form-control">
+          </div>
+          <div style="display: flex; gap: 16px;">
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="edit-dev-currency">Currency</label>
+              <select id="edit-dev-currency" class="form-control">
+                <option value="$">USD ($)</option>
+                <option value="₱">PHP (₱)</option>
+                <option value="€">EUR (€)</option>
+                <option value="£">GBP (£)</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex: 2;">
+              <label class="form-label" for="edit-dev-rate">Hourly Rate *</label>
+              <input type="number" id="edit-dev-rate" class="form-control" step="0.50" min="0" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="edit-dev-pin">Private 4-Digit Access PIN *</label>
+            <input type="text" id="edit-dev-pin" class="form-control" maxlength="4" placeholder="1234" required pattern="\d{4}">
+          </div>
+          <div style="display: flex; gap: 12px;">
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="edit-dev-vl">Vacation (VL)</label>
+              <input type="number" id="edit-dev-vl" class="form-control" min="0" value="12">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="edit-dev-sl">Sick (SL)</label>
+              <input type="number" id="edit-dev-sl" class="form-control" min="0" value="10">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="edit-dev-el">Emergency (EL)</label>
+              <input type="number" id="edit-dev-el" class="form-control" min="0" value="5">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-edit-dev">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Modal: Add Developer -->
   <div class="modal-overlay" id="modal-add-dev">
     <div class="modal-dialog">

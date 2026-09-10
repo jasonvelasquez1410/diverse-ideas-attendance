@@ -768,7 +768,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </td>
         <td>
           <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.78rem;" onclick="editDeveloperModal('${dev.id}')">
-            Edit Rate & PIN
+            ✏️ Edit Profile
           </button>
           <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.78rem; margin-left: 6px;" onclick="deleteDeveloperConfirm('${dev.id}')">
             Remove
@@ -790,21 +790,66 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Edit Developer Modal Handler (Admin)
+  const modalEditDev = document.getElementById('modal-edit-dev');
+  const formEditDev = document.getElementById('form-edit-dev');
+  const btnCloseEditDev = document.getElementById('btn-close-edit-dev');
+  const btnCancelEditDev = document.getElementById('btn-cancel-edit-dev');
+
   window.editDeveloperModal = function(devId) {
     const dev = store.getDeveloperById(devId);
     if (!dev) return;
 
-    const newRate = prompt(`Enter new hourly rate for ${dev.name} (${dev.currencySymbol}):`, dev.hourlyRate);
-    if (newRate !== null) {
-      const rateNum = parseFloat(newRate);
-      if (!isNaN(rateNum) && rateNum >= 0) {
-        const newPin = prompt(`Enter 4-digit PIN for ${dev.name}:`, dev.pin || '1234');
-        store.updateDeveloper(devId, { hourlyRate: rateNum, pin: newPin || dev.pin });
-        showToast(`Updated rate & PIN for ${dev.name}`, 'success');
-        renderSettings();
-      }
-    }
+    document.getElementById('edit-dev-id').value = dev.id;
+    document.getElementById('edit-dev-name').value = dev.name;
+    document.getElementById('edit-dev-role').value = dev.role;
+    document.getElementById('edit-dev-email').value = dev.email || '';
+    document.getElementById('edit-dev-currency').value = dev.currencySymbol || '$';
+    document.getElementById('edit-dev-rate').value = dev.hourlyRate;
+    document.getElementById('edit-dev-pin').value = dev.pin || '1234';
+    
+    const credits = dev.leaveCredits || { vacation: 12, sick: 10, emergency: 5 };
+    document.getElementById('edit-dev-vl').value = credits.vacation;
+    document.getElementById('edit-dev-sl').value = credits.sick;
+    document.getElementById('edit-dev-el').value = credits.emergency;
+
+    modalEditDev.classList.add('active');
   };
+
+  [btnCloseEditDev, btnCancelEditDev].forEach(b => b.addEventListener('click', () => {
+    modalEditDev.classList.remove('active');
+  }));
+
+  formEditDev.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const id = document.getElementById('edit-dev-id').value;
+    const name = document.getElementById('edit-dev-name').value.trim();
+    const role = document.getElementById('edit-dev-role').value.trim();
+    const email = document.getElementById('edit-dev-email').value.trim();
+    const currencySymbol = document.getElementById('edit-dev-currency').value;
+    const hourlyRate = parseFloat(document.getElementById('edit-dev-rate').value) || 0;
+    const pin = document.getElementById('edit-dev-pin').value.trim();
+    const vacation = parseInt(document.getElementById('edit-dev-vl').value) || 0;
+    const sick = parseInt(document.getElementById('edit-dev-sl').value) || 0;
+    const emergency = parseInt(document.getElementById('edit-dev-el').value) || 0;
+
+    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'DV';
+
+    store.updateDeveloper(id, {
+      name,
+      role,
+      email,
+      initials,
+      currencySymbol,
+      hourlyRate,
+      pin,
+      leaveCredits: { vacation, sick, emergency }
+    });
+
+    showToast(`Updated employee profile for ${name}!`, 'success');
+    modalEditDev.classList.remove('active');
+    renderAll();
+  });
 
   window.deleteDeveloperConfirm = function(devId) {
     const dev = store.getDeveloperById(devId);
