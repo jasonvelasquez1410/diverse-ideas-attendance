@@ -1,0 +1,4 @@
+node_modules/
+.DS_Store
+*.log
+devtrack_server_db.json

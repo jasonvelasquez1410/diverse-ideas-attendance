@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="DevTrack - Modern In-House Developer Attendance & Hourly Rate Payroll Dashboard for Diverse Ideas GMBH">
+  <title>DevTrack | Developer Attendance & Rate Tracker</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+  <!-- ==========================================
+       Application Header
+       ========================================== -->
+  <header class="app-header">
+    <div class="header-container">
+      
+      <!-- Logo & Company Brand -->
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <div class="brand-info">
+          <span class="brand-title">DevTrack</span>
+          <span class="brand-subtitle">Diverse Ideas GMBH</span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="nav-tabs" aria-label="Main Navigation">
+        <button class="nav-tab active" data-tab="tab-clock" id="nav-btn-clock">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <span>Terminal</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-attendance" id="nav-btn-attendance">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <span>Live Attendance</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-payroll" id="nav-btn-payroll">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          <span>Timesheets & Payroll</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-settings" id="nav-btn-settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <span>Team & Rates</span>
+        </button>
+      </nav>
+
+      <!-- Right Actions: Live Clock, Active User Selector, Theme Toggle -->
+      <div class="header-actions">
+        <div class="live-clock-pill">
+          <div class="live-pulse-dot"></div>
+          <span id="header-live-time">Thu, Sep 10, 10:45 PM</span>
+        </div>
+
+        <!-- Active Developer Selector Dropdown -->
+        <div class="user-selector-dropdown">
+          <select id="header-user-select" class="form-control" style="padding: 6px 32px 6px 12px; font-size: 0.85rem; border-radius: var(--radius-full); background-color: var(--bg-tertiary); font-weight: 600;">
+            <!-- Rendered by JS -->
+          </select>
+        </div>
+
+        <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ==========================================
+       Main Application Views
+       ========================================== -->
+  <main class="app-main">
+
+    <!-- ----------------------------------------
+         TAB 1: Clock In / Out Terminal
+         ---------------------------------------- -->
+    <section id="tab-clock" class="tab-pane active">
+      <div class="section-header">
+        <div class="section-title-group">
+          <h1>Developer Terminal</h1>
+          <p>Punch in to track your billable development hours in real-time.</p>
+        </div>
+      </div>
+
+      <!-- Hero Punch Deck Card -->
+      <div class="glass-card clock-hero-card">
+        
+        <!-- Active Developer Profile Badge -->
+        <div class="active-dev-profile">
+          <div class="active-dev-avatar" id="terminal-dev-avatar">AR</div>
+          <div class="active-dev-meta">
+            <div class="active-dev-name" id="terminal-dev-name">Alex Rivera</div>
+            <div class="active-dev-role">
+              <span id="terminal-dev-role">Lead Full-Stack Developer</span>
+              <span class="rate-badge" id="terminal-dev-rate">$35.00/hr</span>
+            </div>
+          </div>
+          <div id="terminal-status-badge" class="badge badge-offline" style="margin-left: 12px;">
+            <span class="badge-dot"></span> Offline
+          </div>
+        </div>
+
+        <!-- Big Live Running Timer Display -->
+        <div class="timer-container">
+          <div class="live-timer-digits" id="terminal-timer-digits">00:00:00</div>
+          
+          <div class="timer-sub-metrics">
+            <div class="timer-sub-box">
+              <span class="timer-sub-label">Net Worked</span>
+              <span class="timer-sub-val" id="terminal-worked-val">0h 0m</span>
+            </div>
+            <div class="timer-sub-box">
+              <span class="timer-sub-label">Break Time</span>
+              <span class="timer-sub-val" id="terminal-break-val" style="color: var(--status-break);">0m</span>
+            </div>
+            <div class="timer-sub-box">
+              <span class="timer-sub-label">Live Earnings Today</span>
+              <span class="timer-sub-val earnings" id="terminal-earnings-val">$0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clock Action Buttons -->
+        <div class="clock-actions-row">
+          <button class="btn btn-primary btn-lg" id="btn-clock-in">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            Clock In
+          </button>
+          
+          <button class="btn btn-warning btn-lg" id="btn-break" disabled>
+            ☕ Take Break
+          </button>
+
+          <button class="btn btn-danger btn-lg" id="btn-clock-out" disabled>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="6" y="6" width="12" height="12"></rect></svg>
+            Clock Out
+          </button>
+        </div>
+
+        <!-- Project, Location & Work Notes Form -->
+        <div class="session-context-card">
+          <div class="form-group" style="max-width: 180px;">
+            <label class="form-label" for="terminal-location-select">Work Mode</label>
+            <select id="terminal-location-select" class="form-control">
+              <option value="wfh">🏠 Home (WFH)</option>
+              <option value="onsite">🏢 Office (Onsite)</option>
+            </select>
+          </div>
+          <div class="form-group" style="min-width: 200px;">
+            <label class="form-label" for="terminal-project-select">Active Project</label>
+            <select id="terminal-project-select" class="form-control">
+              <!-- Rendered by JS -->
+            </select>
+          </div>
+          <div class="form-group" style="flex: 2; min-width: 260px;">
+            <label class="form-label" for="terminal-task-notes">What are you working on right now?</label>
+            <input type="text" id="terminal-task-notes" class="form-control" placeholder="e.g. JETZ API bug fix & frontend refactoring..." value="Feature sprint development">
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Today's Completed Sessions Timeline -->
+      <div style="margin-top: 36px;">
+        <h3 style="font-family: var(--font-heading); font-size: 1.15rem; margin-bottom: 16px; color: var(--text-primary);">
+          Today's Completed Activity Log
+        </h3>
+        <div id="today-activity-list">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ----------------------------------------
+         TAB 2: Live Team Attendance Board
+         ---------------------------------------- -->
+    <section id="tab-attendance" class="tab-pane">
+      <div class="section-header">
+        <div class="section-title-group">
+          <h1>Live Attendance Board</h1>
+          <p>Real-time status overview of all developers across the team.</p>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Grid -->
+      <div class="grid-3" style="margin-bottom: 28px;">
+        <div class="glass-card stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Currently Online</span>
+            <div class="stat-icon-wrapper">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
+            </div>
+          </div>
+          <div class="stat-value" id="stat-online-devs">0 / 4</div>
+          <div class="stat-footer">
+            <span class="stat-trend-up">● Active team members</span>
+          </div>
+        </div>
+
+        <div class="glass-card stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Total Hours Logged Today</span>
+            <div class="stat-icon-wrapper">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
+          </div>
+          <div class="stat-value" id="stat-today-hours">0.0 hrs</div>
+          <div class="stat-footer">Combined team output today</div>
+        </div>
+
+        <div class="glass-card stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Today's Estimated Payroll</span>
+            <div class="stat-icon-wrapper" style="color: var(--status-working);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            </div>
+          </div>
+          <div class="stat-value" id="stat-today-payroll" style="color: var(--status-working);">$0.00</div>
+          <div class="stat-footer">Calculated by individual hourly rates</div>
+        </div>
+      </div>
+
+      <!-- Live Attendance Developer Roster Grid -->
+      <div class="attendance-grid" id="attendance-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- ----------------------------------------
+         TAB 3: Timesheets & Payroll Analytics
+         ---------------------------------------- -->
+    <section id="tab-payroll" class="tab-pane">
+      <div class="section-header">
+        <div class="section-title-group">
+          <h1>Timesheets & Payroll</h1>
+          <p>Review work sessions, calculate billable wages, and export reports.</p>
+        </div>
+
+        <!-- Export & Print Actions -->
+        <div class="toolbar-actions">
+          <button class="btn btn-secondary" id="btn-open-manual-entry">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            + Manual Entry
+          </button>
+          <button class="btn btn-secondary" id="btn-export-csv">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Export CSV
+          </button>
+          <button class="btn btn-primary" id="btn-print-report">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Print Payroll Slip
+          </button>
+        </div>
+      </div>
+
+      <!-- Analytics Metric Cards -->
+      <div class="grid-4" style="margin-bottom: 24px;">
+        <div class="glass-card stat-card">
+          <span class="stat-label">Total Billable Hours</span>
+          <div class="stat-value" id="summary-total-hours">0.0 hrs</div>
+        </div>
+        <div class="glass-card stat-card">
+          <span class="stat-label">Total Gross Payroll</span>
+          <div class="stat-value" id="summary-total-payroll" style="color: var(--status-working);">$0.00</div>
+        </div>
+        <div class="glass-card stat-card">
+          <span class="stat-label">Logged Sessions</span>
+          <div class="stat-value" id="summary-total-sessions">0</div>
+        </div>
+        <div class="glass-card stat-card">
+          <span class="stat-label">Avg Effective Rate</span>
+          <div class="stat-value" id="summary-avg-rate">$0.00/hr</div>
+        </div>
+      </div>
+
+      <!-- Filters Toolbar -->
+      <div class="toolbar-container">
+        <div class="toolbar-filters">
+          <!-- Date Preset -->
+          <div class="form-group" style="min-width: 160px;">
+            <select id="payroll-date-filter" class="form-control">
+              <option value="all">All Time</option>
+              <option value="today">Today</option>
+              <option value="week" selected>This Week</option>
+              <option value="month">This Month</option>
+              <option value="custom">Custom Date Range</option>
+            </select>
+          </div>
+
+          <!-- Developer Filter -->
+          <div class="form-group" style="min-width: 180px;">
+            <select id="payroll-dev-filter" class="form-control">
+              <!-- Rendered by JS -->
+            </select>
+          </div>
+
+          <!-- Project Filter -->
+          <div class="form-group" style="min-width: 180px;">
+            <select id="payroll-project-filter" class="form-control">
+              <!-- Rendered by JS -->
+            </select>
+          </div>
+
+          <!-- Custom Date Range Picker (Hidden by default) -->
+          <div id="custom-date-range-container" style="display: none; gap: 8px; align-items: center;">
+            <input type="date" id="custom-start-date" class="form-control" style="width: auto;">
+            <span style="color: var(--text-muted);">to</span>
+            <input type="date" id="custom-end-date" class="form-control" style="width: auto;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Timesheet Table -->
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Developer</th>
+              <th>Date</th>
+              <th>Location</th>
+              <th>Project</th>
+              <th>Time (Start - End)</th>
+              <th>Break</th>
+              <th>Net Hours</th>
+              <th>Rate / hr</th>
+              <th>Total Pay</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="timesheet-table-body">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ----------------------------------------
+         TAB 4: Team & Rates Management
+         ---------------------------------------- -->
+    <section id="tab-settings" class="tab-pane">
+      <div class="section-header">
+        <div class="section-title-group">
+          <h1>Team & Rates Management</h1>
+          <p>Configure team members, hourly pay rates, projects, and database backups.</p>
+        </div>
+
+        <div class="toolbar-actions">
+          <button class="btn btn-primary" id="btn-open-add-dev">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+            + Add Developer
+          </button>
+        </div>
+      </div>
+
+      <!-- Team Members Table -->
+      <div class="glass-card" style="margin-bottom: 32px;">
+        <h3 style="font-family: var(--font-heading); font-size: 1.15rem; margin-bottom: 16px;">Developer Roster & Pay Rates</h3>
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Developer</th>
+                <th>Role</th>
+                <th>Hourly Rate</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="settings-dev-table-body">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Projects and Data Management Grid -->
+      <div class="grid-2">
+        <!-- Projects Manager -->
+        <div class="glass-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="font-family: var(--font-heading); font-size: 1.15rem;">Active Projects</h3>
+            <button class="btn btn-secondary" id="btn-open-add-project" style="padding: 6px 12px; font-size: 0.8rem;">
+              + New Project
+            </button>
+          </div>
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Project Name</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="settings-project-table-body">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Database Backups & Import -->
+        <div class="glass-card">
+          <h3 style="font-family: var(--font-heading); font-size: 1.15rem; margin-bottom: 12px;">Database Backup & Sync</h3>
+          <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 20px;">
+            Save your attendance database to a JSON file or restore from a previous backup on another laptop.
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <button class="btn btn-secondary" id="btn-export-backup" style="justify-content: flex-start;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Download JSON Database Backup
+            </button>
+
+            <button class="btn btn-secondary" id="btn-trigger-import" style="justify-content: flex-start;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              Restore Database from JSON Backup
+            </button>
+            <input type="file" id="file-import-input" accept=".json" style="display: none;">
+
+            <button class="btn btn-danger" id="btn-reset-data" style="justify-content: flex-start; margin-top: 10px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+              Reset to Factory Demo Data
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==========================================
+       MODALS
+       ========================================== -->
+
+  <!-- Modal: Add Developer -->
+  <div class="modal-overlay" id="modal-add-dev">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Add New Developer</h3>
+        <button class="modal-close-btn" id="btn-close-add-dev">&times;</button>
+      </div>
+      <form id="form-add-dev">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="dev-name-input">Full Name *</label>
+            <input type="text" id="dev-name-input" class="form-control" placeholder="e.g. Juan dela Cruz" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="dev-role-input">Role / Title</label>
+            <input type="text" id="dev-role-input" class="form-control" placeholder="e.g. Backend Developer" value="Software Developer">
+          </div>
+          <div style="display: flex; gap: 16px;">
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="dev-currency-input">Currency</label>
+              <select id="dev-currency-input" class="form-control">
+                <option value="$">USD ($)</option>
+                <option value="₱">PHP (₱)</option>
+                <option value="€">EUR (€)</option>
+                <option value="£">GBP (£)</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex: 2;">
+              <label class="form-label" for="dev-rate-input">Hourly Rate *</label>
+              <input type="number" id="dev-rate-input" class="form-control" step="0.50" min="0" placeholder="25.00" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="dev-email-input">Email Address</label>
+            <input type="email" id="dev-email-input" class="form-control" placeholder="juan@diverseideas.de">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-add-dev">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Developer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Manual Timesheet Entry -->
+  <div class="modal-overlay" id="modal-manual-entry">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Log Manual Timesheet Record</h3>
+        <button class="modal-close-btn" id="btn-close-manual-entry">&times;</button>
+      </div>
+      <form id="form-manual-entry">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="manual-dev-select">Developer</label>
+            <select id="manual-dev-select" class="form-control" required></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="manual-project-select">Project</label>
+            <select id="manual-project-select" class="form-control" required></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="manual-location-select">Work Mode</label>
+            <select id="manual-location-select" class="form-control">
+              <option value="wfh">🏠 Home (WFH)</option>
+              <option value="onsite">🏢 Office (Onsite)</option>
+            </select>
+          </div>
+          <div style="display: flex; gap: 16px;">
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="manual-date-input">Date</label>
+              <input type="date" id="manual-date-input" class="form-control" required>
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="manual-hours-input">Hours Worked</label>
+              <input type="number" id="manual-hours-input" class="form-control" step="0.25" min="0.25" placeholder="8.0" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="manual-break-input">Break Duration (Minutes)</label>
+            <input type="number" id="manual-break-input" class="form-control" min="0" value="60">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="manual-notes-input">Work Description / Notes</label>
+            <input type="text" id="manual-notes-input" class="form-control" placeholder="Brief summary of tasks accomplished...">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-manual-entry">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Entry</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add Project -->
+  <div class="modal-overlay" id="modal-add-project">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Create New Project</h3>
+        <button class="modal-close-btn" id="btn-close-add-project">&times;</button>
+      </div>
+      <form id="form-add-project">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="proj-name-input">Project Name *</label>
+            <input type="text" id="proj-name-input" class="form-control" placeholder="e.g. Logistics Automation System" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="proj-code-input">Project Code / Tag</label>
+            <input type="text" id="proj-code-input" class="form-control" placeholder="e.g. LOGI" maxlength="6">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-add-project">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Project</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Application Scripts -->
+  <script src="js/state.js"></script>
+  <script src="js/attendance.js"></script>
+  <script src="js/payroll.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>

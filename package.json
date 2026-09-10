@@ -1,0 +1,17 @@
+{
+  "name": "devtrack-attendance-app",
+  "version": "1.0.0",
+  "description": "Developer Attendance and Hourly Rate Tracking Dashboard for Diverse Ideas GMBH",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "attendance",
+    "payroll",
+    "developer-rates",
+    "timesheet"
+  ],
+  "author": "Diverse Ideas GMBH",
+  "license": "MIT"
+}
