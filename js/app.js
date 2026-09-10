@@ -287,6 +287,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeDev = store.getActiveDeveloper();
     if (!activeDev) return;
 
+    renderPaydayWidgets();
+
     terminalDevAvatar.textContent = activeDev.initials;
     terminalDevAvatar.style.background = activeDev.avatarColor;
     terminalDevName.textContent = activeDev.name;
@@ -1148,11 +1150,137 @@ document.addEventListener('DOMContentLoaded', () => {
     renderLeavesAndRequests();
   };
 
-  // Request Modal Form Handlers
-  btnOpenFileRequest.addEventListener('click', () => {
+  // ==========================================
+  // PayDay Sprout My Stuff & Apply Dropdown Handlers
+  // ==========================================
+  const btnApplyDropdownToggle = document.getElementById('btn-apply-dropdown-toggle');
+  const applyMenuDropdown = document.getElementById('apply-menu-dropdown');
+  const paydayRecentTimelogs = document.getElementById('payday-recent-timelogs');
+  const myStuffPendingList = document.getElementById('my-stuff-pending-list');
+  const greetingTodayDate = document.getElementById('greeting-today-date');
+
+  // Toggle Apply Dropdown
+  if (btnApplyDropdownToggle && applyMenuDropdown) {
+    btnApplyDropdownToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      applyMenuDropdown.classList.toggle('active');
+    });
+
+    document.addEventListener('click', () => {
+      applyMenuDropdown.classList.remove('active');
+    });
+  }
+
+  // Helper to open specific Sprout Request modal
+  window.openSpecificRequestModal = function(type) {
+    applyMenuDropdown.classList.remove('active');
     document.getElementById('req-start-date').value = new Date().toISOString().split('T')[0];
+
+    if (type === 'COA') {
+      reqTypeSelect.value = 'COA';
+      reqSubtypeGroup.style.display = 'none';
+      reqEndDateGroup.style.display = 'none';
+      reqTimeGroup.style.display = 'block';
+      document.getElementById('req-time-input').placeholder = 'e.g. Missed Time OUT at 05:30 PM (Forgot to clock out)';
+    } else if (type === 'Overtime') {
+      reqTypeSelect.value = 'Overtime';
+      reqSubtypeGroup.style.display = 'none';
+      reqEndDateGroup.style.display = 'none';
+      reqTimeGroup.style.display = 'block';
+      document.getElementById('req-time-input').placeholder = 'e.g. 2.5 hours post-shift (API deployment)';
+    } else {
+      reqTypeSelect.value = 'Leave';
+      reqSubtypeGroup.style.display = 'block';
+      reqEndDateGroup.style.display = 'block';
+      reqTimeGroup.style.display = 'none';
+    }
+
     modalFileRequest.classList.add('active');
-  });
+  };
+
+  function renderPaydayWidgets() {
+    const auth = store.getAuth();
+    const activeDev = store.getActiveDeveloper();
+    const now = new Date();
+
+    if (greetingTodayDate) {
+      greetingTodayDate.textContent = `📅 Today is ${now.getMonth() + 1}/${now.getDate()}/${String(now.getFullYear()).slice(-2)}`;
+    }
+
+    // Render Leave credits in My Stuff card
+    if (activeDev && activeDev.leaveCredits) {
+      const vl = document.getElementById('mystuff-credit-vl');
+      const sl = document.getElementById('mystuff-credit-sl');
+      const el = document.getElementById('mystuff-credit-el');
+      if (vl) vl.textContent = activeDev.leaveCredits.vacation;
+      if (sl) sl.textContent = activeDev.leaveCredits.sick;
+      if (el) el.textContent = activeDev.leaveCredits.emergency;
+    }
+
+    // Render Recent IN / OUT logs in Attendance card (PayDay style)
+    if (paydayRecentTimelogs) {
+      const records = store.getState().attendanceRecords.filter(r => r.developerId === activeDev.id).slice(0, 4);
+      paydayRecentTimelogs.innerHTML = '';
+
+      if (records.length === 0) {
+        paydayRecentTimelogs.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); padding: 8px 0;">No attendance records yet.</div>`;
+      } else {
+        records.forEach(r => {
+          const datePart = r.date.split('-').slice(1).join('/') + '/' + r.date.split('-')[0].slice(-2);
+          const inTime = new Date(r.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const outTime = r.endTime ? new Date(r.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+
+          const rowOut = document.createElement('div');
+          rowOut.style.display = 'flex';
+          rowOut.style.justifyContent = 'space-between';
+          rowOut.style.alignItems = 'center';
+          rowOut.style.fontSize = '0.84rem';
+          rowOut.innerHTML = `
+            <span style="color: var(--text-secondary);">${datePart}</span>
+            <span style="font-weight: 700; color: #f59e0b;">OUT</span>
+            <span class="font-mono">${outTime}</span>
+          `;
+
+          const rowIn = document.createElement('div');
+          rowIn.style.display = 'flex';
+          rowIn.style.justifyContent = 'space-between';
+          rowIn.style.alignItems = 'center';
+          rowIn.style.fontSize = '0.84rem';
+          rowIn.innerHTML = `
+            <span style="color: var(--text-secondary);">${datePart}</span>
+            <span style="font-weight: 700; color: #10b981;">IN</span>
+            <span class="font-mono">${inTime}</span>
+          `;
+
+          paydayRecentTimelogs.appendChild(rowOut);
+          paydayRecentTimelogs.appendChild(rowIn);
+        });
+      }
+    }
+
+    // Render Pending Requests in My Stuff card
+    if (myStuffPendingList) {
+      const pending = store.getRequests(auth.devId).filter(r => r.status === 'Pending').slice(0, 2);
+      myStuffPendingList.innerHTML = '';
+
+      if (pending.length === 0) {
+        myStuffPendingList.innerHTML = `<div style="font-size: 0.78rem; color: var(--text-muted);">No pending applications</div>`;
+      } else {
+        pending.forEach(p => {
+          const div = document.createElement('div');
+          div.style.display = 'flex';
+          div.style.justifyContent = 'space-between';
+          div.style.fontSize = '0.78rem';
+          div.style.padding = '4px 0';
+          div.innerHTML = `
+            <span>${p.startDate.slice(5)} - ${p.type}</span>
+            <span class="badge badge-break" style="font-size: 0.65rem;">Pending</span>
+          `;
+          myStuffPendingList.appendChild(div);
+        });
+      }
+    }
+  }
 
   [btnCloseFileRequest, btnCancelFileRequest].forEach(b => b.addEventListener('click', () => {
     modalFileRequest.classList.remove('active');
