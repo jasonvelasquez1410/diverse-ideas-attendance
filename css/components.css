@@ -87,123 +87,106 @@
   font-weight: 600;
 }
 
-/* Developer Active Session Hero Deck */
-.clock-hero-card {
-  text-align: center;
-  padding: 36px 24px;
-  background: radial-gradient(circle at center, rgba(99, 102, 241, 0.08) 0%, var(--bg-card) 70%);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+/* Sprout HR / Payday Inspired Date & Time Attendance Deck */
+.sprout-attendance-deck {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 32px 28px;
+  box-shadow: var(--shadow-card);
+  position: relative;
 }
 
-.active-dev-profile {
+.sprout-live-clock-banner {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.sprout-date-text {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.sprout-time-digits {
+  font-family: var(--font-mono);
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.1;
+  margin: 6px 0;
+  text-shadow: 0 0 25px rgba(99, 102, 241, 0.2);
+}
+
+.sprout-shift-pill {
   display: inline-flex;
   align-items: center;
-  gap: 14px;
-  background: var(--bg-tertiary);
-  padding: 8px 18px 8px 10px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border-color);
-  margin-bottom: 24px;
-}
-
-.active-dev-avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-cyan));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: white;
-}
-
-.active-dev-meta {
-  text-align: left;
-}
-
-.active-dev-name {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.active-dev-role {
-  font-size: 0.78rem;
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
   gap: 8px;
-}
-
-.rate-badge {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
-  padding: 1px 8px;
+  background: var(--bg-tertiary);
+  padding: 6px 16px;
   border-radius: var(--radius-full);
+  font-size: 0.82rem;
   font-weight: 600;
-  font-family: var(--font-mono);
+  color: var(--accent-cyan);
+  border: 1px solid var(--border-color);
 }
 
-/* Big Live Timer Display */
-.timer-container {
-  margin: 16px 0 28px;
+/* Timestamp Metric Grid (Sprout Style: Time IN, Break, Time OUT, Total Hours) */
+.sprout-timestamp-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin: 24px 0 28px;
 }
 
-.live-timer-digits {
-  font-family: var(--font-mono);
-  font-size: 4rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--text-primary);
-  text-shadow: 0 0 30px rgba(99, 102, 241, 0.25);
-  line-height: 1;
-}
-
-@media (max-width: 640px) {
-  .live-timer-digits {
-    font-size: 2.75rem;
+@media (max-width: 768px) {
+  .sprout-timestamp-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-.timer-sub-metrics {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 28px;
-  margin-top: 16px;
-  flex-wrap: wrap;
-}
-
-.timer-sub-box {
+.timestamp-box {
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
-  padding: 8px 18px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
+  padding: 18px 16px;
+  text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 6px;
+  transition: all var(--transition-fast);
 }
 
-.timer-sub-label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.timestamp-box.active-box {
+  border-color: var(--accent-primary);
+  background: rgba(99, 102, 241, 0.08);
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.15);
 }
 
-.timer-sub-val {
-  font-family: var(--font-mono);
-  font-size: 1.15rem;
+.timestamp-label {
+  font-size: 0.75rem;
   font-weight: 700;
-  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
-.timer-sub-val.earnings {
-  color: var(--status-working);
+.timestamp-val {
+  font-family: var(--font-mono);
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--text-primary);
 }
+
+.timestamp-val.highlight-green { color: var(--status-working); }
+.timestamp-val.highlight-amber { color: var(--status-break); }
+.timestamp-val.highlight-cyan { color: var(--accent-cyan); }
 
 /* Punch Action Buttons */
 .clock-actions-row {

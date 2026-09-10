@@ -292,16 +292,30 @@ document.addEventListener('DOMContentLoaded', () => {
     terminalDevRole.textContent = activeDev.role;
     terminalDevRate.textContent = `Rate: Confidential 🔒`;
 
+    // Check today's logged records for active developer
+    const todayStr = new Date().toISOString().split('T')[0];
+    const todayRecords = store.getState().attendanceRecords.filter(r => r.developerId === activeDev.id && r.date === todayStr);
+
     if (activeDev.status === 'working') {
       terminalStatusBadge.className = 'badge badge-working';
-      terminalStatusBadge.innerHTML = `<span class="badge-dot"></span> Clocked In (Working)`;
+      terminalStatusBadge.innerHTML = `<span class="badge-dot"></span> Present (Working)`;
       btnClockIn.disabled = true;
       btnBreak.disabled = false;
-      btnBreak.textContent = '☕ Take Break';
+      btnBreak.textContent = '☕ Start Break';
       btnBreak.className = 'btn btn-warning btn-lg';
       btnClockOut.disabled = false;
 
       if (activeDev.activeSession) {
+        const inDate = new Date(activeDev.activeSession.startTime);
+        dtrTimeIn.textContent = inDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        dtrDateIn.textContent = `Logged at ${inDate.toLocaleDateString()}`;
+        dtrTimeOut.textContent = '--:--:--';
+        dtrDateOut.textContent = 'Shift ongoing';
+        
+        const totalBreakMins = Math.round((activeDev.activeSession.breaks || []).reduce((acc, b) => acc + (b.durationMs || 0), 0) / 60000);
+        dtrBreakTime.textContent = totalBreakMins > 0 ? `${totalBreakMins}m` : '0m';
+        dtrBreakStatus.textContent = 'No active break';
+
         terminalProjectSelect.value = activeDev.activeSession.projectId || 'proj-1';
         terminalTaskNotes.value = activeDev.activeSession.taskNote || '';
         if (activeDev.activeSession.workLocation) {
@@ -310,22 +324,50 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } else if (activeDev.status === 'break') {
       terminalStatusBadge.className = 'badge badge-break';
-      terminalStatusBadge.innerHTML = `<span class="badge-dot"></span> On Break`;
+      terminalStatusBadge.innerHTML = `<span class="badge-dot"></span> On Scheduled Break`;
       btnClockIn.disabled = true;
       btnBreak.disabled = false;
-      btnBreak.textContent = '▶ Resume Work';
+      btnBreak.textContent = '▶ End Break (Resume)';
       btnBreak.className = 'btn btn-success btn-lg';
       btnClockOut.disabled = false;
+
+      if (activeDev.activeSession) {
+        const inDate = new Date(activeDev.activeSession.startTime);
+        dtrTimeIn.textContent = inDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        dtrDateIn.textContent = `Logged at ${inDate.toLocaleDateString()}`;
+        dtrBreakStatus.textContent = 'Break in progress...';
+      }
     } else {
       terminalStatusBadge.className = 'badge badge-offline';
-      terminalStatusBadge.innerHTML = `<span class="badge-dot"></span> Clocked Out`;
+      terminalStatusBadge.innerHTML = `<span class="badge-dot"></span> Offline / Not Logged In`;
       btnClockIn.disabled = false;
       btnBreak.disabled = true;
-      btnBreak.textContent = '☕ Take Break';
+      btnBreak.textContent = '☕ Start Break';
       btnBreak.className = 'btn btn-warning btn-lg';
       btnClockOut.disabled = true;
-      terminalTimerDigits.textContent = '00:00:00';
-      terminalEarningsVal.textContent = '••••••';
+
+      if (todayRecords.length > 0) {
+        const latest = todayRecords[0];
+        const inDate = new Date(latest.startTime);
+        const outDate = new Date(latest.endTime);
+        dtrTimeIn.textContent = inDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        dtrDateIn.textContent = `Time IN (${latest.workLocation.toUpperCase()})`;
+        dtrTimeOut.textContent = outDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        dtrDateOut.textContent = `Time OUT logged`;
+        dtrBreakTime.textContent = `${latest.breakDurationMinutes}m`;
+        dtrBreakStatus.textContent = 'Completed break';
+        dtrTotalRendered.textContent = `${(latest.workedMinutes / 60).toFixed(2)} hrs`;
+        dtrShiftStatus.textContent = 'Shift Completed';
+      } else {
+        dtrTimeIn.textContent = '--:--:--';
+        dtrDateIn.textContent = 'Not yet logged';
+        dtrBreakTime.textContent = '--:--';
+        dtrBreakStatus.textContent = 'No active break';
+        dtrTimeOut.textContent = '--:--:--';
+        dtrDateOut.textContent = 'End of shift';
+        dtrTotalRendered.textContent = '0.00 hrs';
+        dtrShiftStatus.textContent = 'Standard Shift';
+      }
       setDefaultWorkLocation();
     }
 
@@ -338,46 +380,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
     todayActivityList.innerHTML = '';
     if (records.length === 0) {
-      todayActivityList.innerHTML = `<p style="color: var(--text-muted); font-size: 0.88rem; padding: 12px 0;">No completed sessions logged today yet.</p>`;
+      todayActivityList.innerHTML = `
+        <div style="background: var(--bg-tertiary); padding: 18px; border-radius: var(--radius-md); text-align: center; color: var(--text-muted); font-size: 0.88rem; border: 1px dashed var(--border-color);">
+          No completed shift entries logged today yet. Punch <strong>Time IN</strong> above to start your shift.
+        </div>
+      `;
       return;
     }
 
     records.forEach(r => {
       const proj = store.getProjectById(r.projectId);
-      const start = new Date(r.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const end = new Date(r.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const duration = payroll.formatDuration(r.workedMinutes);
+      const start = new Date(r.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const end = new Date(r.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const duration = (r.workedMinutes / 60).toFixed(2);
       const isWfh = r.workLocation === 'wfh';
 
       const div = document.createElement('div');
       div.className = 'glass-card glass-card-hover';
-      div.style.padding = '14px 18px';
-      div.style.marginBottom = '10px';
+      div.style.padding = '16px 20px';
+      div.style.marginBottom = '12px';
       div.style.display = 'flex';
       div.style.justifyContent = 'space-between';
       div.style.alignItems = 'center';
+      div.style.flexWrap = 'wrap';
+      div.style.gap = '12px';
 
       div.innerHTML = `
         <div>
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-            <strong style="font-size: 0.9rem; color: var(--text-primary);">${proj.name}</strong>
-            <span class="badge badge-working" style="font-size: 0.7rem;">${duration}</span>
-            <span class="badge" style="font-size: 0.7rem; background: rgba(99, 102, 241, 0.15); color: var(--accent-cyan);">${isWfh ? '🏠 WFH' : '🏢 Onsite'}</span>
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+            <strong style="font-size: 0.95rem; color: var(--text-primary);">${proj.name}</strong>
+            <span class="badge badge-working" style="font-size: 0.72rem;">${duration} hrs</span>
+            <span class="badge" style="font-size: 0.72rem; background: rgba(99, 102, 241, 0.15); color: var(--accent-cyan);">
+              ${isWfh ? '🏠 WFH (Home)' : '🏢 Onsite (Office)'}
+            </span>
           </div>
-          <div style="font-size: 0.8rem; color: var(--text-secondary);">${r.taskNote || 'Work session'} (${start} - ${end})</div>
+          <div style="font-size: 0.82rem; color: var(--text-secondary); display: flex; align-items: center; gap: 12px;">
+            <span><strong>IN:</strong> ${start}</span>
+            <span><strong>OUT:</strong> ${end}</span>
+            <span><strong>Break:</strong> ${r.breakDurationMinutes}m</span>
+          </div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Task: ${r.taskNote || 'Work session'}</div>
         </div>
         <div style="text-align: right;">
-          <div style="font-family: var(--font-mono); font-weight: 700; color: var(--status-working); font-size: 1.05rem;">
-            ${store.isAdmin() ? '+' + r.currencySymbol + r.totalEarnings.toFixed(2) : 'Logged'}
-          </div>
-          <div style="font-size: 0.75rem; color: var(--text-muted);">${r.breakDurationMinutes}m break</div>
+          <span class="badge badge-working" style="padding: 6px 12px; font-size: 0.8rem;">
+            🟢 Shift Completed
+          </span>
         </div>
       `;
       todayActivityList.appendChild(div);
     });
   }
 
-  // Punch Action Listeners
+  // Punch Action Listeners (Time IN / Break / Time OUT)
   btnClockIn.addEventListener('click', () => {
     const dev = store.getActiveDeveloper();
     const projId = terminalProjectSelect.value;
@@ -385,7 +439,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const location = terminalLocationSelect.value || 'onsite';
 
     attendance.clockIn(dev.id, projId, taskNotes, location);
-    showToast(`Clocked in (${location.toUpperCase()})! Started work on [${store.getProjectById(projId).code}]`, 'success');
+    showToast(`Time IN recorded (${location.toUpperCase()}) for ${dev.name}!`, 'success');
     renderClockTerminal();
     renderAttendanceBoard();
   });
@@ -394,10 +448,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const dev = store.getActiveDeveloper();
     if (dev.status === 'working') {
       attendance.startBreak(dev.id);
-      showToast(`Break mode activated. Timer paused.`, 'warning');
+      showToast(`Break started at ${new Date().toLocaleTimeString()}`, 'warning');
     } else if (dev.status === 'break') {
       attendance.resumeWork(dev.id);
-      showToast(`Resumed work! Timer running.`, 'success');
+      showToast(`Break ended. Resumed shift at ${new Date().toLocaleTimeString()}`, 'success');
     }
     renderClockTerminal();
     renderAttendanceBoard();
@@ -405,10 +459,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnClockOut.addEventListener('click', () => {
     const dev = store.getActiveDeveloper();
-    if (confirm(`Clock out as ${dev.name} and save session?`)) {
+    if (confirm(`Time OUT (Clock Out) for ${dev.name} and finalize today's DTR record?`)) {
       const savedRecord = attendance.clockOut(dev.id);
       if (savedRecord) {
-        showToast(`Clocked out! Logged ${payroll.formatDuration(savedRecord.workedMinutes)}`, 'success');
+        showToast(`Time OUT recorded! Logged ${(savedRecord.workedMinutes / 60).toFixed(2)} hrs`, 'success');
       }
       renderClockTerminal();
       renderAttendanceBoard();
@@ -439,13 +493,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Real-time calculation updater
   window.addEventListener('devtrack:timerTick', (e) => {
     const { activeDev, liveStats } = e.detail;
     if (activeDev.status === 'working' || activeDev.status === 'break') {
-      terminalTimerDigits.textContent = liveStats.formattedTime;
-      terminalWorkedVal.textContent = payroll.formatDuration(liveStats.netMinutesWorked);
-      terminalBreakVal.textContent = `${liveStats.totalBreakMinutes}m`;
-      terminalEarningsVal.textContent = store.isAdmin() ? liveStats.earningsFormatted : '••••••';
+      const renderedHrs = (liveStats.netMinutesWorked / 60).toFixed(2);
+      dtrTotalRendered.textContent = `${renderedHrs} hrs`;
+      dtrBreakTime.textContent = `${liveStats.totalBreakMinutes}m`;
+      dtrShiftStatus.textContent = activeDev.status === 'working' ? '🟢 Present (Working)' : '🟡 On Scheduled Break';
     }
   });
 
