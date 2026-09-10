@@ -661,6 +661,92 @@ select.form-control {
   to { opacity: 1; transform: translateX(0); }
 }
 
+/* PIN Auth Screen & Keypad */
+.auth-lock-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(11, 15, 25, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.auth-lock-card {
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  padding: 36px 28px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+}
+
+.auth-dev-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.auth-dev-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.auth-dev-btn:hover, .auth-dev-btn.selected {
+  border-color: var(--accent-primary);
+  background: rgba(99, 102, 241, 0.15);
+  box-shadow: 0 0 12px var(--accent-primary-glow);
+}
+
+.pin-input-field {
+  font-family: var(--font-mono);
+  font-size: 1.6rem;
+  letter-spacing: 0.4em;
+  text-align: center;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  width: 100%;
+  margin: 16px 0;
+}
+
+.confidential-mask {
+  filter: blur(4px);
+  user-select: none;
+  transition: filter var(--transition-fast);
+}
+
+.confidential-pill {
+  background: rgba(107, 114, 128, 0.2);
+  color: var(--text-muted);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+}
+
 /* Print Styles for Timesheet & Payroll Slips */
 @media print {
   body {
@@ -668,7 +754,7 @@ select.form-control {
     color: black !important;
     background-image: none !important;
   }
-  .app-header, .toolbar-container, .clock-actions-row, .modal-overlay, .nav-tabs, .theme-toggle-btn {
+  .app-header, .toolbar-container, .clock-actions-row, .modal-overlay, .nav-tabs, .theme-toggle-btn, .auth-lock-overlay {
     display: none !important;
   }
   .glass-card {

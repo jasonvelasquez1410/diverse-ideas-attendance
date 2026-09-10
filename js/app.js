@@ -1,6 +1,5 @@
 /**
- * DevTrack - Main Application Controller
- * Manages UI rendering, events, tab navigation, modals, and toasts.
+ * DevTrack - Main Application Controller with PIN Security & Rate Confidentiality
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -13,8 +12,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const navTabs = document.querySelectorAll('.nav-tab');
   const tabPanes = document.querySelectorAll('.tab-pane');
   const headerLiveTime = document.getElementById('header-live-time');
-  const headerUserSelect = document.getElementById('header-user-select');
+  const btnHeaderAuthSwitch = document.getElementById('btn-header-auth-switch');
+  const headerUserAvatar = document.getElementById('header-user-avatar');
+  const headerUserName = document.getElementById('header-user-name');
+  const headerUserRoleBadge = document.getElementById('header-user-role-badge');
+  const btnLogout = document.getElementById('btn-logout');
   const themeToggleBtn = document.getElementById('theme-toggle-btn');
+
+  // DOM Elements - Auth Lock Overlay
+  const authLockScreen = document.getElementById('auth-lock-screen');
+  const authDevGrid = document.getElementById('auth-dev-grid');
+  const authPinForm = document.getElementById('auth-pin-form');
+  const authPinInput = document.getElementById('auth-pin-input');
+  const authErrorMsg = document.getElementById('auth-error-msg');
+  const btnAdminLoginModal = document.getElementById('btn-admin-login-modal');
+  let selectedAuthDevId = null;
 
   // DOM Elements - Terminal / Clock View
   const terminalDevAvatar = document.getElementById('terminal-dev-avatar');
@@ -26,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const terminalWorkedVal = document.getElementById('terminal-worked-val');
   const terminalBreakVal = document.getElementById('terminal-break-val');
   const terminalEarningsVal = document.getElementById('terminal-earnings-val');
+  const terminalLocationSelect = document.getElementById('terminal-location-select');
   const terminalProjectSelect = document.getElementById('terminal-project-select');
   const terminalTaskNotes = document.getElementById('terminal-task-notes');
   const btnClockIn = document.getElementById('btn-clock-in');
@@ -69,7 +82,117 @@ document.addEventListener('DOMContentLoaded', () => {
   const toastContainer = document.getElementById('toast-container');
 
   // ==========================================
-  // 1. Theme & Clock Header
+  // 1. Authentication & PIN Security Engine
+  // ==========================================
+  function checkAuth() {
+    const auth = store.getAuth();
+    if (!auth.isAuthenticated) {
+      renderAuthLockScreen();
+      authLockScreen.style.display = 'flex';
+    } else {
+      authLockScreen.style.display = 'none';
+      updateHeaderAuthProfile();
+    }
+  }
+
+  function renderAuthLockScreen() {
+    const state = store.getState();
+    authDevGrid.innerHTML = '';
+    authErrorMsg.textContent = '';
+    authPinInput.value = '';
+
+    if (!selectedAuthDevId) {
+      selectedAuthDevId = state.developers[0].id;
+    }
+
+    state.developers.forEach(dev => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `auth-dev-btn ${dev.id === selectedAuthDevId ? 'selected' : ''}`;
+      btn.innerHTML = `
+        <div style="width: 26px; height: 26px; border-radius: 50%; background: ${dev.avatarColor}; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: white;">
+          ${dev.initials}
+        </div>
+        <span>${dev.name.split(' ')[0]}</span>
+      `;
+
+      btn.addEventListener('click', () => {
+        selectedAuthDevId = dev.id;
+        document.querySelectorAll('.auth-dev-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        authPinInput.focus();
+      });
+
+      authDevGrid.appendChild(btn);
+    });
+  }
+
+  authPinForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const pin = authPinInput.value.trim();
+    if (!pin) return;
+
+    const result = store.loginDeveloper(selectedAuthDevId, pin);
+    if (result.success) {
+      authLockScreen.style.display = 'none';
+      showToast(`Welcome, ${result.dev.name}!`, 'success');
+      renderAll();
+    } else {
+      authErrorMsg.textContent = '❌ Incorrect PIN. Please try again.';
+      authPinInput.value = '';
+      authPinInput.focus();
+    }
+  });
+
+  btnAdminLoginModal.addEventListener('click', () => {
+    const pin = prompt('Enter Admin Master PIN:');
+    if (pin !== null) {
+      const result = store.loginAdmin(pin);
+      if (result.success) {
+        authLockScreen.style.display = 'none';
+        showToast('Unlocked Admin Mode (Full Payroll & Rates Access)', 'success');
+        renderAll();
+      } else {
+        alert('Incorrect Admin PIN.');
+      }
+    }
+  });
+
+  function updateHeaderAuthProfile() {
+    const auth = store.getAuth();
+    if (auth.role === 'admin') {
+      headerUserAvatar.textContent = 'ADM';
+      headerUserAvatar.style.background = '#ec4899';
+      headerUserName.textContent = 'Administrator';
+      headerUserRoleBadge.textContent = 'ADMIN';
+      headerUserRoleBadge.style.background = 'rgba(236, 72, 153, 0.2)';
+      headerUserRoleBadge.style.color = '#f472b6';
+    } else {
+      const dev = store.getDeveloperById(auth.devId);
+      if (dev) {
+        headerUserAvatar.textContent = dev.initials;
+        headerUserAvatar.style.background = dev.avatarColor;
+        headerUserName.textContent = dev.name;
+        headerUserRoleBadge.textContent = 'DEV';
+        headerUserRoleBadge.style.background = 'rgba(99, 102, 241, 0.2)';
+        headerUserRoleBadge.style.color = 'var(--accent-cyan)';
+      }
+    }
+  }
+
+  btnLogout.addEventListener('click', () => {
+    store.logout();
+    showToast('Locked. Please enter PIN to access.', 'info');
+    checkAuth();
+  });
+
+  btnHeaderAuthSwitch.addEventListener('click', () => {
+    store.logout();
+    checkAuth();
+  });
+
+  // ==========================================
+  // 2. Header Live Clock & Theme Toggle
   // ==========================================
   function initHeaderClock() {
     function updateClock() {
@@ -89,7 +212,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(updateClock, 1000);
   }
 
-  // Theme Toggle
   themeToggleBtn.addEventListener('click', () => {
     const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
@@ -101,11 +223,24 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================================
-  // 2. Navigation Tabs
+  // 3. Navigation Tabs
   // ==========================================
   navTabs.forEach(tab => {
     tab.addEventListener('click', () => {
       const targetPaneId = tab.getAttribute('data-tab');
+
+      // Restrict Settings tab to Admin
+      if (targetPaneId === 'tab-settings' && !store.isAdmin()) {
+        const pin = prompt('Team & Rates configuration is confidential.\nEnter Admin Master PIN to access:');
+        if (pin === store.getState().adminPin) {
+          store.loginAdmin(pin);
+          updateHeaderAuthProfile();
+        } else {
+          alert('Access denied. Admin PIN required.');
+          return;
+        }
+      }
+
       navTabs.forEach(t => t.classList.remove('active'));
       tabPanes.forEach(p => p.classList.remove('active'));
 
@@ -113,7 +248,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const targetPane = document.getElementById(targetPaneId);
       if (targetPane) targetPane.classList.add('active');
 
-      // Refresh specific views when visited
       if (targetPaneId === 'tab-attendance') renderAttendanceBoard();
       if (targetPaneId === 'tab-payroll') renderTimesheetsAndPayroll();
       if (targetPaneId === 'tab-settings') renderSettings();
@@ -121,29 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================================
-  // 3. User Switcher Dropdown
-  // ==========================================
-  function renderUserSelector() {
-    const state = store.getState();
-    headerUserSelect.innerHTML = '';
-    state.developers.forEach(dev => {
-      const opt = document.createElement('option');
-      opt.value = dev.id;
-      opt.textContent = `${dev.name} (${dev.currencySymbol}${dev.hourlyRate}/hr)`;
-      if (dev.id === state.activeDeveloperId) opt.selected = true;
-      headerUserSelect.appendChild(opt);
-    });
-  }
-
-  headerUserSelect.addEventListener('change', (e) => {
-    store.setActiveDeveloper(e.target.value);
-    const dev = store.getActiveDeveloper();
-    showToast(`Switched active developer to ${dev.name}`, 'info');
-    renderClockTerminal();
-  });
-
-  // ==========================================
-  // 4. Clock Terminal View
+  // 4. Clock Terminal View (Confidential to Active Developer)
   // ==========================================
   function renderProjectDropdowns() {
     const projects = store.getProjects();
@@ -163,9 +275,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const terminalLocationSelect = document.getElementById('terminal-location-select');
-
-  // Set smart default for Work Mode: Monday (1) = WFH, Tue-Fri = Onsite
   function setDefaultWorkLocation() {
     const day = new Date().getDay();
     if (terminalLocationSelect) {
@@ -181,9 +290,8 @@ document.addEventListener('DOMContentLoaded', () => {
     terminalDevAvatar.style.background = activeDev.avatarColor;
     terminalDevName.textContent = activeDev.name;
     terminalDevRole.textContent = activeDev.role;
-    terminalDevRate.textContent = `${activeDev.currencySymbol}${activeDev.hourlyRate.toFixed(2)}/hr`;
+    terminalDevRate.textContent = `Rate: Confidential 🔒`;
 
-    // Status & Buttons
     if (activeDev.status === 'working') {
       terminalStatusBadge.className = 'badge badge-working';
       terminalStatusBadge.innerHTML = `<span class="badge-dot"></span> Clocked In (Working)`;
@@ -217,7 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btnBreak.className = 'btn btn-warning btn-lg';
       btnClockOut.disabled = true;
       terminalTimerDigits.textContent = '00:00:00';
-      terminalEarningsVal.textContent = `${activeDev.currencySymbol}0.00`;
+      terminalEarningsVal.textContent = '••••••';
       setDefaultWorkLocation();
     }
 
@@ -239,6 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const start = new Date(r.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const end = new Date(r.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const duration = payroll.formatDuration(r.workedMinutes);
+      const isWfh = r.workLocation === 'wfh';
 
       const div = document.createElement('div');
       div.className = 'glass-card glass-card-hover';
@@ -253,12 +362,13 @@ document.addEventListener('DOMContentLoaded', () => {
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
             <strong style="font-size: 0.9rem; color: var(--text-primary);">${proj.name}</strong>
             <span class="badge badge-working" style="font-size: 0.7rem;">${duration}</span>
+            <span class="badge" style="font-size: 0.7rem; background: rgba(99, 102, 241, 0.15); color: var(--accent-cyan);">${isWfh ? '🏠 WFH' : '🏢 Onsite'}</span>
           </div>
           <div style="font-size: 0.8rem; color: var(--text-secondary);">${r.taskNote || 'Work session'} (${start} - ${end})</div>
         </div>
         <div style="text-align: right;">
           <div style="font-family: var(--font-mono); font-weight: 700; color: var(--status-working); font-size: 1.05rem;">
-            +${r.currencySymbol}${r.totalEarnings.toFixed(2)}
+            ${store.isAdmin() ? '+' + r.currencySymbol + r.totalEarnings.toFixed(2) : 'Logged'}
           </div>
           <div style="font-size: 0.75rem; color: var(--text-muted);">${r.breakDurationMinutes}m break</div>
         </div>
@@ -267,7 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Punch Button Listeners
+  // Punch Action Listeners
   btnClockIn.addEventListener('click', () => {
     const dev = store.getActiveDeveloper();
     const projId = terminalProjectSelect.value;
@@ -295,10 +405,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnClockOut.addEventListener('click', () => {
     const dev = store.getActiveDeveloper();
-    if (confirm(`Clock out as ${dev.name} and record today's session?`)) {
+    if (confirm(`Clock out as ${dev.name} and save session?`)) {
       const savedRecord = attendance.clockOut(dev.id);
       if (savedRecord) {
-        showToast(`Clocked out! Logged ${payroll.formatDuration(savedRecord.workedMinutes)} (+${savedRecord.currencySymbol}${savedRecord.totalEarnings})`, 'success');
+        showToast(`Clocked out! Logged ${payroll.formatDuration(savedRecord.workedMinutes)}`, 'success');
       }
       renderClockTerminal();
       renderAttendanceBoard();
@@ -329,19 +439,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Real-time Timer Tick Event Listener
   window.addEventListener('devtrack:timerTick', (e) => {
     const { activeDev, liveStats } = e.detail;
     if (activeDev.status === 'working' || activeDev.status === 'break') {
       terminalTimerDigits.textContent = liveStats.formattedTime;
       terminalWorkedVal.textContent = payroll.formatDuration(liveStats.netMinutesWorked);
       terminalBreakVal.textContent = `${liveStats.totalBreakMinutes}m`;
-      terminalEarningsVal.textContent = liveStats.earningsFormatted;
+      terminalEarningsVal.textContent = store.isAdmin() ? liveStats.earningsFormatted : '••••••';
     }
   });
 
   // ==========================================
-  // 5. Live Attendance Board View
+  // 5. Live Attendance Board View (Rates are Hidden from Team)
   // ==========================================
   function renderAttendanceBoard() {
     const state = store.getState();
@@ -352,7 +461,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let todayTotalGross = 0;
     const todayStr = new Date().toISOString().split('T')[0];
 
-    // Add completed records today
     state.attendanceRecords.filter(r => r.date === todayStr).forEach(r => {
       todayTotalMinutes += (r.workedMinutes || 0);
       todayTotalGross += (r.totalEarnings || 0);
@@ -381,7 +489,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const currentProj = dev.activeSession ? store.getProjectById(dev.activeSession.projectId).name : 'Idle';
       const currentTask = dev.activeSession ? (dev.activeSession.taskNote || 'Working') : 'Not clocked in';
-
       const isWfh = (dev.activeSession && dev.activeSession.workLocation === 'wfh');
       const locationPill = dev.activeSession 
         ? `<span class="badge" style="background: rgba(99, 102, 241, 0.15); color: var(--accent-cyan); font-size: 0.72rem;">${isWfh ? '🏠 WFH' : '🏢 Onsite'}</span>`
@@ -416,12 +523,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="attendance-detail-value" style="color: var(--accent-cyan);">${liveStats.formattedTime}</span>
           </div>
           <div class="attendance-detail-row">
-            <span class="attendance-detail-label">Hourly Rate:</span>
-            <span class="attendance-detail-value">${dev.currencySymbol}${dev.hourlyRate.toFixed(2)}/hr</span>
-          </div>
-          <div class="attendance-detail-row">
-            <span class="attendance-detail-label">Current Billable:</span>
-            <span class="attendance-detail-value" style="color: var(--status-working);">${liveStats.earningsFormatted}</span>
+            <span class="attendance-detail-label">Status:</span>
+            <span class="attendance-detail-value" style="color: var(--text-secondary); font-size: 0.82rem;">Active Today</span>
           </div>
         </div>
 
@@ -434,10 +537,9 @@ document.addEventListener('DOMContentLoaded', () => {
       attendanceGrid.appendChild(card);
     });
 
-    // Update Attendance Header Stats
     statOnlineDevs.textContent = `${onlineCount} / ${state.developers.length}`;
     statTodayHours.textContent = `${(todayTotalMinutes / 60).toFixed(1)} hrs`;
-    statTodayPayroll.textContent = `$${todayTotalGross.toFixed(2)}`;
+    statTodayPayroll.textContent = store.isAdmin() ? `$${todayTotalGross.toFixed(2)}` : '••••••';
   }
 
   // ==========================================
@@ -447,7 +549,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderTimesheetsAndPayroll() {
     const rangeType = payrollDateFilter.value;
-    const devFilter = payrollDevFilter.value;
+    const auth = store.getAuth();
+    // Non-admin developers ONLY see their own records!
+    const devFilter = store.isAdmin() ? payrollDevFilter.value : auth.devId;
     const projFilter = payrollProjectFilter.value;
     const start = customStartDate.value;
     const end = customEndDate.value;
@@ -455,13 +559,14 @@ document.addEventListener('DOMContentLoaded', () => {
     currentFilteredRecords = payroll.filterRecords(rangeType, devFilter, projFilter, start, end);
     const summary = payroll.generateSummary(currentFilteredRecords);
 
-    // Update Top Summary Cards
     summaryTotalHours.textContent = `${summary.totalHours} hrs`;
-    summaryTotalPayroll.textContent = `$${summary.totalGrossPay}`;
+    summaryTotalPayroll.textContent = store.isAdmin() ? `$${summary.totalGrossPay}` : 'Confidential 🔒';
     summaryTotalSessions.textContent = summary.totalRecords;
-    summaryAvgRate.textContent = `$${summary.avgHourlyPay}/hr`;
+    summaryAvgRate.textContent = store.isAdmin() ? `$${summary.avgHourlyPay}/hr` : 'Confidential 🔒';
 
-    // Render Timesheet Table Rows
+    // Hide dev selector for regular developers
+    payrollDevFilter.style.display = store.isAdmin() ? 'block' : 'none';
+
     timesheetTableBody.innerHTML = '';
     if (currentFilteredRecords.length === 0) {
       timesheetTableBody.innerHTML = `
@@ -481,6 +586,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const endT = rec.endTime ? new Date(rec.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-';
       const hours = ((rec.workedMinutes || 0) / 60).toFixed(2);
       const isWfh = rec.workLocation === 'wfh';
+
+      const rateDisplay = store.isAdmin() ? `${rec.currencySymbol}${(rec.hourlyRate || 0).toFixed(2)}` : '••••';
+      const payDisplay = store.isAdmin() ? `${rec.currencySymbol}${(rec.totalEarnings || 0).toFixed(2)}` : '••••';
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -506,10 +614,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <td class="font-mono">${startT} - ${endT}</td>
         <td class="font-mono">${rec.breakDurationMinutes || 0}m</td>
         <td class="font-mono" style="font-weight: 700; color: var(--text-primary);">${hours} hrs</td>
-        <td class="font-mono">${rec.currencySymbol}${(rec.hourlyRate || 0).toFixed(2)}</td>
-        <td class="font-mono" style="font-weight: 700; color: var(--status-working);">
-          ${rec.currencySymbol}${(rec.totalEarnings || 0).toFixed(2)}
-        </td>
+        <td class="font-mono">${rateDisplay}</td>
+        <td class="font-mono" style="font-weight: 700; color: var(--status-working);">${payDisplay}</td>
         <td>
           <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="deleteTimesheetRecord('${rec.id}')">
             Delete
@@ -520,7 +626,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Populate Developer Filter Select
   function populatePayrollDevFilter() {
     const devs = store.getState().developers;
     payrollDevFilter.innerHTML = '<option value="all">All Team Members</option>';
@@ -546,7 +651,6 @@ document.addEventListener('DOMContentLoaded', () => {
   customStartDate.addEventListener('change', renderTimesheetsAndPayroll);
   customEndDate.addEventListener('change', renderTimesheetsAndPayroll);
 
-  // Global Delete Timesheet Record function
   window.deleteTimesheetRecord = function(recordId) {
     if (confirm('Are you sure you want to delete this attendance record?')) {
       store.deleteAttendanceRecord(recordId);
@@ -555,7 +659,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Export Buttons
   btnExportCsv.addEventListener('click', () => {
     exporter.exportToCSV(currentFilteredRecords);
     showToast('Exported timesheet records to CSV', 'success');
@@ -566,12 +669,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================================
-  // 7. Team & Rate Settings View
+  // 7. Team & Rate Settings View (Admin Locked)
   // ==========================================
   function renderSettings() {
     const state = store.getState();
 
-    // Render Developers Table
     settingsDevTableBody.innerHTML = '';
     state.developers.forEach(dev => {
       const tr = document.createElement('tr');
@@ -589,7 +691,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </td>
         <td>${dev.role}</td>
         <td class="font-mono" style="font-weight: 700; color: var(--status-working);">
-          ${dev.currencySymbol}${dev.hourlyRate.toFixed(2)} / hr
+          ${dev.currencySymbol}${dev.hourlyRate.toFixed(2)} / hr (PIN: ${dev.pin})
         </td>
         <td>
           <span class="badge ${dev.status === 'working' ? 'badge-working' : (dev.status === 'break' ? 'badge-break' : 'badge-offline')}">
@@ -598,7 +700,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </td>
         <td>
           <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.78rem;" onclick="editDeveloperModal('${dev.id}')">
-            Edit Rate
+            Edit Rate & PIN
           </button>
           <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.78rem; margin-left: 6px;" onclick="deleteDeveloperConfirm('${dev.id}')">
             Remove
@@ -608,7 +710,6 @@ document.addEventListener('DOMContentLoaded', () => {
       settingsDevTableBody.appendChild(tr);
     });
 
-    // Render Projects Table
     settingsProjectTableBody.innerHTML = '';
     state.projects.forEach(p => {
       const tr = document.createElement('tr');
@@ -629,13 +730,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (newRate !== null) {
       const rateNum = parseFloat(newRate);
       if (!isNaN(rateNum) && rateNum >= 0) {
-        store.updateDeveloper(devId, { hourlyRate: rateNum });
-        showToast(`Updated hourly rate for ${dev.name} to ${dev.currencySymbol}${rateNum.toFixed(2)}/hr`, 'success');
+        const newPin = prompt(`Enter 4-digit PIN for ${dev.name}:`, dev.pin || '1234');
+        store.updateDeveloper(devId, { hourlyRate: rateNum, pin: newPin || dev.pin });
+        showToast(`Updated rate & PIN for ${dev.name}`, 'success');
         renderSettings();
-        renderUserSelector();
-        renderClockTerminal();
-      } else {
-        alert('Invalid hourly rate entered.');
       }
     }
   };
@@ -646,12 +744,9 @@ document.addEventListener('DOMContentLoaded', () => {
       store.deleteDeveloper(devId);
       showToast(`${dev.name} removed from team roster`, 'info');
       renderSettings();
-      renderUserSelector();
-      renderClockTerminal();
     }
   };
 
-  // Database Backup, Import, Reset
   btnExportBackup.addEventListener('click', () => {
     exporter.exportJSONBackup();
     showToast('Database backup downloaded', 'success');
@@ -679,27 +774,21 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   btnResetData.addEventListener('click', () => {
-    if (confirm('Reset all developers and attendance records back to initial default demo data?')) {
+    if (confirm('Reset database back to initial default demo data?')) {
       store.resetToDefault();
       showToast('Database reset to defaults', 'info');
       renderAll();
     }
   });
 
-  // ==========================================
-  // 8. Modals Handling (Add Dev, Manual Entry, Add Project)
-  // ==========================================
+  // Modals handling
   const modalAddDev = document.getElementById('modal-add-dev');
   const formAddDev = document.getElementById('form-add-dev');
   const btnCloseAddDev = document.getElementById('btn-close-add-dev');
   const btnCancelAddDev = document.getElementById('btn-cancel-add-dev');
 
-  btnOpenAddDev.addEventListener('click', () => {
-    modalAddDev.classList.add('active');
-  });
-  [btnCloseAddDev, btnCancelAddDev].forEach(b => b.addEventListener('click', () => {
-    modalAddDev.classList.remove('active');
-  }));
+  btnOpenAddDev.addEventListener('click', () => modalAddDev.classList.add('active'));
+  [btnCloseAddDev, btnCancelAddDev].forEach(b => b.addEventListener('click', () => modalAddDev.classList.remove('active')));
 
   formAddDev.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -709,8 +798,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const currencySymbol = document.getElementById('dev-currency-input').value;
     const email = document.getElementById('dev-email-input').value.trim();
 
-    store.addDeveloper({ name, role, hourlyRate, currencySymbol, email });
-    showToast(`Added new team member: ${name}`, 'success');
+    const dev = store.addDeveloper({ name, role, hourlyRate, currencySymbol, email });
+    showToast(`Added ${name} (Default PIN: ${dev.pin})`, 'success');
     modalAddDev.classList.remove('active');
     formAddDev.reset();
     renderAll();
@@ -725,12 +814,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCancelManualEntry = document.getElementById('btn-cancel-manual-entry');
 
   btnOpenManualEntry.addEventListener('click', () => {
-    // Populate selects
     manualDevSelect.innerHTML = '';
-    store.getState().developers.forEach(d => {
+    const auth = store.getAuth();
+    const devList = store.isAdmin() ? store.getState().developers : [store.getDeveloperById(auth.devId)];
+
+    devList.forEach(d => {
       const opt = document.createElement('option');
       opt.value = d.id;
-      opt.textContent = `${d.name} (${d.currencySymbol}${d.hourlyRate}/hr)`;
+      opt.textContent = d.name;
       manualDevSelect.appendChild(opt);
     });
 
@@ -746,9 +837,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modalManualEntry.classList.add('active');
   });
 
-  [btnCloseManualEntry, btnCancelManualEntry].forEach(b => b.addEventListener('click', () => {
-    modalManualEntry.classList.remove('active');
-  }));
+  [btnCloseManualEntry, btnCancelManualEntry].forEach(b => b.addEventListener('click', () => modalManualEntry.classList.remove('active')));
 
   formManualEntry.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -780,24 +869,20 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     store.addAttendanceRecord(rec);
-    showToast(`Added manual timesheet record for ${dev.name} (${location.toUpperCase()})`, 'success');
+    showToast(`Saved timesheet record for ${dev.name}`, 'success');
     modalManualEntry.classList.remove('active');
     formManualEntry.reset();
     renderTimesheetsAndPayroll();
   });
 
-  // Add Project Modal
+  // Project Modal
   const modalAddProject = document.getElementById('modal-add-project');
   const formAddProject = document.getElementById('form-add-project');
   const btnCloseAddProject = document.getElementById('btn-close-add-project');
   const btnCancelAddProject = document.getElementById('btn-cancel-add-project');
 
-  btnOpenAddProject.addEventListener('click', () => {
-    modalAddProject.classList.add('active');
-  });
-  [btnCloseAddProject, btnCancelAddProject].forEach(b => b.addEventListener('click', () => {
-    modalAddProject.classList.remove('active');
-  }));
+  btnOpenAddProject.addEventListener('click', () => modalAddProject.classList.add('active'));
+  [btnCloseAddProject, btnCancelAddProject].forEach(b => b.addEventListener('click', () => modalAddProject.classList.remove('active')));
 
   formAddProject.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -813,9 +898,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // ==========================================
-  // 9. Toast Notification Engine
-  // ==========================================
+  // Toast
   function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
@@ -826,7 +909,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (type === 'warning') {
       iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
     } else {
-      iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+      iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
     }
 
     toast.innerHTML = `${iconSvg} <span>${message}</span>`;
@@ -840,20 +923,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 3500);
   }
 
-  // ==========================================
-  // Master Render Coordinator
-  // ==========================================
+  // Master Render
   function renderAll() {
-    renderUserSelector();
     renderProjectDropdowns();
     populatePayrollDevFilter();
     renderClockTerminal();
     renderAttendanceBoard();
     renderTimesheetsAndPayroll();
     renderSettings();
+    updateHeaderAuthProfile();
   }
 
-  // Initialization
   initHeaderClock();
+  checkAuth();
   renderAll();
 });

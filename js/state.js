@@ -1,12 +1,14 @@
 /**
- * DevTrack - State Management Store
- * Handles persistence, team rosters, attendance records, active sessions, and reactivity.
+ * DevTrack - State Management Store with PIN Protection & Confidential Rates
+ * Handles persistence, team rosters, PIN authentication, and role permissions.
  */
 
-const STORAGE_KEY = 'devtrack_app_state_v1';
+const STORAGE_KEY = 'devtrack_app_state_v2';
+const SESSION_AUTH_KEY = 'devtrack_active_session_auth';
 
-// Default initial state if none exists in localStorage
+// Default initial state
 const DEFAULT_INITIAL_STATE = {
+  adminPin: '9999', // Default Admin Master PIN
   activeDeveloperId: 'dev-1',
   currency: 'USD',
   currencySymbol: '$',
@@ -15,19 +17,21 @@ const DEFAULT_INITIAL_STATE = {
       id: 'dev-1',
       name: 'Alex Rivera',
       role: 'Lead Full-Stack Developer',
+      pin: '1234',
       hourlyRate: 35.00,
       currency: 'USD',
       currencySymbol: '$',
       avatarColor: '#6366f1',
       initials: 'AR',
       email: 'alex.rivera@diverseideas.de',
-      status: 'offline', // 'working' | 'break' | 'offline'
+      status: 'offline',
       activeSession: null
     },
     {
       id: 'dev-2',
       name: 'Maria Santos',
       role: 'Senior Frontend Engineer',
+      pin: '2345',
       hourlyRate: 28.00,
       currency: 'USD',
       currencySymbol: '$',
@@ -41,6 +45,7 @@ const DEFAULT_INITIAL_STATE = {
       id: 'dev-3',
       name: 'Kenji Takahashi',
       role: 'Backend & Systems Engineer',
+      pin: '3456',
       hourlyRate: 30.00,
       currency: 'USD',
       currencySymbol: '$',
@@ -54,6 +59,7 @@ const DEFAULT_INITIAL_STATE = {
       id: 'dev-4',
       name: 'Chloe Gomez',
       role: 'UI/UX & QA Specialist',
+      pin: '4567',
       hourlyRate: 22.00,
       currency: 'USD',
       currencySymbol: '$',
@@ -71,7 +77,6 @@ const DEFAULT_INITIAL_STATE = {
     { id: 'proj-4', name: 'Mobile App Optimization', code: 'MOBI' },
     { id: 'proj-5', name: 'Internal Tooling & Automation', code: 'TOOL' }
   ],
-  // Sample historical records
   attendanceRecords: [
     {
       id: 'rec-101',
@@ -80,12 +85,12 @@ const DEFAULT_INITIAL_STATE = {
       startTime: new Date(Date.now() - 86400000 - 8 * 3600000).toISOString(),
       endTime: new Date(Date.now() - 86400000).toISOString(),
       breakDurationMinutes: 60,
-      workedMinutes: 420, // 7.0 hours
+      workedMinutes: 420,
       hourlyRate: 35.00,
       currencySymbol: '$',
       totalEarnings: 245.00,
       projectId: 'proj-2',
-      workLocation: 'onsite', // 'wfh' | 'onsite'
+      workLocation: 'onsite',
       taskNote: 'API endpoints implementation and testing'
     },
     {
@@ -95,7 +100,7 @@ const DEFAULT_INITIAL_STATE = {
       startTime: new Date(Date.now() - 86400000 - 8.5 * 3600000).toISOString(),
       endTime: new Date(Date.now() - 86400000).toISOString(),
       breakDurationMinutes: 45,
-      workedMinutes: 465, // 7.75 hours
+      workedMinutes: 465,
       hourlyRate: 28.00,
       currencySymbol: '$',
       totalEarnings: 217.00,
@@ -110,7 +115,7 @@ const DEFAULT_INITIAL_STATE = {
       startTime: new Date(Date.now() - 86400000 - 8 * 3600000).toISOString(),
       endTime: new Date(Date.now() - 86400000).toISOString(),
       breakDurationMinutes: 30,
-      workedMinutes: 450, // 7.5 hours
+      workedMinutes: 450,
       hourlyRate: 30.00,
       currencySymbol: '$',
       totalEarnings: 225.00,
@@ -125,24 +130,7 @@ class Store {
   constructor() {
     this.listeners = [];
     this.state = this.loadState();
-    this.pullServerState();
-  }
-
-  pullServerState() {
-    if (typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) {
-      fetch('/api/state')
-        .then(res => res.json())
-        .then(data => {
-          if (data && Array.isArray(data.developers)) {
-            this.state = data;
-            try {
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
-            } catch (e) {}
-            this.notify();
-          }
-        })
-        .catch(() => {});
-    }
+    this.auth = this.loadAuth();
   }
 
   loadState() {
@@ -164,17 +152,69 @@ class Store {
       console.error('Failed to persist state:', e);
     }
     this.notify();
+  }
 
-    // Background server sync if served via server.js
-    if (window.location.protocol.startsWith('http')) {
-      fetch('/api/state', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(this.state)
-      }).catch(() => {
-        // Silently ignore if standalone static file
+  loadAuth() {
+    try {
+      const auth = sessionStorage.getItem(SESSION_AUTH_KEY);
+      if (auth) return JSON.parse(auth);
+    } catch (e) {}
+    return { isAuthenticated: false, role: null, devId: null };
+  }
+
+  saveAuth(authObj) {
+    this.auth = authObj;
+    try {
+      sessionStorage.setItem(SESSION_AUTH_KEY, JSON.stringify(authObj));
+    } catch (e) {}
+    this.notify();
+  }
+
+  // Authentication & Verification
+  loginDeveloper(devId, pin) {
+    const dev = this.getDeveloperById(devId);
+    if (!dev) return { success: false, message: 'Developer not found' };
+
+    if (dev.pin === pin || pin === this.state.adminPin) {
+      const isAdmin = (pin === this.state.adminPin);
+      this.saveAuth({
+        isAuthenticated: true,
+        role: isAdmin ? 'admin' : 'developer',
+        devId: dev.id
       });
+      this.setActiveDeveloper(dev.id);
+      return { success: true, role: isAdmin ? 'admin' : 'developer', dev };
     }
+    return { success: false, message: 'Incorrect PIN code' };
+  }
+
+  loginAdmin(pin) {
+    if (pin === this.state.adminPin) {
+      this.saveAuth({
+        isAuthenticated: true,
+        role: 'admin',
+        devId: null
+      });
+      return { success: true };
+    }
+    return { success: false, message: 'Incorrect Admin PIN' };
+  }
+
+  logout() {
+    this.saveAuth({ isAuthenticated: false, role: null, devId: null });
+  }
+
+  getAuth() {
+    return this.auth;
+  }
+
+  isAdmin() {
+    return this.auth && this.auth.isAuthenticated && this.auth.role === 'admin';
+  }
+
+  setAdminPin(newPin) {
+    this.state.adminPin = newPin;
+    this.saveState();
   }
 
   subscribe(listener) {
@@ -185,7 +225,7 @@ class Store {
   }
 
   notify() {
-    this.listeners.forEach(fn => fn(this.state));
+    this.listeners.forEach(fn => fn(this.state, this.auth));
   }
 
   getState() {
@@ -194,6 +234,9 @@ class Store {
 
   // Developer getters & mutations
   getActiveDeveloper() {
+    if (this.auth.role === 'developer' && this.auth.devId) {
+      return this.getDeveloperById(this.auth.devId);
+    }
     return this.state.developers.find(d => d.id === this.state.activeDeveloperId) || this.state.developers[0];
   }
 
@@ -216,6 +259,7 @@ class Store {
       id,
       name: devData.name,
       role: devData.role || 'Software Developer',
+      pin: devData.pin || '1234',
       hourlyRate: parseFloat(devData.hourlyRate) || 25.00,
       currency: devData.currency || 'USD',
       currencySymbol: devData.currencySymbol || '$',
@@ -247,7 +291,7 @@ class Store {
     this.saveState();
   }
 
-  // Project getters & mutations
+  // Projects
   getProjects() {
     return this.state.projects;
   }
