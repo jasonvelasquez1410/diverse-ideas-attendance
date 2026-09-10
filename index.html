@@ -30,19 +30,23 @@
         </div>
       </div>
 
-      <!-- Navigation Tabs -->
+      <!-- Navigation Tabs (Sprout HR Suite) -->
       <nav class="nav-tabs" aria-label="Main Navigation">
         <button class="nav-tab active" data-tab="tab-clock" id="nav-btn-clock">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-          <span>Terminal</span>
+          <span>DTR Terminal</span>
         </button>
         <button class="nav-tab" data-tab="tab-attendance" id="nav-btn-attendance">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
           <span>Live Attendance</span>
         </button>
+        <button class="nav-tab" data-tab="tab-leaves" id="nav-btn-leaves">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          <span>Leaves & Requests</span>
+        </button>
         <button class="nav-tab" data-tab="tab-payroll" id="nav-btn-payroll">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-          <span>Timesheets & Payroll</span>
+          <span>Timesheets & Payday</span>
         </button>
         <button class="nav-tab" data-tab="tab-settings" id="nav-btn-settings">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
@@ -217,8 +221,8 @@
     <section id="tab-attendance" class="tab-pane">
       <div class="section-header">
         <div class="section-title-group">
-          <h1>Live Attendance Board</h1>
-          <p>Real-time status overview of all developers across the team.</p>
+          <h1>Live Team Attendance</h1>
+          <p>Real-time presence and shift status overview of all developers.</p>
         </div>
       </div>
 
@@ -250,19 +254,100 @@
 
         <div class="glass-card stat-card">
           <div class="stat-header">
-            <span class="stat-label">Today's Estimated Payroll</span>
+            <span class="stat-label">Team Shift Status</span>
             <div class="stat-icon-wrapper" style="color: var(--status-working);">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
             </div>
           </div>
-          <div class="stat-value" id="stat-today-payroll" style="color: var(--status-working);">$0.00</div>
-          <div class="stat-footer">Calculated by individual hourly rates</div>
+          <div class="stat-value" id="stat-today-payroll" style="color: var(--status-working);">Standard 8h</div>
+          <div class="stat-footer">Hybrid: Mondays WFH • Tue-Fri Onsite</div>
         </div>
       </div>
 
       <!-- Live Attendance Developer Roster Grid -->
       <div class="attendance-grid" id="attendance-grid">
         <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- ----------------------------------------
+         TAB 3: Sprout HR Leaves & Requests Center
+         ---------------------------------------- -->
+    <section id="tab-leaves" class="tab-pane">
+      <div class="section-header">
+        <div class="section-title-group">
+          <h1>Leaves, COA & Overtime Center</h1>
+          <p>File official leave requests, dispute missed timelogs (COA), or apply for overtime.</p>
+        </div>
+
+        <div class="toolbar-actions">
+          <button class="btn btn-primary" id="btn-open-file-request">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            + File New Application
+          </button>
+        </div>
+      </div>
+
+      <!-- Sprout HR Leave Credit Balances -->
+      <div class="grid-4" style="margin-bottom: 28px;">
+        <div class="glass-card stat-card">
+          <span class="stat-label">Vacation Leave (VL)</span>
+          <div class="stat-value" id="credit-vl" style="color: var(--accent-primary);">12 Days</div>
+          <div class="stat-footer">Available Balance</div>
+        </div>
+        <div class="glass-card stat-card">
+          <span class="stat-label">Sick Leave (SL)</span>
+          <div class="stat-value" id="credit-sl" style="color: var(--accent-cyan);">10 Days</div>
+          <div class="stat-footer">Medical & Emergency</div>
+        </div>
+        <div class="glass-card stat-card">
+          <span class="stat-label">Emergency Leave (EL)</span>
+          <div class="stat-value" id="credit-el" style="color: var(--status-break);">5 Days</div>
+          <div class="stat-footer">Personal emergency</div>
+        </div>
+        <div class="glass-card stat-card">
+          <span class="stat-label">Schedule Mode</span>
+          <div class="stat-value" style="font-size: 1.35rem; color: var(--status-working);">Hybrid WFH</div>
+          <div class="stat-footer">Mondays Home • Tue-Fri Office</div>
+        </div>
+      </div>
+
+      <!-- Applications History Table & Philippine Holidays Grid -->
+      <div class="grid-2">
+        <!-- Requests History Table -->
+        <div class="glass-card" style="grid-column: span 2;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="font-family: var(--font-heading); font-size: 1.15rem;">My Applications & Approvals (Sprout Hub)</h3>
+          </div>
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Request Type</th>
+                  <th>Developer</th>
+                  <th>Date Requested</th>
+                  <th>Period / Duration</th>
+                  <th>Reason</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="requests-table-body">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Philippine Holidays & Company Calendar -->
+        <div class="glass-card" style="grid-column: span 2; margin-top: 12px;">
+          <h3 style="font-family: var(--font-heading); font-size: 1.15rem; margin-bottom: 16px;">
+            🇵🇭 2026 Philippine Official Holidays & Work Calendar
+          </h3>
+          <div class="grid-4" id="holidays-grid">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
       </div>
     </section>
 
@@ -472,6 +557,63 @@
   <!-- ==========================================
        MODALS
        ========================================== -->
+
+  <!-- Modal: File Sprout Application (Leave / COA / Overtime) -->
+  <div class="modal-overlay" id="modal-file-request">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">File Application (Sprout HR Hub)</h3>
+        <button class="modal-close-btn" id="btn-close-file-request">&times;</button>
+      </div>
+      <form id="form-file-request">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="req-type-select">Application Type *</label>
+            <select id="req-type-select" class="form-control" required>
+              <option value="Leave">🌴 Leave Application (Vacation / Sick / Emergency)</option>
+              <option value="COA">📝 Certificate of Attendance (COA / Missed Timelog)</option>
+              <option value="Overtime">⏰ Overtime Request (OT Pre/Post Shift)</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="req-subtype-group">
+            <label class="form-label" for="req-subtype-select">Leave Category</label>
+            <select id="req-subtype-select" class="form-control">
+              <option value="Vacation Leave">Vacation Leave (VL)</option>
+              <option value="Sick Leave">Sick Leave (SL)</option>
+              <option value="Emergency Leave">Emergency Leave (EL)</option>
+              <option value="Bereavement Leave">Bereavement Leave</option>
+            </select>
+          </div>
+
+          <div style="display: flex; gap: 16px;">
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="req-start-date">Start Date / Date *</label>
+              <input type="date" id="req-start-date" class="form-control" required>
+            </div>
+            <div class="form-group" style="flex: 1;" id="req-end-date-group">
+              <label class="form-label" for="req-end-date">End Date</label>
+              <input type="date" id="req-end-date" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group" id="req-time-group" style="display: none;">
+            <label class="form-label" for="req-time-input">Actual Time / OT Hours</label>
+            <input type="text" id="req-time-input" class="form-control" placeholder="e.g. 05:00 PM (for COA) or 2.5 hrs (for OT)">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="req-reason-input">Reason & Justification *</label>
+            <textarea id="req-reason-input" class="form-control" rows="3" placeholder="Provide detailed explanation for manager review..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-file-request">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Application</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- Modal: Add Developer -->
   <div class="modal-overlay" id="modal-add-dev">

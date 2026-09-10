@@ -25,7 +25,8 @@ const DEFAULT_INITIAL_STATE = {
       initials: 'AR',
       email: 'alex.rivera@diverseideas.de',
       status: 'offline',
-      activeSession: null
+      activeSession: null,
+      leaveCredits: { vacation: 12, sick: 10, emergency: 5 }
     },
     {
       id: 'dev-2',
@@ -39,7 +40,8 @@ const DEFAULT_INITIAL_STATE = {
       initials: 'MS',
       email: 'maria.santos@diverseideas.de',
       status: 'offline',
-      activeSession: null
+      activeSession: null,
+      leaveCredits: { vacation: 15, sick: 10, emergency: 5 }
     },
     {
       id: 'dev-3',
@@ -53,7 +55,8 @@ const DEFAULT_INITIAL_STATE = {
       initials: 'KT',
       email: 'kenji.t@diverseideas.de',
       status: 'offline',
-      activeSession: null
+      activeSession: null,
+      leaveCredits: { vacation: 10, sick: 8, emergency: 5 }
     },
     {
       id: 'dev-4',
@@ -67,7 +70,8 @@ const DEFAULT_INITIAL_STATE = {
       initials: 'CG',
       email: 'chloe.g@diverseideas.de',
       status: 'offline',
-      activeSession: null
+      activeSession: null,
+      leaveCredits: { vacation: 14, sick: 10, emergency: 5 }
     }
   ],
   projects: [
@@ -76,6 +80,56 @@ const DEFAULT_INITIAL_STATE = {
     { id: 'proj-3', name: 'Accounting & Payroll Module', code: 'ACCT' },
     { id: 'proj-4', name: 'Mobile App Optimization', code: 'MOBI' },
     { id: 'proj-5', name: 'Internal Tooling & Automation', code: 'TOOL' }
+  ],
+  // Sprout HR Requests (Leave, Certificate of Attendance COA, Overtime OT)
+  requests: [
+    {
+      id: 'req-201',
+      developerId: 'dev-1',
+      type: 'Leave', // 'Leave' | 'COA' | 'Overtime'
+      subType: 'Vacation Leave',
+      startDate: '2026-09-18',
+      endDate: '2026-09-19',
+      days: 2,
+      reason: 'Family milestone gathering',
+      status: 'Approved',
+      dateFiled: '2026-09-08'
+    },
+    {
+      id: 'req-202',
+      developerId: 'dev-2',
+      type: 'COA',
+      subType: 'Missed Clock OUT',
+      startDate: '2026-09-09',
+      hours: '05:00 PM',
+      reason: 'Internet power fluctuation at home office',
+      status: 'Approved',
+      dateFiled: '2026-09-10'
+    },
+    {
+      id: 'req-203',
+      developerId: 'dev-3',
+      type: 'Overtime',
+      subType: 'Post-shift Overtime',
+      startDate: '2026-09-10',
+      hours: 2.5,
+      reason: 'Critical database indexing sprint for JETZ release',
+      status: 'Pending',
+      dateFiled: '2026-09-10'
+    }
+  ],
+  // Philippine Holidays
+  holidays: [
+    { date: '2026-01-01', name: 'New Year’s Day', type: 'Regular Holiday' },
+    { date: '2026-04-02', name: 'Maundy Thursday', type: 'Regular Holiday' },
+    { date: '2026-04-03', name: 'Good Friday', type: 'Regular Holiday' },
+    { date: '2026-04-09', name: 'Araw ng Kagitingan', type: 'Regular Holiday' },
+    { date: '2026-05-01', name: 'Labor Day', type: 'Regular Holiday' },
+    { date: '2026-06-12', name: 'Independence Day', type: 'Regular Holiday' },
+    { date: '2026-08-31', name: 'National Heroes Day', type: 'Regular Holiday' },
+    { date: '2026-11-30', name: 'Bonifacio Day', type: 'Regular Holiday' },
+    { date: '2026-12-25', name: 'Christmas Day', type: 'Regular Holiday' },
+    { date: '2026-12-30', name: 'Rizal Day', type: 'Regular Holiday' }
   ],
   attendanceRecords: [
     {
@@ -318,6 +372,45 @@ class Store {
   deleteAttendanceRecord(id) {
     this.state.attendanceRecords = this.state.attendanceRecords.filter(r => r.id !== id);
     this.saveState();
+  }
+
+  // Leave & Request Management (Sprout HR Style)
+  getRequests(devId = null) {
+    if (devId && devId !== 'all') {
+      return this.state.requests.filter(r => r.developerId === devId);
+    }
+    return this.state.requests;
+  }
+
+  addRequest(reqData) {
+    const newReq = {
+      id: 'req-' + Date.now(),
+      developerId: reqData.developerId,
+      type: reqData.type, // 'Leave' | 'COA' | 'Overtime'
+      subType: reqData.subType || reqData.type,
+      startDate: reqData.startDate,
+      endDate: reqData.endDate || reqData.startDate,
+      days: reqData.days || 1,
+      hours: reqData.hours || null,
+      reason: reqData.reason,
+      status: 'Pending',
+      dateFiled: new Date().toISOString().split('T')[0]
+    };
+    this.state.requests.unshift(newReq);
+    this.saveState();
+    return newReq;
+  }
+
+  updateRequestStatus(reqId, status) {
+    const req = this.state.requests.find(r => r.id === reqId);
+    if (req) {
+      req.status = status;
+      this.saveState();
+    }
+  }
+
+  getHolidays() {
+    return this.state.holidays || [];
   }
 
   // Backup, Restore & Reset

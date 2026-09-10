@@ -249,6 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (targetPane) targetPane.classList.add('active');
 
       if (targetPaneId === 'tab-attendance') renderAttendanceBoard();
+      if (targetPaneId === 'tab-leaves') renderLeavesAndRequests();
       if (targetPaneId === 'tab-payroll') renderTimesheetsAndPayroll();
       if (targetPaneId === 'tab-settings') renderSettings();
     });
@@ -469,6 +470,18 @@ document.addEventListener('DOMContentLoaded', () => {
       renderTimesheetsAndPayroll();
     }
   });
+
+  // Master Render
+  function renderAll() {
+    renderProjectDropdowns();
+    populatePayrollDevFilter();
+    renderClockTerminal();
+    renderAttendanceBoard();
+    renderLeavesAndRequests();
+    renderTimesheetsAndPayroll();
+    renderSettings();
+    updateHeaderAuthProfile();
+  }
 
   terminalProjectSelect.addEventListener('change', () => {
     const dev = store.getActiveDeveloper();
@@ -978,16 +991,173 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 3500);
   }
 
-  // Master Render
-  function renderAll() {
-    renderProjectDropdowns();
-    populatePayrollDevFilter();
-    renderClockTerminal();
-    renderAttendanceBoard();
-    renderTimesheetsAndPayroll();
-    renderSettings();
-    updateHeaderAuthProfile();
+  // ==========================================
+  // Leaves & Requests View (Sprout HR Module)
+  // ==========================================
+  const requestsTableBody = document.getElementById('requests-table-body');
+  const holidaysGrid = document.getElementById('holidays-grid');
+  const creditVl = document.getElementById('credit-vl');
+  const creditSl = document.getElementById('credit-sl');
+  const creditEl = document.getElementById('credit-el');
+  const btnOpenFileRequest = document.getElementById('btn-open-file-request');
+  const modalFileRequest = document.getElementById('modal-file-request');
+  const formFileRequest = document.getElementById('form-file-request');
+  const btnCloseFileRequest = document.getElementById('btn-close-file-request');
+  const btnCancelFileRequest = document.getElementById('btn-cancel-file-request');
+  const reqTypeSelect = document.getElementById('req-type-select');
+  const reqSubtypeGroup = document.getElementById('req-subtype-group');
+  const reqEndDateGroup = document.getElementById('req-end-date-group');
+  const reqTimeGroup = document.getElementById('req-time-group');
+
+  function renderLeavesAndRequests() {
+    const auth = store.getAuth();
+    const activeDev = store.getActiveDeveloper();
+
+    // Render Leave Balances
+    if (activeDev && activeDev.leaveCredits) {
+      creditVl.textContent = `${activeDev.leaveCredits.vacation} Days`;
+      creditSl.textContent = `${activeDev.leaveCredits.sick} Days`;
+      creditEl.textContent = `${activeDev.leaveCredits.emergency} Days`;
+    }
+
+    // Render Requests Table
+    const requests = store.isAdmin() ? store.getRequests('all') : store.getRequests(auth.devId);
+    requestsTableBody.innerHTML = '';
+
+    if (requests.length === 0) {
+      requestsTableBody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 28px;">
+            No filed applications found. Click <strong>+ File New Application</strong> above to file a Leave, COA, or Overtime request.
+          </td>
+        </tr>
+      `;
+    } else {
+      requests.forEach(req => {
+        const dev = store.getDeveloperById(req.developerId) || { name: 'Unknown', initials: '?' };
+        const tr = document.createElement('tr');
+        
+        let typeBadgeClass = 'badge-working';
+        if (req.type === 'COA') typeBadgeClass = 'badge-break';
+        if (req.type === 'Overtime') typeBadgeClass = 'badge-working';
+
+        let statusBadge = `<span class="badge ${req.status === 'Approved' ? 'badge-working' : (req.status === 'Pending' ? 'badge-break' : 'badge-offline')}">${req.status}</span>`;
+
+        let actionBtns = '-';
+        if (store.isAdmin() && req.status === 'Pending') {
+          actionBtns = `
+            <button class="btn btn-success" style="padding: 4px 8px; font-size: 0.72rem;" onclick="approveRequest('${req.id}')">Approve</button>
+            <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.72rem; margin-left: 4px;" onclick="rejectRequest('${req.id}')">Reject</button>
+          `;
+        }
+
+        tr.innerHTML = `
+          <td>
+            <div style="font-weight: 700; color: var(--text-primary);">${req.type}</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">${req.subType}</div>
+          </td>
+          <td>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--accent-primary); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; color: white;">
+                ${dev.initials}
+              </div>
+              <span>${dev.name}</span>
+            </div>
+          </td>
+          <td class="font-mono">${req.dateFiled}</td>
+          <td class="font-mono">${req.startDate} ${req.endDate && req.endDate !== req.startDate ? 'to ' + req.endDate : (req.hours ? '(' + req.hours + ')' : '')}</td>
+          <td style="max-width: 220px; font-size: 0.82rem; color: var(--text-secondary);">${req.reason}</td>
+          <td>${statusBadge}</td>
+          <td>${actionBtns}</td>
+        `;
+        requestsTableBody.appendChild(tr);
+      });
+    }
+
+    // Render Philippine Holidays Grid
+    const holidays = store.getHolidays();
+    holidaysGrid.innerHTML = '';
+    holidays.forEach(h => {
+      const card = document.createElement('div');
+      card.className = 'glass-card';
+      card.style.padding = '14px 16px';
+      card.style.borderRadius = 'var(--radius-md)';
+      card.innerHTML = `
+        <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-cyan); font-weight: 700;">${h.date}</div>
+        <div style="font-weight: 700; font-size: 0.9rem; margin-top: 4px; color: var(--text-primary);">${h.name}</div>
+        <div style="font-size: 0.72rem; color: var(--status-working); margin-top: 2px;">🇵🇭 ${h.type}</div>
+      `;
+      holidaysGrid.appendChild(card);
+    });
   }
+
+  window.approveRequest = function(reqId) {
+    store.updateRequestStatus(reqId, 'Approved');
+    showToast('Application Approved successfully!', 'success');
+    renderLeavesAndRequests();
+  };
+
+  window.rejectRequest = function(reqId) {
+    store.updateRequestStatus(reqId, 'Rejected');
+    showToast('Application Rejected.', 'info');
+    renderLeavesAndRequests();
+  };
+
+  // Request Modal Form Handlers
+  btnOpenFileRequest.addEventListener('click', () => {
+    document.getElementById('req-start-date').value = new Date().toISOString().split('T')[0];
+    modalFileRequest.classList.add('active');
+  });
+
+  [btnCloseFileRequest, btnCancelFileRequest].forEach(b => b.addEventListener('click', () => {
+    modalFileRequest.classList.remove('active');
+  }));
+
+  reqTypeSelect.addEventListener('change', () => {
+    const val = reqTypeSelect.value;
+    if (val === 'Leave') {
+      reqSubtypeGroup.style.display = 'block';
+      reqEndDateGroup.style.display = 'block';
+      reqTimeGroup.style.display = 'none';
+    } else if (val === 'COA') {
+      reqSubtypeGroup.style.display = 'none';
+      reqEndDateGroup.style.display = 'none';
+      reqTimeGroup.style.display = 'block';
+      document.getElementById('req-time-input').placeholder = 'e.g. Missed Time OUT at 05:00 PM';
+    } else if (val === 'Overtime') {
+      reqSubtypeGroup.style.display = 'none';
+      reqEndDateGroup.style.display = 'none';
+      reqTimeGroup.style.display = 'block';
+      document.getElementById('req-time-input').placeholder = 'e.g. 2.5 hours post-shift';
+    }
+  });
+
+  formFileRequest.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const auth = store.getAuth();
+    const devId = auth.devId || store.getState().activeDeveloperId;
+    const type = reqTypeSelect.value;
+    const subType = (type === 'Leave') ? document.getElementById('req-subtype-select').value : type;
+    const startDate = document.getElementById('req-start-date').value;
+    const endDate = document.getElementById('req-end-date').value || startDate;
+    const hours = document.getElementById('req-time-input').value;
+    const reason = document.getElementById('req-reason-input').value.trim();
+
+    store.addRequest({
+      developerId: devId,
+      type,
+      subType,
+      startDate,
+      endDate,
+      hours,
+      reason
+    });
+
+    showToast(`Submitted ${type} application for approval!`, 'success');
+    modalFileRequest.classList.remove('active');
+    formFileRequest.reset();
+    renderLeavesAndRequests();
+  });
 
   initHeaderClock();
   checkAuth();
