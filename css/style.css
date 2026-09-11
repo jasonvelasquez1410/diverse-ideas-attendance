@@ -413,27 +413,186 @@ body {
   margin-top: 4px;
 }
 
-/* Grid Utilities */
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
+/* ==========================================================================
+   Responsive Breakpoints & Mobile Optimization (iOS, Tablet, Desktop)
+   ========================================================================== */
 
-.grid-3 {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-}
-
-.grid-4 {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-}
-
+/* Laptops & Tablets (<= 1024px) */
 @media (max-width: 1024px) {
-  .grid-2, .grid-3, .grid-4 {
+  .app-header {
+    height: auto;
+    padding: 10px 0;
+  }
+
+  .header-container {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .nav-tabs {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 4px;
+    justify-content: flex-start;
+  }
+
+  .nav-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-tab {
+    flex-shrink: 0;
+  }
+
+  .header-actions {
+    margin-left: auto;
+  }
+
+  .app-main {
+    padding: 24px 18px 48px;
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .grid-3 {
     grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .grid-2 {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}
+
+/* Mobile Devices & Small Tablets (<= 768px) */
+@media (max-width: 768px) {
+  :root {
+    --header-height: auto;
+  }
+
+  body {
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+
+  .app-main {
+    padding: 16px 12px 56px;
+  }
+
+  .section-header {
+    margin-bottom: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .section-title-group h1 {
+    font-size: 1.4rem;
+  }
+
+  .section-title-group p {
+    font-size: 0.84rem;
+  }
+
+  .toolbar-actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .toolbar-actions .btn {
+    flex: 1 1 calc(50% - 4px);
+    padding: 9px 12px;
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .stat-card {
+    padding: 16px 14px;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .stat-label {
+    font-size: 0.74rem;
+  }
+
+  /* Prevent iOS Safari auto-zoom on input focus */
+  input, select, textarea, .form-control {
+    font-size: 16px !important;
+  }
+}
+
+/* Compact Smartphones (<= 520px) */
+@media (max-width: 520px) {
+  .header-container {
+    padding: 0 12px;
+  }
+
+  .brand-title {
+    font-size: 1rem;
+  }
+
+  .brand-subtitle {
+    font-size: 0.65rem;
+  }
+
+  .brand-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .live-clock-pill {
+    display: none;
+  }
+
+  #btn-header-auth-switch {
+    padding: 4px 8px;
+    font-size: 0.74rem;
+  }
+
+  #header-user-avatar {
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 0.6rem !important;
+    margin-right: 4px !important;
+  }
+
+  .theme-toggle-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .nav-tab {
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    gap: 5px;
+  }
+
+  .nav-tab svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar-actions .btn {
+    flex: 1 1 100%;
   }
 }
