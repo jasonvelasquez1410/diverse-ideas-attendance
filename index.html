@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="DevTrack - Modern In-House Developer Attendance & Hourly Rate Payroll Dashboard for Diverse Ideas GMBH">
-  <title>DevTrack | Developer Attendance & Rate Tracker</title>
+  <title>DevTrack | Developer Attendance, Time Off & Payroll</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/components.css">
 </head>
@@ -19,10 +20,7 @@
       <!-- Logo & Company Brand -->
       <div class="brand">
         <div class="brand-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
-          </svg>
+          <img src="assets/logo.png" alt="DevTrack" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-md);">
         </div>
         <div class="brand-info">
           <span class="brand-title">DevTrack</span>
@@ -30,7 +28,7 @@
         </div>
       </div>
 
-      <!-- Navigation Tabs (Sprout HR Suite) -->
+      <!-- Navigation Tabs (Jibble / Sprout Suite) -->
       <nav class="nav-tabs" aria-label="Main Navigation">
         <button class="nav-tab active" data-tab="tab-clock" id="nav-btn-clock">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
@@ -42,7 +40,7 @@
         </button>
         <button class="nav-tab" data-tab="tab-leaves" id="nav-btn-leaves">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-          <span>Leaves & Requests</span>
+          <span>Time Off & Holidays</span>
         </button>
         <button class="nav-tab" data-tab="tab-payroll" id="nav-btn-payroll">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
@@ -50,7 +48,7 @@
         </button>
         <button class="nav-tab" data-tab="tab-settings" id="nav-btn-settings">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-          <span>Team & Rates</span>
+          <span>Settings</span>
         </button>
       </nav>
 
@@ -393,19 +391,23 @@
     </section>
 
     <!-- ----------------------------------------
-         TAB 3: Sprout HR Leaves & Requests Center
+         TAB 3: Time Off & Holidays Management Center (Jibble & Sprout Suite)
          ---------------------------------------- -->
     <section id="tab-leaves" class="tab-pane">
       <div class="section-header">
         <div class="section-title-group">
-          <h1>Leaves, COA & Overtime Center</h1>
-          <p>File official leave requests, dispute missed timelogs (COA), or apply for overtime.</p>
+          <h1>Time Off & Holidays</h1>
+          <p>Manage employee leaves, dispute missed timelogs (COA), overtime requests, and company holiday calendars.</p>
         </div>
 
         <div class="toolbar-actions">
+          <button class="btn btn-secondary" id="btn-open-add-holiday" title="Add a custom company or regional holiday">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            + Add Holiday
+          </button>
           <button class="btn btn-primary" id="btn-open-file-request">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            + File New Application
+            + File Application
           </button>
         </div>
       </div>
@@ -420,26 +422,29 @@
         <div class="glass-card stat-card">
           <span class="stat-label">Sick Leave (SL)</span>
           <div class="stat-value" id="credit-sl" style="color: var(--accent-cyan);">10 Days</div>
-          <div class="stat-footer">Medical & Emergency</div>
+          <div class="stat-footer">Medical & Health</div>
         </div>
         <div class="glass-card stat-card">
           <span class="stat-label">Emergency Leave (EL)</span>
           <div class="stat-value" id="credit-el" style="color: var(--status-break);">5 Days</div>
-          <div class="stat-footer">Personal emergency</div>
+          <div class="stat-footer">Personal Emergency</div>
         </div>
         <div class="glass-card stat-card">
           <span class="stat-label">Schedule Mode</span>
-          <div class="stat-value" style="font-size: 1.35rem; color: var(--status-working);">Hybrid WFH</div>
-          <div class="stat-footer">Mondays Home • Tue-Fri Office</div>
+          <div class="stat-value" id="stat-schedule-mode" style="font-size: 1.35rem; color: var(--status-working);">Hybrid WFH</div>
+          <div class="stat-footer" id="stat-schedule-sub">Mondays Home • Tue-Fri Office</div>
         </div>
       </div>
 
-      <!-- Applications History Table & Philippine Holidays Grid -->
+      <!-- Applications History Table & Official Holidays Grid -->
       <div class="grid-2">
         <!-- Requests History Table -->
         <div class="glass-card" style="grid-column: span 2;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <h3 style="font-family: var(--font-heading); font-size: 1.15rem;">My Applications & Approvals (Sprout Hub)</h3>
+            <h3 style="font-family: var(--font-heading); font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
+              📁 Time Off, COA & Overtime Applications
+            </h3>
+            <span style="font-size: 0.8rem; color: var(--text-secondary);">Real-time status updates</span>
           </div>
           <div class="table-responsive">
             <table class="custom-table">
@@ -447,9 +452,9 @@
                 <tr>
                   <th>Request Type</th>
                   <th>Developer</th>
-                  <th>Date Requested</th>
+                  <th>Date Filed</th>
                   <th>Period / Duration</th>
-                  <th>Reason</th>
+                  <th>Reason & Notes</th>
                   <th>Status</th>
                   <th>Action</th>
                 </tr>
@@ -461,11 +466,14 @@
           </div>
         </div>
 
-        <!-- Philippine Holidays & Company Calendar -->
+        <!-- Holidays & Work Calendar -->
         <div class="glass-card" style="grid-column: span 2; margin-top: 12px;">
-          <h3 style="font-family: var(--font-heading); font-size: 1.15rem; margin-bottom: 16px;">
-            🇵🇭 2026 Philippine Official Holidays & Work Calendar
-          </h3>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="font-family: var(--font-heading); font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
+              🇵🇭 Official Holidays & Company Calendar
+            </h3>
+            <span class="badge badge-working" style="font-size: 0.72rem;">2026 Calendar</span>
+          </div>
           <div class="grid-4" id="holidays-grid">
             <!-- Rendered by JS -->
           </div>
@@ -474,7 +482,7 @@
     </section>
 
     <!-- ----------------------------------------
-         TAB 3: Timesheets & Payroll Analytics (With Real-Time PHP Conversion)
+         TAB 4: Timesheets & Payroll Analytics (With Real-Time PHP Conversion)
          ---------------------------------------- -->
     <section id="tab-payroll" class="tab-pane">
       <div class="section-header">
@@ -679,51 +687,156 @@
     </section>
 
     <!-- ----------------------------------------
-         TAB 4: Team & Rates Management
+         TAB 5: Enterprise Settings & Configuration Center (Jibble Suite Style)
          ---------------------------------------- -->
     <section id="tab-settings" class="tab-pane">
       <div class="section-header">
         <div class="section-title-group">
-          <h1>Team & Rates Management</h1>
-          <p>Configure team members, hourly pay rates, projects, and database backups.</p>
-        </div>
-
-        <div class="toolbar-actions">
-          <button class="btn btn-primary" id="btn-open-add-dev">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
-            + Add Developer
-          </button>
+          <h1>Enterprise Settings Center</h1>
+          <p>Manage company profile, work schedules, team roster, hourly wages, projects, and database backups.</p>
         </div>
       </div>
 
-      <!-- Team Members Table -->
-      <div class="glass-card" style="margin-bottom: 32px;">
-        <h3 style="font-family: var(--font-heading); font-size: 1.15rem; margin-bottom: 16px;">Developer Roster & Pay Rates</h3>
-        <div class="table-responsive">
-          <table class="custom-table">
-            <thead>
-              <tr>
-                <th>Developer</th>
-                <th>Role</th>
-                <th>Hourly Rate</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="settings-dev-table-body">
-              <!-- Rendered by JS -->
-            </tbody>
-          </table>
-        </div>
+      <!-- Settings Sub-Navigation Tabs (Jibble Style) -->
+      <div class="settings-subnav">
+        <button class="settings-subtab-btn active" data-subtab="settings-view-org" id="subtab-btn-org">
+          <span>🏢</span> Organization Profile
+        </button>
+        <button class="settings-subtab-btn" data-subtab="settings-view-schedules" id="subtab-btn-schedules">
+          <span>⏰</span> Work Schedules & Hybrid Rules
+        </button>
+        <button class="settings-subtab-btn" data-subtab="settings-view-people" id="subtab-btn-people">
+          <span>👥</span> People & Pay Rates
+        </button>
+        <button class="settings-subtab-btn" data-subtab="settings-view-projects" id="subtab-btn-projects">
+          <span>📁</span> Projects & Activities
+        </button>
+        <button class="settings-subtab-btn" data-subtab="settings-view-data" id="subtab-btn-data">
+          <span>💾</span> Database & Backups
+        </button>
       </div>
 
-      <!-- Projects and Data Management Grid -->
-      <div class="grid-2">
-        <!-- Projects Manager -->
+      <!-- Subtab 1: Organization Profile -->
+      <div id="settings-view-org" class="settings-subpane active">
         <div class="glass-card">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <h3 style="font-family: var(--font-heading); font-size: 1.15rem;">Active Projects</h3>
-            <button class="btn btn-secondary" id="btn-open-add-project" style="padding: 6px 12px; font-size: 0.8rem;">
+          <h3 style="font-family: var(--font-heading); font-size: 1.15rem; margin-bottom: 8px;">🏢 Company Profile & Details</h3>
+          <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 20px;">
+            Set your organization's legal name, registered address, and voucher numbering scheme used on all payslips.
+          </p>
+
+          <form id="form-settings-org">
+            <div class="grid-2" style="gap: 16px;">
+              <div class="form-group">
+                <label class="form-label" for="setting-org-name">Company Legal Name *</label>
+                <input type="text" id="setting-org-name" class="form-control" value="Diverse Ideas GMBH" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="setting-org-industry">Industry / Sector</label>
+                <input type="text" id="setting-org-industry" class="form-control" value="Software Engineering & IT Consulting">
+              </div>
+              <div class="form-group" style="grid-column: span 2;">
+                <label class="form-label" for="setting-org-address">Company Address / Headquarters</label>
+                <input type="text" id="setting-org-address" class="form-control" value="Frankfurt, Germany • Global Remote Office">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="setting-org-tax">Tax ID / Registration Number</label>
+                <input type="text" id="setting-org-tax" class="form-control" value="DE-2026-DIV99">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="setting-org-prefix">Payslip Voucher Prefix</label>
+                <input type="text" id="setting-org-prefix" class="form-control" value="DIV" maxlength="6">
+              </div>
+            </div>
+
+            <div style="margin-top: 24px; display: flex; justify-content: flex-end;">
+              <button type="submit" class="btn btn-primary">
+                💾 Save Company Profile
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Subtab 2: Work Schedules & Hybrid Rules -->
+      <div id="settings-view-schedules" class="settings-subpane">
+        <div class="glass-card">
+          <h3 style="font-family: var(--font-heading); font-size: 1.15rem; margin-bottom: 8px;">⏰ Work Schedules & Hybrid Rules</h3>
+          <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 20px;">
+            Configure official shift hours, remote/WFH days, and attendance grace period.
+          </p>
+
+          <form id="form-settings-schedules">
+            <div class="grid-2" style="gap: 16px;">
+              <div class="form-group">
+                <label class="form-label" for="setting-shift-start">Official Shift Start Time</label>
+                <input type="time" id="setting-shift-start" class="form-control" value="08:00" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="setting-shift-end">Official Shift End Time</label>
+                <input type="time" id="setting-shift-end" class="form-control" value="17:00" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="setting-wfh-days">Designated Work-From-Home (WFH) Days</label>
+                <input type="text" id="setting-wfh-days" class="form-control" value="Monday" placeholder="e.g. Monday, Friday">
+                <span style="font-size: 0.74rem; color: var(--text-muted);">Terminal defaults to WFH mode on these days.</span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="setting-grace-mins">Grace Period (Minutes)</label>
+                <input type="number" id="setting-grace-mins" class="form-control" value="15" min="0" max="60">
+              </div>
+            </div>
+
+            <div style="margin-top: 24px; display: flex; justify-content: flex-end;">
+              <button type="submit" class="btn btn-primary">
+                💾 Save Schedule Policy
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Subtab 3: People & Rates -->
+      <div id="settings-view-people" class="settings-subpane">
+        <div class="glass-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <h3 style="font-family: var(--font-heading); font-size: 1.15rem;">👥 Developer Roster & Pay Rates</h3>
+              <p style="color: var(--text-secondary); font-size: 0.84rem; margin-top: 2px;">Manage hourly wages, 4-digit PIN access codes, and leave entitlements.</p>
+            </div>
+            <button class="btn btn-primary" id="btn-open-add-dev">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+              + Add Developer
+            </button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Developer</th>
+                  <th>Role</th>
+                  <th>Hourly Rate</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="settings-dev-table-body">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subtab 4: Projects & Activities -->
+      <div id="settings-view-projects" class="settings-subpane">
+        <div class="glass-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <h3 style="font-family: var(--font-heading); font-size: 1.15rem;">📁 Active Client Projects & Tags</h3>
+              <p style="color: var(--text-secondary); font-size: 0.84rem; margin-top: 2px;">Tracked projects developers can clock into.</p>
+            </div>
+            <button class="btn btn-secondary" id="btn-open-add-project" style="padding: 8px 14px; font-size: 0.86rem;">
               + New Project
             </button>
           </div>
@@ -742,15 +855,17 @@
             </table>
           </div>
         </div>
+      </div>
 
-        <!-- Database Backups & Import -->
+      <!-- Subtab 5: Database & Backups -->
+      <div id="settings-view-data" class="settings-subpane">
         <div class="glass-card">
-          <h3 style="font-family: var(--font-heading); font-size: 1.15rem; margin-bottom: 12px;">Database Backup & Sync</h3>
+          <h3 style="font-family: var(--font-heading); font-size: 1.15rem; margin-bottom: 8px;">💾 Database Backup, Restore & Reset</h3>
           <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 20px;">
             Save your attendance database to a JSON file or restore from a previous backup on another laptop.
           </p>
 
-          <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; flex-direction: column; gap: 12px; max-width: 480px;">
             <button class="btn btn-secondary" id="btn-export-backup" style="justify-content: flex-start;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
               Download JSON Database Backup
@@ -829,6 +944,41 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" id="btn-cancel-file-request">Cancel</button>
           <button type="submit" class="btn btn-primary">Submit Application</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add Custom Holiday (Admin) -->
+  <div class="modal-overlay" id="modal-add-holiday">
+    <div class="modal-dialog" style="max-width: 460px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Add Company / Regional Holiday</h3>
+        <button class="modal-close-btn" id="btn-close-add-holiday">&times;</button>
+      </div>
+      <form id="form-add-holiday">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="holiday-name-input">Holiday / Event Name *</label>
+            <input type="text" id="holiday-name-input" class="form-control" placeholder="e.g. Diverse Ideas Foundation Day" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="holiday-date-input">Holiday Date *</label>
+            <input type="date" id="holiday-date-input" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="holiday-type-select">Holiday Type / Classification</label>
+            <select id="holiday-type-select" class="form-control">
+              <option value="Company Holiday">🏢 Company Holiday (Diverse Ideas)</option>
+              <option value="Regular Holiday">🇵🇭 Regular Holiday (National)</option>
+              <option value="Special Non-Working Holiday">🇵🇭 Special Non-Working Holiday</option>
+              <option value="Regional / Local Holiday">📍 Regional / Local Holiday</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-add-holiday">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Holiday</button>
         </div>
       </form>
     </div>

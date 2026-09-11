@@ -15,6 +15,20 @@ const DEFAULT_INITIAL_STATE = {
   usdToPhpRate: 58.50, // Live USD to PHP exchange rate (PHP per 1 USD)
   lastRateUpdate: null,
   isLiveExchangeActive: true,
+  organization: {
+    companyName: 'Diverse Ideas GMBH',
+    industry: 'Software Engineering & IT Consulting',
+    address: 'Frankfurt, Germany • Global Remote Office',
+    taxId: 'DE-2026-DIV99',
+    voucherPrefix: 'DIV'
+  },
+  workSchedules: {
+    shiftStart: '08:00',
+    shiftEnd: '17:00',
+    wfhDays: ['Monday'],
+    onsiteDays: ['Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+    gracePeriodMins: 15
+  },
   developers: [
     {
       id: 'dev-1',
@@ -428,6 +442,55 @@ class Store {
 
   getHolidays() {
     return this.state.holidays || [];
+  }
+
+  addHoliday(holidayData) {
+    const holiday = {
+      date: holidayData.date,
+      name: holidayData.name,
+      type: holidayData.type || 'Company Holiday'
+    };
+    if (!this.state.holidays) this.state.holidays = [];
+    this.state.holidays.push(holiday);
+    this.state.holidays.sort((a, b) => new Date(a.date) - new Date(b.date));
+    this.saveState();
+    return holiday;
+  }
+
+  deleteHoliday(date, name) {
+    if (!this.state.holidays) return;
+    this.state.holidays = this.state.holidays.filter(h => !(h.date === date && h.name === name));
+    this.saveState();
+  }
+
+  getOrganization() {
+    return this.state.organization || {
+      companyName: 'Diverse Ideas GMBH',
+      industry: 'Software Engineering',
+      address: 'Frankfurt, Germany',
+      taxId: 'DE-2026-DIV99',
+      voucherPrefix: 'DIV'
+    };
+  }
+
+  updateOrganization(updates) {
+    this.state.organization = { ...this.getOrganization(), ...updates };
+    this.saveState();
+  }
+
+  getWorkSchedules() {
+    return this.state.workSchedules || {
+      shiftStart: '08:00',
+      shiftEnd: '17:00',
+      wfhDays: ['Monday'],
+      onsiteDays: ['Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      gracePeriodMins: 15
+    };
+  }
+
+  updateWorkSchedules(updates) {
+    this.state.workSchedules = { ...this.getWorkSchedules(), ...updates };
+    this.saveState();
   }
 
   // Backup, Restore & Reset

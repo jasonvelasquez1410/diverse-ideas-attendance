@@ -1104,10 +1104,95 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================================
-  // 7. Team & Rate Settings View (Admin Locked)
+  // 7. Enterprise Settings View (Jibble Suite Style)
   // ==========================================
+  function initSettingsSubtabs() {
+    const subtabBtns = document.querySelectorAll('.settings-subtab-btn');
+    const subpanes = document.querySelectorAll('.settings-subpane');
+
+    subtabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-subtab');
+        subtabBtns.forEach(b => b.classList.remove('active'));
+        subpanes.forEach(p => p.classList.remove('active'));
+
+        btn.classList.add('active');
+        const targetPane = document.getElementById(targetId);
+        if (targetPane) targetPane.classList.add('active');
+      });
+    });
+  }
+
+  function renderOrganizationSettings() {
+    const org = store.getOrganization();
+    const nameEl = document.getElementById('setting-org-name');
+    const indEl = document.getElementById('setting-org-industry');
+    const addrEl = document.getElementById('setting-org-address');
+    const taxEl = document.getElementById('setting-org-tax');
+    const prefixEl = document.getElementById('setting-org-prefix');
+
+    if (nameEl) nameEl.value = org.companyName || 'Diverse Ideas GMBH';
+    if (indEl) indEl.value = org.industry || '';
+    if (addrEl) addrEl.value = org.address || '';
+    if (taxEl) taxEl.value = org.taxId || '';
+    if (prefixEl) prefixEl.value = org.voucherPrefix || 'DIV';
+  }
+
+  const formSettingsOrg = document.getElementById('form-settings-org');
+  if (formSettingsOrg) {
+    formSettingsOrg.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const companyName = document.getElementById('setting-org-name').value.trim();
+      const industry = document.getElementById('setting-org-industry').value.trim();
+      const address = document.getElementById('setting-org-address').value.trim();
+      const taxId = document.getElementById('setting-org-tax').value.trim();
+      const voucherPrefix = document.getElementById('setting-org-prefix').value.trim().toUpperCase() || 'DIV';
+
+      store.updateOrganization({ companyName, industry, address, taxId, voucherPrefix });
+      showToast('Organization profile saved successfully!', 'success');
+      renderAll();
+    });
+  }
+
+  function renderScheduleSettings() {
+    const sched = store.getWorkSchedules();
+    const startEl = document.getElementById('setting-shift-start');
+    const endEl = document.getElementById('setting-shift-end');
+    const wfhEl = document.getElementById('setting-wfh-days');
+    const graceEl = document.getElementById('setting-grace-mins');
+
+    if (startEl) startEl.value = sched.shiftStart || '08:00';
+    if (endEl) endEl.value = sched.shiftEnd || '17:00';
+    if (wfhEl) wfhEl.value = Array.isArray(sched.wfhDays) ? sched.wfhDays.join(', ') : (sched.wfhDays || 'Monday');
+    if (graceEl) graceEl.value = sched.gracePeriodMins || 15;
+
+    // Update greeting weekday text & shift pill
+    const greetingWeekdayText = document.getElementById('greeting-weekday-text');
+    if (greetingWeekdayText) {
+      greetingWeekdayText.textContent = `Official Shift: ${sched.shiftStart || '08:00 AM'} – ${sched.shiftEnd || '05:00 PM'}`;
+    }
+  }
+
+  const formSettingsSchedules = document.getElementById('form-settings-schedules');
+  if (formSettingsSchedules) {
+    formSettingsSchedules.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const shiftStart = document.getElementById('setting-shift-start').value;
+      const shiftEnd = document.getElementById('setting-shift-end').value;
+      const rawWfh = document.getElementById('setting-wfh-days').value;
+      const wfhDays = rawWfh.split(',').map(s => s.trim()).filter(Boolean);
+      const gracePeriodMins = parseInt(document.getElementById('setting-grace-mins').value) || 15;
+
+      store.updateWorkSchedules({ shiftStart, shiftEnd, wfhDays, gracePeriodMins });
+      showToast('Work schedule & hybrid rules updated!', 'success');
+      renderAll();
+    });
+  }
+
   function renderSettings() {
     const state = store.getState();
+    renderOrganizationSettings();
+    renderScheduleSettings();
 
     settingsDevTableBody.innerHTML = '';
     state.developers.forEach(dev => {
@@ -1491,20 +1576,82 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Render Philippine Holidays Grid
+    // Render Philippine & Company Holidays Grid
     const holidays = store.getHolidays();
     holidaysGrid.innerHTML = '';
     holidays.forEach(h => {
+      const isCustom = h.type.includes('Company') || h.type.includes('Regional') || h.type.includes('Special');
+      const icon = h.type.includes('Company') ? '🏢' : '🇵🇭';
       const card = document.createElement('div');
-      card.className = 'glass-card';
-      card.style.padding = '14px 16px';
-      card.style.borderRadius = 'var(--radius-md)';
+      card.className = `holiday-card ${isCustom ? 'holiday-card-custom' : ''}`;
+      
+      const deleteBtnHtml = (store.isAdmin() || isCustom) 
+        ? `<button class="holiday-delete-btn" onclick="deleteHolidayConfirm('${h.date}', '${h.name.replace(/'/g, "\\'")}')" title="Delete holiday">🗑️</button>`
+        : '';
+
       card.innerHTML = `
-        <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-cyan); font-weight: 700;">${h.date}</div>
-        <div style="font-weight: 700; font-size: 0.9rem; margin-top: 4px; color: var(--text-primary);">${h.name}</div>
-        <div style="font-size: 0.72rem; color: var(--status-working); margin-top: 2px;">🇵🇭 ${h.type}</div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-cyan); font-weight: 700;">${h.date}</div>
+          ${deleteBtnHtml}
+        </div>
+        <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-primary); margin: 4px 0;">${h.name}</div>
+        <div style="font-size: 0.72rem; color: var(--status-working);">${icon} ${h.type}</div>
       `;
       holidaysGrid.appendChild(card);
+    });
+  }
+
+  window.deleteHolidayConfirm = function(date, name) {
+    if (confirm(`Remove holiday "${name}" on ${date}?`)) {
+      store.deleteHoliday(date, name);
+      showToast(`Removed holiday: ${name}`, 'info');
+      renderLeavesAndRequests();
+    }
+  };
+
+  // Custom Holiday Modal Handlers
+  const btnOpenAddHoliday = document.getElementById('btn-open-add-holiday');
+  const modalAddHoliday = document.getElementById('modal-add-holiday');
+  const formAddHoliday = document.getElementById('form-add-holiday');
+  const btnCloseAddHoliday = document.getElementById('btn-close-add-holiday');
+  const btnCancelAddHoliday = document.getElementById('btn-cancel-add-holiday');
+
+  if (btnOpenAddHoliday) {
+    btnOpenAddHoliday.addEventListener('click', () => {
+      if (!store.isAdmin()) {
+        const pin = prompt('Enter Admin Master PIN to add custom holidays:');
+        if (pin !== store.getState().adminPin) {
+          alert('Incorrect Admin PIN.');
+          return;
+        }
+        store.loginAdmin(pin);
+        updateHeaderAuthProfile();
+      }
+      document.getElementById('holiday-date-input').value = new Date().toISOString().split('T')[0];
+      modalAddHoliday.classList.add('active');
+    });
+  }
+
+  if (btnCloseAddHoliday && btnCancelAddHoliday) {
+    [btnCloseAddHoliday, btnCancelAddHoliday].forEach(b => b.addEventListener('click', () => {
+      modalAddHoliday.classList.remove('active');
+    }));
+  }
+
+  if (formAddHoliday) {
+    formAddHoliday.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('holiday-name-input').value.trim();
+      const date = document.getElementById('holiday-date-input').value;
+      const type = document.getElementById('holiday-type-select').value;
+
+      if (name && date) {
+        store.addHoliday({ name, date, type });
+        showToast(`Added holiday "${name}" on ${date}!`, 'success');
+        modalAddHoliday.classList.remove('active');
+        formAddHoliday.reset();
+        renderLeavesAndRequests();
+      }
     });
   }
 
@@ -1716,6 +1863,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   initHeaderClock();
+  initSettingsSubtabs();
   checkAuth();
   renderAll();
   fetchLiveExchangeRate(false);
