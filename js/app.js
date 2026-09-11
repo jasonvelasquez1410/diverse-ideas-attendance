@@ -1076,6 +1076,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  window.addEventListener('beforeprint', () => {
+    if (!modalPayslipPreview.classList.contains('active')) {
+      window.openPayslipModal();
+    }
+  });
+
   // ==========================================
   // 7. Team & Rate Settings View (Admin Locked)
   // ==========================================

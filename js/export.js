@@ -93,9 +93,15 @@ class ExportUtility {
 
   // Trigger Print Payroll Slip
   printPayrollReport() {
-    window.print();
+    if (window.openPayslipModal) {
+      window.openPayslipModal();
+    }
+    setTimeout(() => {
+      window.print();
+    }, 150);
   }
 }
 
 // Global export instance
 window.DevExport = new ExportUtility(window.DevStore, window.DevPayroll);
+

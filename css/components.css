@@ -1118,43 +1118,226 @@ select.form-control {
   margin-bottom: 8px;
 }
 
-/* Print Styles for Timesheet & Payroll Slips */
+/* ==========================================================================
+   Print Styles: Strictly 1 Single Page Official Payslip Voucher
+   ========================================================================== */
 @media print {
-  body {
-    background: white !important;
-    color: black !important;
+  @page {
+    size: A4 portrait;
+    margin: 8mm 12mm;
+  }
+
+  *, *::before, *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 10pt !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    width: 100% !important;
+    overflow: visible !important;
     background-image: none !important;
   }
-  .app-header, .toolbar-container, .clock-actions-row, .nav-tabs, .theme-toggle-btn, .auth-lock-overlay, .exchange-ticker-card, .toast-container, .modal-header, .modal-footer, .modal-close-btn {
+
+  /* Completely hide all website shell elements */
+  .app-header,
+  .main-content,
+  main,
+  section,
+  nav,
+  .nav-tabs,
+  .toolbar-container,
+  .clock-actions-row,
+  .auth-lock-overlay,
+  .exchange-ticker-card,
+  .toast-container,
+  .modal-header,
+  .modal-footer,
+  .modal-close-btn,
+  .theme-toggle-btn,
+  #modal-file-request,
+  #modal-edit-dev,
+  #modal-add-dev,
+  #modal-manual-entry,
+  #modal-add-project,
+  #modal-custom-rate {
     display: none !important;
   }
-  .modal-overlay {
-    position: static !important;
-    background: none !important;
+
+  /* Make ONLY the payslip modal container visible and format as 1 single sheet */
+  #modal-payslip-preview {
+    display: block !important;
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    background: #ffffff !important;
     backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
     padding: 0 !important;
+    margin: 0 !important;
+    z-index: 99999 !important;
+  }
+
+  #modal-payslip-preview .modal-dialog {
+    display: block !important;
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: #ffffff !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  #modal-payslip-preview .modal-body {
+    padding: 0 !important;
+    margin: 0 !important;
     display: block !important;
   }
-  .modal-dialog {
+
+  /* Clean, executive 1-page Payslip Voucher styling */
+  .payslip-voucher-card {
+    border: 1.5px solid #0f172a !important;
+    border-radius: 8px !important;
+    padding: 18px 22px !important;
+    background: #ffffff !important;
+    color: #000000 !important;
     box-shadow: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-after: avoid !important;
+    margin: 0 auto !important;
     max-width: 100% !important;
+  }
+
+  .payslip-voucher-header {
+    border-bottom: 2px solid #0f172a !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 14px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+  }
+
+  .payslip-voucher-header h2 {
+    font-size: 15pt !important;
+    font-weight: 800 !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  .payslip-voucher-header p {
+    font-size: 8.5pt !important;
+    color: #475569 !important;
+    margin-top: 2px !important;
+  }
+
+  .payslip-info-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px 16px !important;
+    padding: 10px 14px !important;
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .payslip-info-label {
+    font-size: 7.5pt !important;
+    text-transform: uppercase !important;
+    color: #64748b !important;
+    font-weight: 700 !important;
+  }
+
+  .payslip-info-value {
+    font-size: 9.5pt !important;
+    color: #000000 !important;
+    font-weight: 700 !important;
+  }
+
+  .payslip-table {
     width: 100% !important;
-    background: white !important;
-    border: none !important;
+    border-collapse: collapse !important;
+    margin: 12px 0 !important;
   }
-  .glass-card, .payslip-voucher-card, .payslip-info-grid, .payslip-net-banner {
-    border: 1px solid #999 !important;
-    box-shadow: none !important;
-    background: white !important;
-    color: black !important;
+
+  .payslip-table th {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+    font-size: 8pt !important;
+    text-transform: uppercase !important;
+    padding: 7px 10px !important;
+    border: 1px solid #cbd5e1 !important;
+    font-weight: 700 !important;
   }
-  .custom-table th, .custom-table td, .payslip-table th, .payslip-table td {
-    color: black !important;
-    border-color: #ddd !important;
-    background: white !important;
+
+  .payslip-table td {
+    padding: 8px 10px !important;
+    font-size: 9pt !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #000000 !important;
+    font-family: var(--font-mono) !important;
   }
-  .payslip-net-usd, .payslip-net-php, .payslip-info-value, strong {
-    color: black !important;
+
+  .payslip-net-banner {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    background: #f1f5f9 !important;
+    border: 1.5px solid #0f172a !important;
+    border-radius: 6px !important;
+    padding: 12px 18px !important;
+    margin-top: 14px !important;
+    page-break-inside: avoid !important;
+  }
+
+  .payslip-net-usd {
+    font-size: 15pt !important;
+    font-weight: 800 !important;
+    color: #000000 !important;
+    font-family: var(--font-heading) !important;
+  }
+
+  .payslip-net-php {
+    font-size: 13pt !important;
+    font-weight: 800 !important;
+    color: #15803d !important;
+    font-family: var(--font-mono) !important;
+  }
+
+  .payslip-signatures {
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 40px !important;
+    margin-top: 30px !important;
+    padding-top: 10px !important;
+    page-break-inside: avoid !important;
+  }
+
+  .payslip-sign-col {
+    flex: 1 !important;
+    text-align: center !important;
+    font-size: 8pt !important;
+    color: #334155 !important;
+  }
+
+  .payslip-sign-line {
+    height: 1px !important;
+    background: #000000 !important;
+    margin-bottom: 6px !important;
   }
 }
+
 
