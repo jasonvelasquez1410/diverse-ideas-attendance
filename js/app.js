@@ -194,7 +194,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const pin = authPinInput.value.trim();
     if (!pin) return;
 
-    if (selectedAuthDevId === 'admin' || pin === store.getState().adminPin) {
+    // 1. If Administrator profile is selected: MUST enter Admin Master PIN (9999)
+    if (selectedAuthDevId === 'admin') {
       const result = store.loginAdmin(pin);
       if (result.success) {
         authLockScreen.style.display = 'none';
@@ -202,35 +203,38 @@ document.addEventListener('DOMContentLoaded', () => {
         renderAll();
         return;
       } else {
-        authErrorMsg.textContent = '❌ Incorrect Admin Master PIN.';
+        authErrorMsg.textContent = '❌ Incorrect Admin Master PIN (9999).';
         authPinInput.value = '';
         authPinInput.focus();
         return;
       }
     }
 
+    // 2. If Staff profile is selected (Alex, Maria, Kenji, Chloe): MUST enter Developer's specific PIN
     const result = store.loginDeveloper(selectedAuthDevId, pin);
     if (result.success) {
       authLockScreen.style.display = 'none';
       showToast(`Welcome, ${result.dev.name}!`, 'success');
       renderAll();
     } else {
-      authErrorMsg.textContent = '❌ Incorrect PIN. Please try again.';
+      const targetDev = store.getDeveloperById(selectedAuthDevId);
+      const devName = targetDev ? targetDev.name.split(' ')[0] : 'Staff';
+      authErrorMsg.textContent = `❌ Incorrect PIN for ${devName}. (Admin 9999 is only for Administrator)`;
       authPinInput.value = '';
       authPinInput.focus();
     }
   });
 
   btnAdminLoginModal.addEventListener('click', () => {
-    const pin = prompt('Enter Admin Master PIN:');
+    const pin = prompt('Enter Admin Master PIN (9999):');
     if (pin !== null) {
-      const result = store.loginAdmin(pin);
+      const result = store.loginAdmin(pin.trim());
       if (result.success) {
         authLockScreen.style.display = 'none';
         showToast('Unlocked Admin Mode (Full Payroll & Rates Access)', 'success');
         renderAll();
       } else {
-        alert('Incorrect Admin PIN.');
+        alert('❌ Access Denied: Incorrect Admin PIN.');
       }
     }
   });

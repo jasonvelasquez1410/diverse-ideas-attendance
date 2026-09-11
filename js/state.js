@@ -245,22 +245,15 @@ class Store {
 
   // Authentication & Verification
   loginDeveloper(devId, pin) {
-    if (pin === this.state.adminPin || devId === 'admin') {
-      if (pin === this.state.adminPin) {
-        this.saveAuth({
-          isAuthenticated: true,
-          role: 'admin',
-          devId: null
-        });
-        return { success: true, role: 'admin', dev: { name: 'Administrator', role: 'System Admin' } };
-      }
-      return { success: false, message: 'Incorrect Admin PIN' };
+    if (devId === 'admin') {
+      return { success: false, message: 'Please select Administrator profile or use Admin Master Unlock' };
     }
 
     const dev = this.getDeveloperById(devId);
-    if (!dev) return { success: false, message: 'Developer not found' };
+    if (!dev) return { success: false, message: 'Developer profile not found' };
 
-    if (dev.pin === pin) {
+    // Strict: Only the developer's exact assigned PIN can unlock their profile
+    if (String(dev.pin).trim() === String(pin).trim()) {
       this.saveAuth({
         isAuthenticated: true,
         role: 'developer',
@@ -269,19 +262,19 @@ class Store {
       this.setActiveDeveloper(dev.id);
       return { success: true, role: 'developer', dev };
     }
-    return { success: false, message: 'Incorrect PIN code' };
+    return { success: false, message: `Incorrect PIN code for ${dev.name}` };
   }
 
   loginAdmin(pin) {
-    if (pin === this.state.adminPin) {
+    if (String(pin).trim() === String(this.state.adminPin).trim()) {
       this.saveAuth({
         isAuthenticated: true,
         role: 'admin',
         devId: null
       });
-      return { success: true };
+      return { success: true, role: 'admin', dev: { name: 'Administrator', role: 'System Admin' } };
     }
-    return { success: false, message: 'Incorrect Admin PIN' };
+    return { success: false, message: 'Incorrect Admin Master PIN' };
   }
 
   logout() {
