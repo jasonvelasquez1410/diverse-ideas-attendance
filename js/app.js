@@ -1017,6 +1017,27 @@ document.addEventListener('DOMContentLoaded', () => {
     payslipRateApplied.textContent = `$1.00 USD = ₱${rate.toFixed(2)} PHP`;
     payslipVoucherNo.textContent = `VOUCHER #DIV-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}`;
 
+    // Populate and bind Employee Selector in Modal for Admin
+    const payslipSelectDev = document.getElementById('payslip-select-dev');
+    if (payslipSelectDev) {
+      payslipSelectDev.innerHTML = '';
+      state.developers.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.id;
+        opt.textContent = `${d.name} — ${d.role}`;
+        if (d.id === dev.id) opt.selected = true;
+        payslipSelectDev.appendChild(opt);
+      });
+      payslipSelectDev.onchange = (e) => {
+        window.openPayslipModal(e.target.value);
+      };
+      // Only show selector for Admin
+      const controlsBar = document.getElementById('payslip-modal-controls');
+      if (controlsBar) {
+        controlsBar.style.display = store.isAdmin() ? 'flex' : 'none';
+      }
+    }
+
     // Populate rows
     payslipBreakdownRows.innerHTML = '';
     const projKeys = Object.keys(projectBreakdown);
@@ -1113,12 +1134,17 @@ document.addEventListener('DOMContentLoaded', () => {
           </span>
         </td>
         <td>
-          <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.78rem;" onclick="editDeveloperModal('${dev.id}')">
-            ✏️ Edit Profile
-          </button>
-          <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.78rem; margin-left: 6px;" onclick="deleteDeveloperConfirm('${dev.id}')">
-            Remove
-          </button>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.78rem;" onclick="openPayslipModal('${dev.id}')" title="Generate and print official payslip for ${dev.name}">
+              📄 Run Payslip
+            </button>
+            <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.78rem;" onclick="editDeveloperModal('${dev.id}')" title="Edit rate, PIN, and leave credits">
+              ✏️ Edit Profile
+            </button>
+            <button class="btn btn-danger" style="padding: 6px 10px; font-size: 0.78rem;" onclick="deleteDeveloperConfirm('${dev.id}')" title="Remove developer">
+              Remove
+            </button>
+          </div>
         </td>
       `;
       settingsDevTableBody.appendChild(tr);

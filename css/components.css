@@ -1159,6 +1159,8 @@ select.form-control {
   .modal-header,
   .modal-footer,
   .modal-close-btn,
+  .payslip-modal-controls,
+  #payslip-modal-controls,
   .theme-toggle-btn,
   #modal-file-request,
   #modal-edit-dev,
