@@ -46,6 +46,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnClockOut = document.getElementById('btn-clock-out');
   const todayActivityList = document.getElementById('today-activity-list');
 
+  // DOM Elements - DTR Log
+  const dtrTimeIn = document.getElementById('dtr-time-in');
+  const dtrDateIn = document.getElementById('dtr-date-in');
+  const dtrBreakTime = document.getElementById('dtr-break-time');
+  const dtrBreakStatus = document.getElementById('dtr-break-status');
+  const dtrTimeOut = document.getElementById('dtr-time-out');
+  const dtrDateOut = document.getElementById('dtr-date-out');
+  const dtrTotalRendered = document.getElementById('dtr-total-rendered');
+  const dtrShiftStatus = document.getElementById('dtr-shift-status');
+
   // DOM Elements - Attendance View
   const attendanceGrid = document.getElementById('attendance-grid');
   const statOnlineDevs = document.getElementById('stat-online-devs');
@@ -276,6 +286,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // 2. Header Live Clock & Theme Toggle
   // ==========================================
   function initHeaderClock() {
+    const liveDateEl = document.getElementById('sprout-live-date');
+    const liveTimeEl = document.getElementById('sprout-live-time');
+    
     function updateClock() {
       const now = new Date();
       const options = {
@@ -287,7 +300,15 @@ document.addEventListener('DOMContentLoaded', () => {
         second: '2-digit',
         hour12: true
       };
-      headerLiveTime.textContent = now.toLocaleDateString('en-US', options);
+      if(headerLiveTime) {
+        headerLiveTime.textContent = now.toLocaleDateString('en-US', options);
+      }
+      if (liveDateEl) {
+        liveDateEl.textContent = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      }
+      if (liveTimeEl) {
+        liveTimeEl.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      }
     }
     updateClock();
     setInterval(updateClock, 1000);
