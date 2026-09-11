@@ -113,7 +113,16 @@
           <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
             <div class="sprout-shift-pill">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-              <span>Shift Schedule: 08:00 AM – 05:00 PM</span>
+              <span id="terminal-shift-schedule-text">Shift Schedule: 09:00 AM – 05:00 PM</span>
+            </div>
+            <div class="sprout-shift-pill" style="border-color: rgba(99, 102, 241, 0.4); color: #818cf8;">
+              <span>🏠 Mondays WFH • 🏢 Tue-Fri Onsite</span>
+            </div>
+            <div class="sprout-shift-pill" style="border-color: rgba(16, 185, 129, 0.4); color: var(--status-working);">
+              <span>⏱️ Weekly Target: 35h min / 45h max</span>
+            </div>
+            <div class="sprout-shift-pill" style="border-color: rgba(245, 158, 11, 0.4); color: #f59e0b;">
+              <span>🛌 Saturdays: Rest Day (Optional)</span>
             </div>
           </div>
         </div>
@@ -213,7 +222,10 @@
               📅 Today is 9/11/26
             </div>
             <div style="font-size: 0.85rem; color: var(--text-secondary);" id="greeting-weekday-text">
-              Official Shift: 08:00 AM – 05:00 PM
+              Official Shift: 09:00 AM – 05:00 PM (WFH Mondays • 35h min / 45h max)
+            </div>
+            <div style="margin-top: 8px; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(99, 102, 241, 0.1); border-radius: var(--radius-full); font-size: 0.74rem; font-weight: 700; color: var(--accent-cyan); border: 1px solid rgba(99, 102, 241, 0.25);">
+              <span>🎯 Policy: 35h min – 45h max / week (Sat Rest Day)</span>
             </div>
           </div>
 
@@ -818,7 +830,7 @@
             <div class="grid-2" style="gap: 16px;">
               <div class="form-group">
                 <label class="form-label" for="setting-shift-start">Official Shift Start Time</label>
-                <input type="time" id="setting-shift-start" class="form-control" value="08:00" required>
+                <input type="time" id="setting-shift-start" class="form-control" value="09:00" required>
               </div>
               <div class="form-group">
                 <label class="form-label" for="setting-shift-end">Official Shift End Time</label>
@@ -826,12 +838,27 @@
               </div>
               <div class="form-group">
                 <label class="form-label" for="setting-wfh-days">Designated Work-From-Home (WFH) Days</label>
-                <input type="text" id="setting-wfh-days" class="form-control" value="Monday" placeholder="e.g. Monday, Friday">
-                <span style="font-size: 0.74rem; color: var(--text-muted);">Terminal defaults to WFH mode on these days.</span>
+                <input type="text" id="setting-wfh-days" class="form-control" value="Monday" placeholder="e.g. Monday">
+                <span style="font-size: 0.74rem; color: var(--text-muted);">Terminal automatically defaults to WFH mode on Mondays.</span>
               </div>
               <div class="form-group">
                 <label class="form-label" for="setting-grace-mins">Grace Period (Minutes)</label>
                 <input type="number" id="setting-grace-mins" class="form-control" value="15" min="0" max="60">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="setting-min-hours">Minimum Weekly Hours Target</label>
+                <input type="number" id="setting-min-hours" class="form-control" value="35" min="20" max="60" required>
+                <span style="font-size: 0.74rem; color: var(--text-muted);">35 hours / week standard baseline.</span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="setting-max-hours">Maximum Weekly Hours Cap</label>
+                <input type="number" id="setting-max-hours" class="form-control" value="45" min="35" max="80" required>
+                <span style="font-size: 0.74rem; color: var(--text-muted);">45 hours / week maximum (walay pugsanay).</span>
+              </div>
+              <div class="form-group" style="grid-column: span 2;">
+                <label class="form-label" for="setting-saturday-policy">Saturday Work & Rest Day Policy</label>
+                <input type="text" id="setting-saturday-policy" class="form-control" value="Optional / Rest Day (Walay pugsanay)" readonly style="opacity: 0.9;">
+                <span style="font-size: 0.74rem; color: var(--text-muted);">Saturdays are rest days by default; work is voluntary/optional with no forcing.</span>
               </div>
             </div>
 

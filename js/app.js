@@ -854,6 +854,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Format Top Metric Cards
     summaryTotalHours.textContent = `${summary.totalHours} hrs`;
+    const weekRecords = payroll.filterRecords('week', devFilter, projFilter);
+    const weekSummary = payroll.generateSummary(weekRecords);
+    const weekHours = parseFloat(weekSummary.totalHours) || 0;
+    const hoursSub = document.getElementById('summary-hours-subtitle');
+    if (hoursSub) {
+      if (rangeType === 'week') {
+        if (weekHours < 35) {
+          hoursSub.innerHTML = `<span style="color: #f59e0b; font-weight: 700;">${(35 - weekHours).toFixed(1)} hrs to 35h min</span> • Cap: 45h`;
+        } else if (weekHours <= 45) {
+          hoursSub.innerHTML = `<span style="color: var(--status-working); font-weight: 700;">✅ 35h min reached</span> (${(45 - weekHours).toFixed(1)}h to 45h max)`;
+        } else {
+          hoursSub.innerHTML = `<span style="color: #ef4444; font-weight: 700;">⚠️ Max 45h/wk reached (${weekHours}h)</span>`;
+        }
+      } else {
+        hoursSub.textContent = `Target: 35h min – 45h max/week (Sat Optional)`;
+      }
+    }
     if (store.isAdmin()) {
       summaryTotalPayroll.textContent = `$${parseFloat(summary.totalGrossPay).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       summaryTotalPayrollPhp.textContent = `≈ ₱${parseFloat(summary.totalGrossPhp).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} PHP`;
@@ -1281,16 +1298,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const endEl = document.getElementById('setting-shift-end');
     const wfhEl = document.getElementById('setting-wfh-days');
     const graceEl = document.getElementById('setting-grace-mins');
+    const minHoursEl = document.getElementById('setting-min-hours');
+    const maxHoursEl = document.getElementById('setting-max-hours');
+    const satPolicyEl = document.getElementById('setting-saturday-policy');
 
-    if (startEl) startEl.value = sched.shiftStart || '08:00';
+    if (startEl) startEl.value = sched.shiftStart || '09:00';
     if (endEl) endEl.value = sched.shiftEnd || '17:00';
     if (wfhEl) wfhEl.value = Array.isArray(sched.wfhDays) ? sched.wfhDays.join(', ') : (sched.wfhDays || 'Monday');
     if (graceEl) graceEl.value = sched.gracePeriodMins || 15;
+    if (minHoursEl) minHoursEl.value = sched.minWeeklyHours || 35;
+    if (maxHoursEl) maxHoursEl.value = sched.maxWeeklyHours || 45;
+    if (satPolicyEl) satPolicyEl.value = sched.saturdayPolicy || 'Optional / Rest Day (Walay pugsanay)';
 
     // Update greeting weekday text & shift pill
     const greetingWeekdayText = document.getElementById('greeting-weekday-text');
     if (greetingWeekdayText) {
-      greetingWeekdayText.textContent = `Official Shift: ${sched.shiftStart || '08:00 AM'} – ${sched.shiftEnd || '05:00 PM'}`;
+      greetingWeekdayText.textContent = `Official Shift: 09:00 AM – 05:00 PM (WFH Mondays • 35h min / 45h max)`;
+    }
+    const terminalShiftText = document.getElementById('terminal-shift-schedule-text');
+    if (terminalShiftText) {
+      terminalShiftText.textContent = `Shift Schedule: 09:00 AM – 05:00 PM`;
     }
   }
 
@@ -1303,9 +1330,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const rawWfh = document.getElementById('setting-wfh-days').value;
       const wfhDays = rawWfh.split(',').map(s => s.trim()).filter(Boolean);
       const gracePeriodMins = parseInt(document.getElementById('setting-grace-mins').value) || 15;
+      const minWeeklyHours = parseFloat(document.getElementById('setting-min-hours').value) || 35;
+      const maxWeeklyHours = parseFloat(document.getElementById('setting-max-hours').value) || 45;
 
-      store.updateWorkSchedules({ shiftStart, shiftEnd, wfhDays, gracePeriodMins });
-      showToast('Work schedule & hybrid rules updated!', 'success');
+      store.updateWorkSchedules({ shiftStart, shiftEnd, wfhDays, gracePeriodMins, minWeeklyHours, maxWeeklyHours });
+      showToast('Work schedule & hybrid rules updated (09:00 AM - 05:00 PM, 35h-45h target)!', 'success');
       renderAll();
     });
   }

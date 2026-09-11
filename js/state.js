@@ -23,10 +23,13 @@ const DEFAULT_INITIAL_STATE = {
     voucherPrefix: 'DIV'
   },
   workSchedules: {
-    shiftStart: '08:00',
+    shiftStart: '09:00',
     shiftEnd: '17:00',
     wfhDays: ['Monday'],
     onsiteDays: ['Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+    minWeeklyHours: 35,
+    maxWeeklyHours: 45,
+    saturdayPolicy: 'Optional / Rest Day (No Forcing)',
     gracePeriodMins: 15
   },
   developers: [
@@ -234,6 +237,20 @@ class Store {
             if (!p.status) p.status = 'Active';
             if (!p.description) p.description = '';
           });
+        }
+
+        // Apply updated 09:00 AM – 05:00 PM and 35h-45h/wk policy (Tefanny work policy)
+        if (!parsed.workSchedules || parsed.workSchedules.shiftStart === '08:00' || !parsed.workSchedules.minWeeklyHours) {
+          parsed.workSchedules = {
+            ...DEFAULT_INITIAL_STATE.workSchedules,
+            ...(parsed.workSchedules || {}),
+            shiftStart: '09:00',
+            shiftEnd: '17:00',
+            wfhDays: ['Monday'],
+            minWeeklyHours: 35,
+            maxWeeklyHours: 45,
+            saturdayPolicy: 'Optional / Rest Day (No Forcing)'
+          };
         }
         return parsed;
       }
@@ -537,10 +554,13 @@ class Store {
 
   getWorkSchedules() {
     return this.state.workSchedules || {
-      shiftStart: '08:00',
+      shiftStart: '09:00',
       shiftEnd: '17:00',
       wfhDays: ['Monday'],
       onsiteDays: ['Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      minWeeklyHours: 35,
+      maxWeeklyHours: 45,
+      saturdayPolicy: 'Optional / Rest Day (No Forcing)',
       gracePeriodMins: 15
     };
   }
