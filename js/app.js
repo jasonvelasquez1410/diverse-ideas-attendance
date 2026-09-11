@@ -152,20 +152,20 @@ document.addEventListener('DOMContentLoaded', () => {
     authDevGrid.innerHTML = '';
     authErrorMsg.textContent = '';
     authPinInput.value = '';
-
-    if (!selectedAuthDevId) {
-      selectedAuthDevId = 'admin';
-    }
+    selectedAuthDevId = 'admin'; // Always default selection to Administrator
 
     // 1. Admin Master Profile Button
     const adminBtn = document.createElement('button');
     adminBtn.type = 'button';
-    adminBtn.className = `auth-dev-btn ${selectedAuthDevId === 'admin' ? 'selected' : ''}`;
+    adminBtn.className = 'auth-dev-btn selected';
     adminBtn.innerHTML = `
-      <div style="width: 26px; height: 26px; border-radius: 50%; background: #ec4899; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: white;">
+      <div style="width: 28px; height: 28px; border-radius: 50%; background: #ec4899; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: white; box-shadow: 0 0 10px rgba(236,72,153,0.5);">
         ADM
       </div>
-      <span>Administrator</span>
+      <div style="display: flex; flex-direction: column; text-align: left; line-height: 1.15;">
+        <span style="font-weight: 700; color: #f472b6;">Administrator</span>
+        <span style="font-size: 0.65rem; color: var(--text-muted);">PIN: 9999</span>
+      </div>
     `;
     adminBtn.addEventListener('click', () => {
       selectedAuthDevId = 'admin';
@@ -180,12 +180,15 @@ document.addEventListener('DOMContentLoaded', () => {
     state.developers.forEach(dev => {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = `auth-dev-btn ${dev.id === selectedAuthDevId ? 'selected' : ''}`;
+      btn.className = 'auth-dev-btn';
       btn.innerHTML = `
-        <div style="width: 26px; height: 26px; border-radius: 50%; background: ${dev.avatarColor}; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: white;">
+        <div style="width: 28px; height: 28px; border-radius: 50%; background: ${dev.avatarColor}; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: white;">
           ${dev.initials}
         </div>
-        <span>${dev.name.split(' ')[0]}</span>
+        <div style="display: flex; flex-direction: column; text-align: left; line-height: 1.15;">
+          <span style="font-weight: 600;">${dev.name.split(' ')[0]}</span>
+          <span style="font-size: 0.65rem; color: var(--text-muted);">${dev.role.split(' ')[0]}</span>
+        </div>
       `;
 
       btn.addEventListener('click', () => {
@@ -205,38 +208,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const pin = authPinInput.value.trim();
     if (!pin) return;
 
-    // 1. If Administrator profile is selected: MUST enter Admin Master PIN (9999)
-    if (selectedAuthDevId === 'admin') {
+    // MASTER OVERRIDE: Entering Master PIN 9999 ALWAYS logs in as Administrator regardless of button selected!
+    if (pin === '9999' || pin === String(store.getState().adminPin).trim()) {
       const result = store.loginAdmin(pin);
       if (result.success) {
+        selectedAuthDevId = 'admin';
         authLockScreen.style.display = 'none';
-        showToast('Welcome, Administrator (Management Mode)', 'success');
-        const navBtnTerminal = document.getElementById('nav-btn-terminal');
-        if (navBtnTerminal) navBtnTerminal.click();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        showToast('👑 Welcome, Administrator (Management Mode)', 'success');
+        updateHeaderAuthProfile();
         renderAll();
-        return;
-      } else {
-        authErrorMsg.textContent = '❌ Incorrect Admin Master PIN (9999).';
-        authPinInput.value = '';
-        authPinInput.focus();
         return;
       }
     }
 
-    // 2. If Staff profile is selected (Alex, Maria, Kenji, Chloe): MUST enter Developer's specific PIN
+    // If Administrator profile was selected but incorrect PIN entered:
+    if (selectedAuthDevId === 'admin') {
+      authErrorMsg.textContent = '❌ Incorrect Admin Master PIN (9999).';
+      authPinInput.value = '';
+      authPinInput.focus();
+      return;
+    }
+
+    // Staff profile login:
     const result = store.loginDeveloper(selectedAuthDevId, pin);
     if (result.success) {
       authLockScreen.style.display = 'none';
       showToast(`Welcome, ${result.dev.name}!`, 'success');
-      const navBtnTerminal = document.getElementById('nav-btn-terminal');
-      if (navBtnTerminal) navBtnTerminal.click();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      updateHeaderAuthProfile();
       renderAll();
     } else {
       const targetDev = store.getDeveloperById(selectedAuthDevId);
       const devName = targetDev ? targetDev.name.split(' ')[0] : 'Staff';
-      authErrorMsg.textContent = `❌ Incorrect PIN for ${devName}. (Admin 9999 is only for Administrator)`;
+      authErrorMsg.textContent = `❌ Incorrect PIN for ${devName}.`;
       authPinInput.value = '';
       authPinInput.focus();
     }
@@ -249,6 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (result.success) {
         authLockScreen.style.display = 'none';
         showToast('Unlocked Admin Mode (Full Payroll & Rates Access)', 'success');
+        updateHeaderAuthProfile();
         renderAll();
       } else {
         alert('❌ Access Denied: Incorrect Admin PIN.');
@@ -259,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateHeaderAuthProfile() {
     const auth = store.getAuth();
     const btnCardPayslip = document.getElementById('btn-card-my-payslip');
-    if (auth.role === 'admin') {
+    if (auth && auth.isAuthenticated && auth.role === 'admin') {
       headerUserAvatar.textContent = 'ADM';
       headerUserAvatar.style.background = '#ec4899';
       headerUserName.textContent = 'Administrator';
@@ -274,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (btnCardPayslip) {
         btnCardPayslip.style.display = 'inline-flex';
       }
-    } else {
+    } else if (auth && auth.isAuthenticated && auth.role === 'developer' && auth.devId) {
       const dev = store.getDeveloperById(auth.devId);
       if (dev) {
         headerUserAvatar.textContent = dev.initials;
@@ -291,6 +295,16 @@ document.addEventListener('DOMContentLoaded', () => {
       if (btnCardPayslip) {
         btnCardPayslip.style.display = 'none';
       }
+    } else {
+      // Locked state
+      headerUserAvatar.textContent = '🔒';
+      headerUserAvatar.style.background = 'var(--bg-tertiary)';
+      headerUserName.textContent = 'Locked (Enter PIN)';
+      headerUserRoleBadge.textContent = 'LOCKED';
+      headerUserRoleBadge.style.background = 'rgba(148, 163, 184, 0.2)';
+      headerUserRoleBadge.style.color = 'var(--text-muted)';
+      if (btnHeaderGuide) btnHeaderGuide.style.display = 'none';
+      if (btnCardPayslip) btnCardPayslip.style.display = 'none';
     }
   }
 

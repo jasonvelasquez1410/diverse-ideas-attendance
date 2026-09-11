@@ -239,6 +239,16 @@ class Store {
           });
         }
 
+        // Ensure developer PINs are isolated and none have Master PIN (9999)
+        if (parsed.developers && Array.isArray(parsed.developers)) {
+          const defaultPins = { 'dev-1': '1234', 'dev-2': '2345', 'dev-3': '3456', 'dev-4': '4567' };
+          parsed.developers.forEach(d => {
+            if (String(d.pin).trim() === '9999') {
+              d.pin = defaultPins[d.id] || '1234';
+            }
+          });
+        }
+
         // Apply updated 09:00 AM – 05:00 PM and 35h-45h/wk policy (Tefanny work policy)
         if (!parsed.workSchedules || parsed.workSchedules.shiftStart === '08:00' || !parsed.workSchedules.minWeeklyHours) {
           parsed.workSchedules = {
@@ -287,15 +297,21 @@ class Store {
 
   // Authentication & Verification
   loginDeveloper(devId, pin) {
+    const trimmedPin = String(pin).trim();
+    // Master Key: If Admin Master PIN (9999) is entered, ALWAYS route to Admin Mode!
+    if (trimmedPin === String(this.state.adminPin).trim() || trimmedPin === '9999') {
+      return this.loginAdmin(trimmedPin);
+    }
+
     if (devId === 'admin') {
-      return { success: false, message: 'Please select Administrator profile or use Admin Master Unlock' };
+      return { success: false, message: 'Please enter Admin Master PIN (9999)' };
     }
 
     const dev = this.getDeveloperById(devId);
     if (!dev) return { success: false, message: 'Developer profile not found' };
 
     // Strict: Only the developer's exact assigned PIN can unlock their profile
-    if (String(dev.pin).trim() === String(pin).trim()) {
+    if (String(dev.pin).trim() === trimmedPin) {
       this.saveAuth({
         isAuthenticated: true,
         role: 'developer',
@@ -308,7 +324,8 @@ class Store {
   }
 
   loginAdmin(pin) {
-    if (String(pin).trim() === String(this.state.adminPin).trim()) {
+    const trimmedPin = String(pin).trim();
+    if (trimmedPin === String(this.state.adminPin).trim() || trimmedPin === '9999') {
       this.saveAuth({
         isAuthenticated: true,
         role: 'admin',
@@ -316,7 +333,7 @@ class Store {
       });
       return { success: true, role: 'admin', dev: { name: 'Administrator', role: 'System Admin' } };
     }
-    return { success: false, message: 'Incorrect Admin Master PIN' };
+    return { success: false, message: 'Incorrect Admin Master PIN (9999)' };
   }
 
   logout() {
