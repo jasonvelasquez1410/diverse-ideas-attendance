@@ -140,6 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!auth.isAuthenticated) {
       renderAuthLockScreen();
       authLockScreen.style.display = 'flex';
+      if (btnHeaderGuide) btnHeaderGuide.style.display = 'none';
     } else {
       authLockScreen.style.display = 'none';
       updateHeaderAuthProfile();
@@ -264,6 +265,10 @@ document.addEventListener('DOMContentLoaded', () => {
       headerUserRoleBadge.textContent = 'ADMIN';
       headerUserRoleBadge.style.background = 'rgba(236, 72, 153, 0.2)';
       headerUserRoleBadge.style.color = '#f472b6';
+      // Manager Guide is ONLY visible for Admin (Master PIN 9999)
+      if (btnHeaderGuide) {
+        btnHeaderGuide.style.display = 'inline-flex';
+      }
     } else {
       const dev = store.getDeveloperById(auth.devId);
       if (dev) {
@@ -273,6 +278,10 @@ document.addEventListener('DOMContentLoaded', () => {
         headerUserRoleBadge.textContent = 'DEV';
         headerUserRoleBadge.style.background = 'rgba(99, 102, 241, 0.2)';
         headerUserRoleBadge.style.color = 'var(--accent-cyan)';
+      }
+      // Hide Manager Guide completely for individual staff logins
+      if (btnHeaderGuide) {
+        btnHeaderGuide.style.display = 'none';
       }
     }
   }
@@ -2196,6 +2205,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCopyStaffMsgModal = document.getElementById('btn-copy-staff-msg-modal');
 
   function openManagerGuideModal() {
+    if (!store.isAdmin()) {
+      showToast('🔒 Access Restricted: Manager Guide is confidential to Management (Admin PIN 9999 required).', 'warning');
+      return;
+    }
     if (modalManagerGuide) {
       modalManagerGuide.classList.add('active');
     }
