@@ -882,7 +882,7 @@
               <h3 style="font-family: var(--font-heading); font-size: 1.15rem;">📁 Active Client Projects & Tags</h3>
               <p style="color: var(--text-secondary); font-size: 0.84rem; margin-top: 2px;">Tracked projects developers can clock into.</p>
             </div>
-            <button class="btn btn-secondary" id="btn-open-add-project" style="padding: 8px 14px; font-size: 0.86rem;">
+            <button class="btn btn-primary" id="btn-open-add-project" style="padding: 8px 16px; font-size: 0.86rem;">
               + New Project
             </button>
           </div>
@@ -890,9 +890,11 @@
             <table class="custom-table">
               <thead>
                 <tr>
-                  <th>Code</th>
+                  <th style="width: 100px;">Code</th>
                   <th>Project Name</th>
-                  <th>Status</th>
+                  <th>Description</th>
+                  <th style="width: 110px;">Status</th>
+                  <th style="width: 180px;">Actions</th>
                 </tr>
               </thead>
               <tbody id="settings-project-table-body">
@@ -1233,36 +1235,84 @@
     </div>
   </div>
 
-  <!-- Modal: Add Custom Holiday (Admin) -->
+  <!-- Modal: Add Custom / CDO / Philippine Holiday (Admin) -->
   <div class="modal-overlay" id="modal-add-holiday">
-    <div class="modal-dialog" style="max-width: 460px;">
+    <div class="modal-dialog" style="max-width: 500px;">
       <div class="modal-header">
-        <h3 class="modal-title">Add Company / Regional Holiday</h3>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="font-size: 1.2rem;">🌴</div>
+          <div>
+            <h3 class="modal-title" style="margin: 0;">Add Holiday & Calendar Event</h3>
+            <span style="font-size: 0.76rem; color: var(--text-muted);">Philippine National, CDO Local, & Company Days</span>
+          </div>
+        </div>
         <button class="modal-close-btn" id="btn-close-add-holiday">&times;</button>
       </div>
       <form id="form-add-holiday">
         <div class="modal-body">
-          <div class="form-group">
-            <label class="form-label" for="holiday-name-input">Holiday / Event Name *</label>
-            <input type="text" id="holiday-name-input" class="form-control" placeholder="e.g. Diverse Ideas Foundation Day" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="holiday-date-input">Holiday Date *</label>
-            <input type="date" id="holiday-date-input" class="form-control" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="holiday-type-select">Holiday Type / Classification</label>
-            <select id="holiday-type-select" class="form-control">
-              <option value="Company Holiday">🏢 Company Holiday (Diverse Ideas)</option>
-              <option value="Regular Holiday">🇵🇭 Regular Holiday (National)</option>
-              <option value="Special Non-Working Holiday">🇵🇭 Special Non-Working Holiday</option>
-              <option value="Regional / Local Holiday">📍 Regional / Local Holiday</option>
+          
+          <!-- Quick Holiday Template Selector -->
+          <div class="form-group" style="background: var(--bg-tertiary); padding: 10px 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+            <label class="form-label" for="holiday-preset-select" style="color: var(--accent-primary); font-size: 0.78rem; text-transform: uppercase;">
+              ⚡ Quick Preset / Template (Optional)
+            </label>
+            <select id="holiday-preset-select" class="form-control" style="font-size: 0.86rem;">
+              <option value="">-- Select from Presets (CDO / PH National / Company) --</option>
+              <optgroup label="📍 Cagayan de Oro (CDO) Official Holidays">
+                <option value="CDO-CHARTER" data-name="Cagayan de Oro Charter Day (CDO Anniversary)" data-date="2026-06-15" data-type="CDO Local Holiday" data-loc="Cagayan de Oro (CDO)">📍 Jun 15 - Cagayan de Oro Charter Day</option>
+                <option value="CDO-HIGALAAY" data-name="Higalaay Festival & Feast of St. Augustine" data-date="2026-08-28" data-type="CDO Local Holiday" data-loc="Cagayan de Oro (CDO)">📍 Aug 28 - Higalaay Festival & St. Augustine Feast</option>
+                <option value="CDO-FIESTA" data-name="Cagayan de Oro City Fiesta" data-date="2026-01-10" data-type="CDO Local Holiday" data-loc="Cagayan de Oro (CDO)">📍 Jan 10 - CDO City Fiesta</option>
+              </optgroup>
+              <optgroup label="🇵🇭 Philippine National Holidays">
+                <option value="PH-NINOY" data-name="Ninoy Aquino Day" data-date="2026-08-21" data-type="Special Non-Working" data-loc="National">🇵🇭 Aug 21 - Ninoy Aquino Day</option>
+                <option value="PH-ALLSAINTS" data-name="All Saints’ Day" data-date="2026-11-01" data-type="Special Non-Working" data-loc="National">🇵🇭 Nov 01 - All Saints’ Day</option>
+                <option value="PH-ALLSOULS" data-name="All Souls’ Day" data-date="2026-11-02" data-type="Special Non-Working" data-loc="National">🇵🇭 Nov 02 - All Souls’ Day</option>
+                <option value="PH-IMMACULATE" data-name="Feast of the Immaculate Conception" data-date="2026-12-08" data-type="Special Non-Working" data-loc="National">🇵🇭 Dec 08 - Feast of the Immaculate Conception</option>
+                <option value="PH-XMASEVE" data-name="Christmas Eve" data-date="2026-12-24" data-type="Special Non-Working" data-loc="National">🇵🇭 Dec 24 - Christmas Eve</option>
+                <option value="PH-NYE" data-name="Last Day of the Year (New Year’s Eve)" data-date="2026-12-31" data-type="Special Non-Working" data-loc="National">🇵🇭 Dec 31 - New Year’s Eve</option>
+              </optgroup>
+              <optgroup label="🏢 Diverse Ideas Company Events">
+                <option value="DI-FOUNDATION" data-name="Diverse Ideas Foundation Day" data-date="2026-10-15" data-type="Company Holiday" data-loc="Company-Wide">🏢 Oct 15 - Diverse Ideas Foundation Day</option>
+                <option value="DI-SUMMIT" data-name="Diverse Ideas Year-End Developer Summit" data-date="2026-12-18" data-type="Company Holiday" data-loc="Company-Wide">🏢 Dec 18 - Year-End Developer Summit</option>
+              </optgroup>
             </select>
           </div>
+
+          <div class="form-group">
+            <label class="form-label" for="holiday-name-input">Holiday / Event Name *</label>
+            <input type="text" id="holiday-name-input" class="form-control" placeholder="e.g. Cagayan de Oro Charter Day" required>
+          </div>
+
+          <div style="display: flex; gap: 14px;">
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="holiday-date-input">Holiday Date *</label>
+              <input type="date" id="holiday-date-input" class="form-control" required>
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="holiday-location-select">Location Scope</label>
+              <select id="holiday-location-select" class="form-control">
+                <option value="Cagayan de Oro (CDO)">📍 Cagayan de Oro (CDO)</option>
+                <option value="National">🇵🇭 National (Philippines)</option>
+                <option value="Company-Wide">🏢 Company-Wide (Diverse Ideas)</option>
+                <option value="Regional">📍 Northern Mindanao / Regional</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="holiday-type-select">Holiday Classification / Rule</label>
+            <select id="holiday-type-select" class="form-control">
+              <option value="CDO Local Holiday">📍 Cagayan de Oro (CDO) Local Holiday</option>
+              <option value="Regular Holiday">🇵🇭 Regular Holiday (National - 200% Pay Rule)</option>
+              <option value="Special Non-Working">🇵🇭 Special Non-Working Holiday (130% Pay Rule)</option>
+              <option value="Company Holiday">🏢 Company Holiday (Diverse Ideas Paid Rest)</option>
+            </select>
+          </div>
+
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" id="btn-cancel-add-holiday">Cancel</button>
-          <button type="submit" class="btn btn-primary">Add Holiday</button>
+          <button type="submit" class="btn btn-primary">Add to Calendar</button>
         </div>
       </form>
     </div>
@@ -1428,27 +1478,86 @@
     </div>
   </div>
 
-  <!-- Modal: Add Project -->
+  <!-- Modal: Add Project (Admin) -->
   <div class="modal-overlay" id="modal-add-project">
     <div class="modal-dialog">
       <div class="modal-header">
-        <h3 class="modal-title">Create New Project</h3>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 1.2rem;">📁</span>
+          <h3 class="modal-title">Create New Project</h3>
+        </div>
         <button class="modal-close-btn" id="btn-close-add-project">&times;</button>
       </div>
       <form id="form-add-project">
         <div class="modal-body">
-          <div class="form-group">
-            <label class="form-label" for="proj-name-input">Project Name *</label>
-            <input type="text" id="proj-name-input" class="form-control" placeholder="e.g. Logistics Automation System" required>
+          <div style="display: flex; gap: 14px;">
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="proj-code-input">Project Code / Tag *</label>
+              <input type="text" id="proj-code-input" class="form-control" placeholder="e.g. LOGI" maxlength="8" required style="font-family: var(--font-mono); font-weight: 700; text-transform: uppercase;">
+            </div>
+            <div class="form-group" style="flex: 2;">
+              <label class="form-label" for="proj-name-input">Project Name *</label>
+              <input type="text" id="proj-name-input" class="form-control" placeholder="e.g. Logistics Automation System" required>
+            </div>
           </div>
           <div class="form-group">
-            <label class="form-label" for="proj-code-input">Project Code / Tag</label>
-            <input type="text" id="proj-code-input" class="form-control" placeholder="e.g. LOGI" maxlength="6">
+            <label class="form-label" for="proj-desc-input">Project Description</label>
+            <input type="text" id="proj-desc-input" class="form-control" placeholder="Brief scope of client work or module...">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="proj-status-input">Status</label>
+            <select id="proj-status-input" class="form-control">
+              <option value="Active">🟢 Active (Open for Clock-In)</option>
+              <option value="Completed">⚪ Completed / Archived</option>
+            </select>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" id="btn-cancel-add-project">Cancel</button>
           <button type="submit" class="btn btn-primary">Create Project</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Edit Project (Admin) -->
+  <div class="modal-overlay" id="modal-edit-project">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 1.2rem;">✏️</span>
+          <h3 class="modal-title">Edit Project & Activities</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-edit-project">&times;</button>
+      </div>
+      <form id="form-edit-project">
+        <input type="hidden" id="edit-proj-id">
+        <div class="modal-body">
+          <div style="display: flex; gap: 14px;">
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="edit-proj-code">Project Code / Tag *</label>
+              <input type="text" id="edit-proj-code" class="form-control" maxlength="8" required style="font-family: var(--font-mono); font-weight: 700; text-transform: uppercase;">
+            </div>
+            <div class="form-group" style="flex: 2;">
+              <label class="form-label" for="edit-proj-name">Project Name *</label>
+              <input type="text" id="edit-proj-name" class="form-control" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="edit-proj-desc">Project Description</label>
+            <input type="text" id="edit-proj-desc" class="form-control" placeholder="Brief scope of client work or module...">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="edit-proj-status">Status</label>
+            <select id="edit-proj-status" class="form-control">
+              <option value="Active">🟢 Active (Open for Clock-In)</option>
+              <option value="Completed">⚪ Completed / Archived</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-edit-project">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
         </div>
       </form>
     </div>

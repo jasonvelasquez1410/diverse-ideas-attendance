@@ -1306,10 +1306,36 @@ document.addEventListener('DOMContentLoaded', () => {
     settingsProjectTableBody.innerHTML = '';
     state.projects.forEach(p => {
       const tr = document.createElement('tr');
+      const isAct = p.status === 'Active';
+      
+      let actionButtons = '';
+      if (store.isAdmin()) {
+        actionButtons = `
+          <div style="display: flex; gap: 6px;">
+            <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.78rem;" onclick="openEditProjectModal('${p.id}')" title="Edit project code, name and status">
+              ✏️ Edit
+            </button>
+            <button class="btn btn-danger" style="padding: 4px 10px; font-size: 0.78rem;" onclick="deleteProjectConfirm('${p.id}')" title="Delete project">
+              🗑️ Delete
+            </button>
+          </div>
+        `;
+      } else {
+        actionButtons = `<span style="font-size: 0.75rem; color: var(--text-muted);">Admin Protected</span>`;
+      }
+
       tr.innerHTML = `
-        <td><span class="badge badge-working" style="font-family: var(--font-mono);">${p.code}</span></td>
-        <td style="font-weight: 600;">${p.name}</td>
-        <td>Active</td>
+        <td><span class="badge ${isAct ? 'badge-working' : 'badge-offline'}" style="font-family: var(--font-mono); font-weight: 700;">${p.code}</span></td>
+        <td>
+          <div style="font-weight: 600; color: var(--text-primary);">${p.name}</div>
+        </td>
+        <td style="font-size: 0.82rem; color: var(--text-secondary); max-width: 250px;">${p.description || '—'}</td>
+        <td>
+          <span class="badge ${isAct ? 'badge-working' : 'badge-offline'}" style="font-size: 0.72rem;">
+            ${isAct ? '🟢 Active' : '⚪ Archived'}
+          </span>
+        </td>
+        <td>${actionButtons}</td>
       `;
       settingsProjectTableBody.appendChild(tr);
     });
@@ -1513,28 +1539,126 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTimesheetsAndPayroll();
   });
 
-  // Project Modal
+  // Project Modals (Add & Edit - Admin Only)
   const modalAddProject = document.getElementById('modal-add-project');
   const formAddProject = document.getElementById('form-add-project');
   const btnCloseAddProject = document.getElementById('btn-close-add-project');
   const btnCancelAddProject = document.getElementById('btn-cancel-add-project');
 
-  btnOpenAddProject.addEventListener('click', () => modalAddProject.classList.add('active'));
-  [btnCloseAddProject, btnCancelAddProject].forEach(b => b.addEventListener('click', () => modalAddProject.classList.remove('active')));
+  const modalEditProject = document.getElementById('modal-edit-project');
+  const formEditProject = document.getElementById('form-edit-project');
+  const btnCloseEditProject = document.getElementById('btn-close-edit-project');
+  const btnCancelEditProject = document.getElementById('btn-cancel-edit-project');
 
-  formAddProject.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const name = document.getElementById('proj-name-input').value.trim();
-    const code = document.getElementById('proj-code-input').value.trim().toUpperCase();
-
-    if (name) {
-      store.addProject(name, code);
-      showToast(`Added project: ${name}`, 'success');
-      modalAddProject.classList.remove('active');
+  if (btnOpenAddProject) {
+    btnOpenAddProject.addEventListener('click', () => {
+      if (!store.isAdmin()) {
+        const pin = prompt('Enter Admin Master PIN (9999) to create projects:');
+        if (pin !== store.getState().adminPin) {
+          alert('❌ Access Denied. Admin PIN required.');
+          return;
+        }
+        store.loginAdmin(pin);
+        updateHeaderAuthProfile();
+      }
       formAddProject.reset();
+      modalAddProject.classList.add('active');
+    });
+  }
+
+  [btnCloseAddProject, btnCancelAddProject].forEach(b => {
+    if (b) b.addEventListener('click', () => modalAddProject.classList.remove('active'));
+  });
+
+  if (formAddProject) {
+    formAddProject.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!store.isAdmin()) {
+        alert('❌ Only Administrators can add projects.');
+        return;
+      }
+      const name = document.getElementById('proj-name-input').value.trim();
+      const code = document.getElementById('proj-code-input').value.trim().toUpperCase();
+      const description = document.getElementById('proj-desc-input').value.trim();
+      const status = document.getElementById('proj-status-input').value;
+
+      if (name && code) {
+        store.addProject(name, code, description, status);
+        showToast(`Created project [${code}] ${name}!`, 'success');
+        modalAddProject.classList.remove('active');
+        formAddProject.reset();
+        renderAll();
+      }
+    });
+  }
+
+  window.openEditProjectModal = function(projId) {
+    if (!store.isAdmin()) {
+      const pin = prompt('Enter Admin Master PIN (9999) to edit projects:');
+      if (pin !== store.getState().adminPin) {
+        alert('❌ Access Denied. Admin PIN required.');
+        return;
+      }
+      store.loginAdmin(pin);
+      updateHeaderAuthProfile();
+    }
+
+    const proj = store.getProjectById(projId);
+    if (!proj) return;
+
+    document.getElementById('edit-proj-id').value = proj.id;
+    document.getElementById('edit-proj-code').value = proj.code;
+    document.getElementById('edit-proj-name').value = proj.name;
+    document.getElementById('edit-proj-desc').value = proj.description || '';
+    document.getElementById('edit-proj-status').value = proj.status || 'Active';
+
+    modalEditProject.classList.add('active');
+  };
+
+  [btnCloseEditProject, btnCancelEditProject].forEach(b => {
+    if (b) b.addEventListener('click', () => modalEditProject.classList.remove('active'));
+  });
+
+  if (formEditProject) {
+    formEditProject.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!store.isAdmin()) {
+        alert('❌ Only Administrators can edit projects.');
+        return;
+      }
+      const id = document.getElementById('edit-proj-id').value;
+      const code = document.getElementById('edit-proj-code').value.trim().toUpperCase();
+      const name = document.getElementById('edit-proj-name').value.trim();
+      const description = document.getElementById('edit-proj-desc').value.trim();
+      const status = document.getElementById('edit-proj-status').value;
+
+      store.updateProject(id, { name, code, description, status });
+      showToast(`Updated project [${code}] ${name}!`, 'success');
+      modalEditProject.classList.remove('active');
+      renderAll();
+    });
+  }
+
+  window.deleteProjectConfirm = function(projId) {
+    if (!store.isAdmin()) {
+      const pin = prompt('Enter Admin Master PIN (9999) to delete projects:');
+      if (pin !== store.getState().adminPin) {
+        alert('❌ Access Denied. Admin PIN required.');
+        return;
+      }
+      store.loginAdmin(pin);
+      updateHeaderAuthProfile();
+    }
+
+    const proj = store.getProjectById(projId);
+    if (!proj) return;
+
+    if (confirm(`Are you sure you want to delete project [${proj.code}] ${proj.name}?`)) {
+      store.deleteProject(projId);
+      showToast(`Deleted project: ${proj.name}`, 'info');
       renderAll();
     }
-  });
+  };
 
   // Toast
   function showToast(message, type = 'info') {
@@ -1572,33 +1696,32 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnOpenFileRequest = document.getElementById('btn-open-file-request');
   const modalFileRequest = document.getElementById('modal-file-request');
   const formFileRequest = document.getElementById('form-file-request');
-  const btnCloseFileRequest = document.getElementById('btn-close-file-request');
-  const btnCancelFileRequest = document.getElementById('btn-cancel-file-request');
   const reqTypeSelect = document.getElementById('req-type-select');
   const reqSubtypeGroup = document.getElementById('req-subtype-group');
   const reqEndDateGroup = document.getElementById('req-end-date-group');
   const reqTimeGroup = document.getElementById('req-time-group');
+  const btnCloseFileRequest = document.getElementById('btn-close-file-request');
+  const btnCancelFileRequest = document.getElementById('btn-cancel-file-request');
 
   function renderLeavesAndRequests() {
     const auth = store.getAuth();
-    const activeDev = store.getActiveDeveloper();
+    const currentDev = store.getActiveDeveloper();
 
-    // Render Leave Balances
-    if (activeDev && activeDev.leaveCredits) {
-      creditVl.textContent = `${activeDev.leaveCredits.vacation} Days`;
-      creditSl.textContent = `${activeDev.leaveCredits.sick} Days`;
-      creditEl.textContent = `${activeDev.leaveCredits.emergency} Days`;
+    if (currentDev && currentDev.leaveCredits) {
+      creditVl.textContent = `${currentDev.leaveCredits.vacation} Days`;
+      creditSl.textContent = `${currentDev.leaveCredits.sick} Days`;
+      creditEl.textContent = `${currentDev.leaveCredits.emergency} Days`;
     }
 
     // Render Requests Table
     const requests = store.isAdmin() ? store.getRequests('all') : store.getRequests(auth.devId);
     requestsTableBody.innerHTML = '';
-
+    
     if (requests.length === 0) {
       requestsTableBody.innerHTML = `
         <tr>
           <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 28px;">
-            No filed applications found. Click <strong>+ File New Application</strong> above to file a Leave, COA, or Overtime request.
+            No filed applications found. Click <strong>+ File Application</strong> above to file a Leave, COA, or Overtime request.
           </td>
         </tr>
       `;
@@ -1644,12 +1767,24 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Render Philippine & Company Holidays Grid
+    // Render Philippine, CDO & Company Holidays Grid
     const holidays = store.getHolidays();
     holidaysGrid.innerHTML = '';
     holidays.forEach(h => {
-      const isCustom = h.type.includes('Company') || h.type.includes('Regional') || h.type.includes('Special');
-      const icon = h.type.includes('Company') ? '🏢' : '🇵🇭';
+      const isCDO = h.type.includes('CDO') || (h.location && h.location.includes('CDO'));
+      const isCompany = h.type.includes('Company');
+      const isCustom = isCDO || isCompany || h.type.includes('Special') || h.type.includes('Regional');
+      
+      let icon = '🇵🇭';
+      let locTag = 'National';
+      if (isCDO) {
+        icon = '📍';
+        locTag = 'Cagayan de Oro (CDO)';
+      } else if (isCompany) {
+        icon = '🏢';
+        locTag = 'Company-Wide';
+      }
+
       const card = document.createElement('div');
       card.className = `holiday-card ${isCustom ? 'holiday-card-custom' : ''}`;
       
@@ -1659,17 +1794,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
       card.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-          <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-cyan); font-weight: 700;">${h.date}</div>
+          <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+            <span style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-cyan); font-weight: 700;">${h.date}</span>
+            <span class="badge" style="font-size: 0.65rem; background: rgba(99, 102, 241, 0.12); color: var(--accent-primary); padding: 2px 6px;">${icon} ${locTag}</span>
+          </div>
           ${deleteBtnHtml}
         </div>
-        <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-primary); margin: 4px 0;">${h.name}</div>
-        <div style="font-size: 0.72rem; color: var(--status-working);">${icon} ${h.type}</div>
+        <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-primary); margin: 6px 0;">${h.name}</div>
+        <div style="font-size: 0.74rem; color: var(--status-working); font-weight: 600;">${h.type}</div>
       `;
       holidaysGrid.appendChild(card);
     });
   }
 
   window.deleteHolidayConfirm = function(date, name) {
+    if (!store.isAdmin()) {
+      const pin = prompt('Enter Admin Master PIN (9999) to delete holidays:');
+      if (pin !== store.getState().adminPin) {
+        alert('❌ Access Denied. Admin PIN required.');
+        return;
+      }
+      store.loginAdmin(pin);
+      updateHeaderAuthProfile();
+    }
+
     if (confirm(`Remove holiday "${name}" on ${date}?`)) {
       store.deleteHoliday(date, name);
       showToast(`Removed holiday: ${name}`, 'info');
@@ -1677,24 +1825,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Custom Holiday Modal Handlers
+  // Holiday Modal & Presets Handlers
   const btnOpenAddHoliday = document.getElementById('btn-open-add-holiday');
   const modalAddHoliday = document.getElementById('modal-add-holiday');
   const formAddHoliday = document.getElementById('form-add-holiday');
   const btnCloseAddHoliday = document.getElementById('btn-close-add-holiday');
   const btnCancelAddHoliday = document.getElementById('btn-cancel-add-holiday');
+  const holidayPresetSelect = document.getElementById('holiday-preset-select');
+
+  if (holidayPresetSelect) {
+    holidayPresetSelect.addEventListener('change', () => {
+      const opt = holidayPresetSelect.options[holidayPresetSelect.selectedIndex];
+      if (opt && opt.value) {
+        const name = opt.getAttribute('data-name');
+        const date = opt.getAttribute('data-date');
+        const type = opt.getAttribute('data-type');
+        const loc = opt.getAttribute('data-loc');
+
+        if (name) document.getElementById('holiday-name-input').value = name;
+        if (date) document.getElementById('holiday-date-input').value = date;
+        if (type) document.getElementById('holiday-type-select').value = type;
+        if (loc) document.getElementById('holiday-location-select').value = loc;
+      }
+    });
+  }
 
   if (btnOpenAddHoliday) {
     btnOpenAddHoliday.addEventListener('click', () => {
       if (!store.isAdmin()) {
-        const pin = prompt('Enter Admin Master PIN to add custom holidays:');
+        const pin = prompt('Enter Admin Master PIN (9999) to add holidays:');
         if (pin !== store.getState().adminPin) {
-          alert('Incorrect Admin PIN.');
+          alert('❌ Access Denied. Admin PIN required.');
           return;
         }
         store.loginAdmin(pin);
         updateHeaderAuthProfile();
       }
+      formAddHoliday.reset();
       document.getElementById('holiday-date-input').value = new Date().toISOString().split('T')[0];
       modalAddHoliday.classList.add('active');
     });
@@ -1709,12 +1876,17 @@ document.addEventListener('DOMContentLoaded', () => {
   if (formAddHoliday) {
     formAddHoliday.addEventListener('submit', (e) => {
       e.preventDefault();
+      if (!store.isAdmin()) {
+        alert('❌ Only Administrators can add holidays.');
+        return;
+      }
       const name = document.getElementById('holiday-name-input').value.trim();
       const date = document.getElementById('holiday-date-input').value;
       const type = document.getElementById('holiday-type-select').value;
+      const location = document.getElementById('holiday-location-select').value;
 
       if (name && date) {
-        store.addHoliday({ name, date, type });
+        store.addHoliday({ name, date, type, location });
         showToast(`Added holiday "${name}" on ${date}!`, 'success');
         modalAddHoliday.classList.remove('active');
         formAddHoliday.reset();

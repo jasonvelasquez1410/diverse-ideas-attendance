@@ -52,10 +52,16 @@ Cloned from the official Sprout PayDay Employee Dashboard with the **`[ Apply �
 5. 💼 **Official Business (OB):** File for client fieldwork and offsite setups.
 6. 🔄 **Schedule Adjustment:** Request shift or work location changes.
 
-### 🌴 Module 3: Time Off & Holidays Management Center (Jibble Style)
+### 🌴 Module 3: Time Off, Philippine & Cagayan de Oro (CDO) Holidays Center
+- **Full 2026 Philippine & Cagayan de Oro (CDO) Holiday Calendar:**
+  - **National Regular Holidays:** New Year's Day, Maundy Thursday, Good Friday, Araw ng Kagitingan, Labor Day, Independence Day, National Heroes Day, Bonifacio Day, Christmas Day, Rizal Day.
+  - **National Special Non-Working:** Chinese New Year, EDSA Anniversary, Black Saturday, Ninoy Aquino Day, All Saints' Day, All Souls' Day, Feast of the Immaculate Conception, Christmas Eve, New Year's Eve.
+  - **Cagayan de Oro (CDO) Local Non-Working Holidays:**
+    - `June 15`: **Cagayan de Oro Charter Day** (Official City Charter Anniversary)
+    - `August 28`: **Higalaay Festival & Feast of St. Augustine** (CDO Patronal Feast Day)
+    - `January 10`: **Cagayan de Oro City Fiesta**
+- **Smart Quick Holiday Preset Dropdown (`+ Add Holiday`):** 1-click template selector for CDO local holidays, PH national holidays, and Diverse Ideas company events.
 - **Leave Credit Balances:** Real-time tracking of Vacation (VL), Sick (SL), and Emergency (EL) balances.
-- **Custom Holiday Creator (`+ Add Holiday`):** Allows admins to add company holidays, local holidays, and regional non-working days.
-- **Holidays & Work Calendar Grid:** Displays upcoming 2026 Philippine regular holidays and custom company events with 1-click deletion for custom holidays.
 - **Applications & Approvals Table:** Complete record of all filed leave, COA, and overtime requests with instant 1-click Approve / Reject actions for Admin.
 
 ### ⚙️ Module 4: Enterprise Settings Center (Jibble Multi-Category Layout)
@@ -63,7 +69,10 @@ Categorized into 6 dedicated sub-views:
 1. 🏢 **Organization Profile:** Company legal name, industry, headquarters address, tax ID, and payslip voucher prefix (`DIV`).
 2. ⏰ **Work Schedules & Hybrid Rules:** Shift start/end times (`08:00` - `17:00`), designated WFH days (e.g., `Monday`), and grace period in minutes.
 3. 👥 **People & Pay Rates:** Developer roster, hourly wages, 4-digit PINs, leave allocations, Run Payslip action, and Edit Profile modal.
-4. 📁 **Projects & Activities:** Client project codes and tags (`DICP`, `JETZ`, `ACCT`, `MOBI`, `TOOL`) developers can clock into.
+4. 📁 **Projects & Activities (Full Admin CRUD):**
+   - **Create New Project (`+ New Project`):** Set project code, full name, description, and initial active status.
+   - **Edit Project (`✏️ Edit`):** Update project names, codes, descriptions, and toggle active/archived status.
+   - **Delete Project (`🗑️ Delete`):** Admin-only removal with confirmation prompt.
 5. 💾 **Database & Backups:** JSON database backup download, JSON restore from file, and factory demo data reset.
 6. 📖 **Admin Guide & Tutorials:** Embedded interactive onboarding tutorial suite for Tef with step-by-step guides, live PIN cheat sheet, and 1-click invitation text copy.
 

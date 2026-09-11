@@ -91,12 +91,12 @@ const DEFAULT_INITIAL_STATE = {
       leaveCredits: { vacation: 14, sick: 10, emergency: 5 }
     }
   ],
-  projects: [
-    { id: 'proj-1', name: 'Diverse Ideas Core Portal', code: 'DICP' },
-    { id: 'proj-2', name: 'JETZ Enterprise System', code: 'JETZ' },
-    { id: 'proj-3', name: 'Accounting & Payroll Module', code: 'ACCT' },
-    { id: 'proj-4', name: 'Mobile App Optimization', code: 'MOBI' },
-    { id: 'proj-5', name: 'Internal Tooling & Automation', code: 'TOOL' }
+    projects: [
+    { id: 'proj-1', name: 'Diverse Ideas Core Portal', code: 'DICP', description: 'Internal staff management & attendance suite', status: 'Active' },
+    { id: 'proj-2', name: 'JETZ Enterprise System', code: 'JETZ', description: 'Enterprise resource planning & client platform', status: 'Active' },
+    { id: 'proj-3', name: 'Accounting & Payroll Module', code: 'ACCT', description: 'Multi-currency dual USD/PHP wage calculation system', status: 'Active' },
+    { id: 'proj-4', name: 'Mobile App Optimization', code: 'MOBI', description: 'Cross-platform iOS/Android responsive UI enhancements', status: 'Active' },
+    { id: 'proj-5', name: 'Internal Tooling & Automation', code: 'TOOL', description: 'DevOps pipelines, scripts & database automations', status: 'Active' }
   ],
   // Sprout HR Requests (Leave, Certificate of Attendance COA, Overtime OT)
   requests: [
@@ -135,18 +135,30 @@ const DEFAULT_INITIAL_STATE = {
       dateFiled: '2026-09-10'
     }
   ],
-  // Philippine Holidays
+  // Complete 2026 Official Philippine National & Cagayan de Oro (CDO) Local Holidays
   holidays: [
-    { date: '2026-01-01', name: 'New Year’s Day', type: 'Regular Holiday' },
-    { date: '2026-04-02', name: 'Maundy Thursday', type: 'Regular Holiday' },
-    { date: '2026-04-03', name: 'Good Friday', type: 'Regular Holiday' },
-    { date: '2026-04-09', name: 'Araw ng Kagitingan', type: 'Regular Holiday' },
-    { date: '2026-05-01', name: 'Labor Day', type: 'Regular Holiday' },
-    { date: '2026-06-12', name: 'Independence Day', type: 'Regular Holiday' },
-    { date: '2026-08-31', name: 'National Heroes Day', type: 'Regular Holiday' },
-    { date: '2026-11-30', name: 'Bonifacio Day', type: 'Regular Holiday' },
-    { date: '2026-12-25', name: 'Christmas Day', type: 'Regular Holiday' },
-    { date: '2026-12-30', name: 'Rizal Day', type: 'Regular Holiday' }
+    { date: '2026-01-01', name: 'New Year’s Day', type: 'Regular Holiday', location: 'National' },
+    { date: '2026-01-10', name: 'Cagayan de Oro City Fiesta', type: 'CDO Local Holiday', location: 'Cagayan de Oro (CDO)' },
+    { date: '2026-02-17', name: 'Chinese Lunar New Year', type: 'Special Non-Working', location: 'National' },
+    { date: '2026-02-25', name: 'EDSA People Power Revolution Anniversary', type: 'Special Non-Working', location: 'National' },
+    { date: '2026-04-02', name: 'Maundy Thursday', type: 'Regular Holiday', location: 'National' },
+    { date: '2026-04-03', name: 'Good Friday', type: 'Regular Holiday', location: 'National' },
+    { date: '2026-04-04', name: 'Black Saturday', type: 'Special Non-Working', location: 'National' },
+    { date: '2026-04-09', name: 'Araw ng Kagitingan (Day of Valor)', type: 'Regular Holiday', location: 'National' },
+    { date: '2026-05-01', name: 'Labor Day', type: 'Regular Holiday', location: 'National' },
+    { date: '2026-06-12', name: 'Independence Day', type: 'Regular Holiday', location: 'National' },
+    { date: '2026-06-15', name: 'Cagayan de Oro Charter Day (CDO Anniversary)', type: 'CDO Local Holiday', location: 'Cagayan de Oro (CDO)' },
+    { date: '2026-08-21', name: 'Ninoy Aquino Day', type: 'Special Non-Working', location: 'National' },
+    { date: '2026-08-28', name: 'Higalaay Festival & Feast of St. Augustine', type: 'CDO Local Holiday', location: 'Cagayan de Oro (CDO)' },
+    { date: '2026-08-31', name: 'National Heroes Day', type: 'Regular Holiday', location: 'National' },
+    { date: '2026-11-01', name: 'All Saints’ Day', type: 'Special Non-Working', location: 'National' },
+    { date: '2026-11-02', name: 'All Souls’ Day', type: 'Special Non-Working', location: 'National' },
+    { date: '2026-11-30', name: 'Bonifacio Day', type: 'Regular Holiday', location: 'National' },
+    { date: '2026-12-08', name: 'Feast of the Immaculate Conception', type: 'Special Non-Working', location: 'National' },
+    { date: '2026-12-24', name: 'Christmas Eve', type: 'Special Non-Working', location: 'National' },
+    { date: '2026-12-25', name: 'Christmas Day', type: 'Regular Holiday', location: 'National' },
+    { date: '2026-12-30', name: 'Rizal Day', type: 'Regular Holiday', location: 'National' },
+    { date: '2026-12-31', name: 'Last Day of the Year (New Year’s Eve)', type: 'Special Non-Working', location: 'National' }
   ],
   attendanceRecords: [
     {
@@ -210,6 +222,19 @@ class Store {
       if (serialized) {
         const parsed = JSON.parse(serialized);
         if (!parsed.usdToPhpRate) parsed.usdToPhpRate = 58.50;
+        
+        // Merge complete 2026 Philippine & CDO Holidays if needed
+        if (!parsed.holidays || parsed.holidays.length < 18) {
+          parsed.holidays = DEFAULT_INITIAL_STATE.holidays;
+        }
+
+        // Ensure project objects have status and description
+        if (parsed.projects) {
+          parsed.projects.forEach(p => {
+            if (!p.status) p.status = 'Active';
+            if (!p.description) p.description = '';
+          });
+        }
         return parsed;
       }
     } catch (e) {
@@ -380,18 +405,45 @@ class Store {
     this.saveState();
   }
 
-  // Projects
+  // Projects CRUD (Admin Configured)
   getProjects() {
-    return this.state.projects;
+    return this.state.projects || [];
   }
 
   getProjectById(id) {
-    return this.state.projects.find(p => p.id === id) || { id, name: 'General Work', code: 'GEN' };
+    return this.state.projects.find(p => p.id === id) || { id, name: 'General Work', code: 'GEN', status: 'Active' };
   }
 
-  addProject(name, code) {
+  addProject(name, code, description = '', status = 'Active') {
     const id = 'proj-' + Date.now();
-    this.state.projects.push({ id, name, code: code || name.substring(0, 4).toUpperCase() });
+    const newProj = {
+      id,
+      name: name.trim(),
+      code: code ? code.toUpperCase().trim() : name.substring(0, 4).toUpperCase(),
+      description: (description || '').trim(),
+      status: status || 'Active'
+    };
+    if (!this.state.projects) this.state.projects = [];
+    this.state.projects.push(newProj);
+    this.saveState();
+    return newProj;
+  }
+
+  updateProject(id, updates) {
+    const proj = this.state.projects.find(p => p.id === id);
+    if (proj) {
+      if (updates.name) proj.name = updates.name.trim();
+      if (updates.code) proj.code = updates.code.toUpperCase().trim();
+      if (updates.description !== undefined) proj.description = updates.description.trim();
+      if (updates.status) proj.status = updates.status;
+      this.saveState();
+      return proj;
+    }
+    return null;
+  }
+
+  deleteProject(id) {
+    this.state.projects = this.state.projects.filter(p => p.id !== id);
     this.saveState();
   }
 
@@ -452,7 +504,8 @@ class Store {
     const holiday = {
       date: holidayData.date,
       name: holidayData.name,
-      type: holidayData.type || 'Company Holiday'
+      type: holidayData.type || 'Company Holiday',
+      location: holidayData.location || (holidayData.type.includes('CDO') ? 'Cagayan de Oro (CDO)' : 'National')
     };
     if (!this.state.holidays) this.state.holidays = [];
     this.state.holidays.push(holiday);
