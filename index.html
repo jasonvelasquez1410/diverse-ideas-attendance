@@ -976,16 +976,35 @@
             <div class="guide-step-card">
               <div class="guide-step-header">
                 <div class="guide-step-badge">2</div>
-                <h3 class="guide-step-title">Customize Team Profiles, Rates & 4-Digit PINs</h3>
+                <h3 class="guide-step-title">Configure Employee Profiles, Rates & 4-Digit PINs</h3>
               </div>
               <div class="guide-step-desc">
-                Go to <strong>⚙️ Settings &rarr; 👥 People & Pay Rates</strong>. Click <strong>✏️ Edit</strong> next to any employee to configure their real details:
-                <ul style="margin: 8px 0 8px 24px; color: var(--text-secondary);">
-                  <li><strong>Full Name & Role</strong> (e.g. Lead Full-Stack Dev, Senior QA)</li>
-                  <li><strong>Hourly Rate ($ USD)</strong> for accurate payroll calculation</li>
-                  <li><strong>Private 4-Digit Access PIN</strong> (e.g. <span class="guide-pin-chip">1234</span>, <span class="guide-pin-chip">2345</span>, or any custom PIN Tef chooses)</li>
-                  <li><strong>Leave Credits</strong> (Vacation, Sick, and Emergency leave balances)</li>
-                </ul>
+                Go to <strong>⚙️ Settings → 👥 People & Pay Rates</strong>. Click the <strong>✏️ Edit</strong> button next to each developer's name. A profile editor modal will open with the following fields to configure:
+              </div>
+              <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+                <div style="display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; background: var(--bg-tertiary); border-radius: var(--radius-sm); border-left: 3px solid var(--accent-primary);">
+                  <span style="font-size: 1rem;">👤</span>
+                  <div><strong style="color: var(--text-primary);">Full Name & Job Title</strong><br><span style="color: var(--text-secondary); font-size: 0.83rem;">Update the real name and assign an official role title (e.g. <em>Lead Full-Stack Developer</em>, <em>Senior QA Engineer</em>, <em>Backend Developer</em>).</span></div>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; background: var(--bg-tertiary); border-radius: var(--radius-sm); border-left: 3px solid var(--accent-cyan);">
+                  <span style="font-size: 1rem;">💵</span>
+                  <div><strong style="color: var(--text-primary);">Currency & Hourly Rate ($ USD)</strong><br><span style="color: var(--text-secondary); font-size: 0.83rem;">Enter the agreed hourly wage in USD. Select the base currency. The system will auto-convert to ₱ PHP on payslips using the live exchange rate you set.</span></div>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; background: var(--bg-tertiary); border-radius: var(--radius-sm); border-left: 3px solid #ec4899;">
+                  <span style="font-size: 1rem;">🔑</span>
+                  <div><strong style="color: var(--text-primary);">Private 4-Digit Access PIN</strong><br><span style="color: var(--text-secondary); font-size: 0.83rem;">Assign each employee a unique 4-digit PIN (e.g. <span class="guide-pin-chip">1234</span>, <span class="guide-pin-chip">5678</span>). This is their personal clock-in key — never share it with other team members.</span></div>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; background: var(--bg-tertiary); border-radius: var(--radius-sm); border-left: 3px solid var(--status-working);">
+                  <span style="font-size: 1rem;">🌴</span>
+                  <div><strong style="color: var(--text-primary);">Leave Credits (VL / SL / EL)</strong><br><span style="color: var(--text-secondary); font-size: 0.83rem;">Set the number of leave days available for each type: <strong>Vacation Leave (VL)</strong>, <strong>Sick Leave (SL)</strong>, and <strong>Emergency Leave (EL)</strong>. Standard: VL=12, SL=10, EL=5. Adjust per employment contract.</span></div>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; background: var(--bg-tertiary); border-radius: var(--radius-sm); border-left: 3px solid #f59e0b;">
+                  <span style="font-size: 1rem;">📧</span>
+                  <div><strong style="color: var(--text-primary);">Email Address (Optional)</strong><br><span style="color: var(--text-secondary); font-size: 0.83rem;">Add the employee's work or personal email for reference. Appears on payslips and correspondence templates.</span></div>
+                </div>
+              </div>
+              <div class="guide-callout" style="margin-top: 12px;">
+                💡 <strong>Tip:</strong> Do this for all team members before sending out login PINs. Once saved, developers can immediately start logging their daily attendance.
               </div>
             </div>
 
@@ -1051,10 +1070,78 @@
             <div class="guide-step-card">
               <div class="guide-step-header">
                 <div class="guide-step-badge">6</div>
+                <h3 class="guide-step-title">Managing Projects & Client Codes</h3>
+              </div>
+              <div class="guide-step-desc">
+                Go to <strong>⚙️ Settings → 📁 Projects & Activities</strong>. As admin, Tef can:
+                <ul style="margin: 8px 0 8px 24px; color: var(--text-secondary);">
+                  <li><strong>Add New Projects:</strong> Create project codes (e.g. <span class="guide-pin-chip">LOGI</span>) and names for developers to clock into.</li>
+                  <li><strong>Edit Projects:</strong> Update project name, description, or status at any time.</li>
+                  <li><strong>Archive Completed Projects:</strong> Mark finished projects as Completed so they no longer appear in clock-in options.</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Step 7 -->
+            <div class="guide-step-card">
+              <div class="guide-step-header">
+                <div class="guide-step-badge">7</div>
+                <h3 class="guide-step-title">Holidays, Time Off & Leave Approvals</h3>
+              </div>
+              <div class="guide-step-desc">
+                In the <strong>🌴 Time Off & Holidays</strong> tab:
+                <ul style="margin: 8px 0 8px 24px; color: var(--text-secondary);">
+                  <li><strong>Add Philippine / CDO Holidays:</strong> Use the quick preset selector to add national or CDO local holidays (e.g. Higalaay Festival, Charter Day). Custom company events can also be added.</li>
+                  <li><strong>Approve or Reject Leave:</strong> Pending leave applications from staff appear here. Tef reviews the reason and approves or declines with 1 click.</li>
+                  <li><strong>COA (Certificate of Attendance):</strong> If a developer forgot to clock in/out, they file a COA. Tef approves to correct the timesheet record.</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Step 8 -->
+            <div class="guide-step-card">
+              <div class="guide-step-header">
+                <div class="guide-step-badge">8</div>
                 <h3 class="guide-step-title">Database Safety & Local Backups</h3>
               </div>
               <div class="guide-step-desc">
-                In <strong>⚙️ Settings &rarr; 💾 Database & Backups</strong>, Tef can click <strong>"Download JSON Backup"</strong> at any time to save a local backup copy of all team timesheets, logs, rates, and requests.
+                In <strong>⚙️ Settings → 💾 Database & Backups</strong>, Tef can click <strong>"Download JSON Backup"</strong> at any time to save a local backup copy of all team timesheets, logs, rates, and requests.
+              </div>
+            </div>
+
+            <!-- Tef Role Callout -->
+            <div class="guide-step-card" style="background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(6,182,212,0.08)); border-color: rgba(99,102,241,0.3);">
+              <div class="guide-step-header">
+                <div class="guide-step-badge" style="background: linear-gradient(135deg, #ec4899, #8b5cf6);">👑</div>
+                <h3 class="guide-step-title" style="color: var(--accent-primary);">Tef's Official Role in outflows and the System</h3>
+              </div>
+              <div class="guide-step-desc">
+                Tef manages all HR, payroll, and team administration in DevTrack. Suggested official titles based on her responsibilities:
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; margin-top: 10px;">
+                <div style="padding: 8px 12px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--accent-primary); text-align: center;">
+                  <div style="font-weight: 700; color: var(--accent-primary); font-size: 0.88rem;">HR & Payroll Manager</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Recommended ✅</div>
+                </div>
+                <div style="padding: 8px 12px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
+                  <div style="font-weight: 700; color: var(--text-primary); font-size: 0.88rem;">Operations Manager</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Broad scope</div>
+                </div>
+                <div style="padding: 8px 12px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
+                  <div style="font-weight: 700; color: var(--text-primary); font-size: 0.88rem;">People & Culture Lead</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Modern HR title</div>
+                </div>
+                <div style="padding: 8px 12px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
+                  <div style="font-weight: 700; color: var(--text-primary); font-size: 0.88rem;">Admin & HR Coordinator</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Formal & precise</div>
+                </div>
+                <div style="padding: 8px 12px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
+                  <div style="font-weight: 700; color: var(--text-primary); font-size: 0.88rem;">Office & HR Manager</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Classic & clear</div>
+                </div>
+              </div>
+              <div class="guide-callout" style="margin-top: 12px;">
+                💡 <strong>Tip:</strong> You can set Tef's official title in the system by going to <strong>⚙️ Settings → 👥 People & Pay Rates</strong>, then clicking <strong>✏️ Edit</strong> next to Administrator and updating the Role field.
               </div>
             </div>
 
@@ -1125,18 +1212,35 @@
               <h4 class="guide-step-title">How Tef Logs In</h4>
             </div>
             <p class="guide-step-desc">
-              Open <strong>https://diverse-ideas-attendance.vercel.app</strong>, select <strong>[ADM] Administrator</strong>, and enter PIN <span class="guide-pin-chip">9999</span>.
+              Open <strong>https://diverse-ideas-attendance.vercel.app</strong>, select <strong>[ADM] Administrator</strong>, and enter PIN <span class="guide-pin-chip">9999</span>. As admin, Tef gets exclusive access to payroll, rates, and team settings.
             </p>
           </div>
 
           <div class="guide-step-card">
             <div class="guide-step-header">
               <div class="guide-step-badge">2</div>
-              <h4 class="guide-step-title">How to Set & Edit Team PINs & Rates</h4>
+              <h4 class="guide-step-title">Configure Employee Profiles — Rates, PINs & Leaves</h4>
             </div>
-            <p class="guide-step-desc">
-              Go to <strong>⚙️ Settings &rarr; 👥 People & Pay Rates</strong>. Click <strong>✏️ Edit</strong> next to any employee to update their name, hourly USD rate, private PIN, and leave balances. You can also click <strong>+ Add Developer</strong> for new hires.
+            <p class="guide-step-desc" style="margin-bottom: 10px;">
+              Go to <strong>⚙️ Settings → 👥 People & Pay Rates</strong>. Click <strong>✏️ Edit</strong> next to each employee. Update these fields for each person:
             </p>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; gap: 8px; padding: 6px 10px; background: var(--bg-tertiary); border-radius: var(--radius-sm); border-left: 3px solid var(--accent-primary); font-size: 0.83rem;">
+                <span>👤</span><span><strong>Name & Role:</strong> Set the full name and job title (e.g. <em>Lead Developer</em>, <em>Senior QA</em>).</span>
+              </div>
+              <div style="display: flex; gap: 8px; padding: 6px 10px; background: var(--bg-tertiary); border-radius: var(--radius-sm); border-left: 3px solid var(--accent-cyan); font-size: 0.83rem;">
+                <span>💵</span><span><strong>Currency & Hourly Rate:</strong> Set the USD hourly wage — auto-converts to ₱ PHP on payslips.</span>
+              </div>
+              <div style="display: flex; gap: 8px; padding: 6px 10px; background: var(--bg-tertiary); border-radius: var(--radius-sm); border-left: 3px solid #ec4899; font-size: 0.83rem;">
+                <span>🔑</span><span><strong>4-Digit PIN:</strong> Assign each person a unique PIN (e.g. <span class="guide-pin-chip">1234</span>) — their personal clock-in key.</span>
+              </div>
+              <div style="display: flex; gap: 8px; padding: 6px 10px; background: var(--bg-tertiary); border-radius: var(--radius-sm); border-left: 3px solid var(--status-working); font-size: 0.83rem;">
+                <span>🌴</span><span><strong>Leave Credits:</strong> Set <strong>VL</strong> (Vacation), <strong>SL</strong> (Sick), <strong>EL</strong> (Emergency) days. Standard: VL=12, SL=10, EL=5.</span>
+              </div>
+            </div>
+            <div class="guide-callout" style="margin-top: 10px;">
+              💡 Click <strong>+ Add Developer</strong> to onboard new hires. All changes are saved automatically to the local database.
+            </div>
           </div>
 
           <div class="guide-step-card">
@@ -1159,11 +1263,47 @@
           <div class="guide-step-card">
             <div class="guide-step-header">
               <div class="guide-step-badge">4</div>
+              <h4 class="guide-step-title">Leave & COA Approvals (Time Off Tab)</h4>
+            </div>
+            <p class="guide-step-desc">
+              In the <strong>🌴 Time Off & Holidays</strong> tab, Tef sees all pending leave applications and COA (missed punch) requests. Click <strong>✅ Approve</strong> or <strong>❌ Reject</strong> on each request. Approved leaves automatically deduct from the employee's leave balance and mark the date on the attendance calendar.
+            </p>
+          </div>
+
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge">5</div>
               <h4 class="guide-step-title">How to Run & Print Payslips on Payday</h4>
             </div>
             <p class="guide-step-desc">
-              Go to <strong>💰 Timesheets & Payday</strong>, choose the employee in the <strong>Quick Staff Payslip Bar</strong>, and click <strong>[ Run & Print Payslip ]</strong>. It will display the live USD ⇄ PHP converted earnings and 1-click print voucher.
+              Go to <strong>💰 Timesheets & Payday</strong>. In the <strong>Quick Staff Payslip Bar</strong>, select an employee from the dropdown and click <strong>[ Run & Print Payslip ]</strong>. A full dual-currency payslip (USD + PHP) will appear — click <strong>Print Official Payslip</strong> to export as PDF or send to printer.
             </p>
+          </div>
+
+          <div class="guide-step-card" style="background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(6,182,212,0.08)); border-color: rgba(99,102,241,0.3);">
+            <div class="guide-step-header">
+              <div class="guide-step-badge" style="background: linear-gradient(135deg, #ec4899, #8b5cf6);">👑</div>
+              <h4 class="guide-step-title" style="color: var(--accent-primary);">Suggested Official Title for Tef</h4>
+            </div>
+            <p class="guide-step-desc" style="margin-bottom: 10px;">Based on Tef's responsibilities in the system, here are suggested professional titles:</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px;">
+              <div style="padding: 8px 12px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--accent-primary); text-align: center;">
+                <div style="font-weight: 700; color: var(--accent-primary); font-size: 0.85rem;">HR & Payroll Manager</div>
+                <div style="font-size: 0.73rem; color: var(--text-muted);">Recommended ✅</div>
+              </div>
+              <div style="padding: 8px 12px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
+                <div style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem;">Operations Manager</div>
+                <div style="font-size: 0.73rem; color: var(--text-muted);">Broad scope</div>
+              </div>
+              <div style="padding: 8px 12px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
+                <div style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem;">People & Culture Lead</div>
+                <div style="font-size: 0.73rem; color: var(--text-muted);">Modern HR</div>
+              </div>
+              <div style="padding: 8px 12px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
+                <div style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem;">Admin & HR Coordinator</div>
+                <div style="font-size: 0.73rem; color: var(--text-muted);">Formal & precise</div>
+              </div>
+            </div>
           </div>
 
         </div>
