@@ -62,11 +62,52 @@ document.addEventListener('DOMContentLoaded', () => {
   const timesheetTableBody = document.getElementById('timesheet-table-body');
   const summaryTotalHours = document.getElementById('summary-total-hours');
   const summaryTotalPayroll = document.getElementById('summary-total-payroll');
+  const summaryTotalPayrollPhp = document.getElementById('summary-total-payroll-php');
   const summaryTotalSessions = document.getElementById('summary-total-sessions');
   const summaryAvgRate = document.getElementById('summary-avg-rate');
+  const summaryAvgRatePhp = document.getElementById('summary-avg-rate-php');
   const btnExportCsv = document.getElementById('btn-export-csv');
   const btnPrintReport = document.getElementById('btn-print-report');
   const btnOpenManualEntry = document.getElementById('btn-open-manual-entry');
+
+  // Forex & Real-Time Conversion Elements
+  const exchangeRateDisplay = document.getElementById('exchange-rate-display');
+  const exchangeSourceBadge = document.getElementById('exchange-source-badge');
+  const exchangeLastUpdated = document.getElementById('exchange-last-updated');
+  const btnRefreshExchangeRate = document.getElementById('btn-refresh-exchange-rate');
+  const btnCustomExchangeRate = document.getElementById('btn-custom-exchange-rate');
+
+  // Bottom Real-Time Conversion Summary Elements
+  const bottomConversionCard = document.getElementById('bottom-conversion-card');
+  const bottomActiveRateBadge = document.getElementById('bottom-active-rate-badge');
+  const bottomUsdTotal = document.getElementById('bottom-usd-total');
+  const bottomPhpTotal = document.getElementById('bottom-php-total');
+  const bottomPhpAvgRate = document.getElementById('bottom-php-avg-rate');
+  const bottomHoursCount = document.getElementById('bottom-hours-count');
+  const bottomDevBreakdownGrid = document.getElementById('bottom-dev-breakdown-grid');
+
+  // Custom Forex Modal Elements
+  const modalCustomRate = document.getElementById('modal-custom-rate');
+  const formCustomRate = document.getElementById('form-custom-rate');
+  const inputCustomRate = document.getElementById('input-custom-rate');
+  const btnCloseCustomRate = document.getElementById('btn-close-custom-rate');
+  const btnCancelCustomRate = document.getElementById('btn-cancel-custom-rate');
+  const btnFetchLiveForex = document.getElementById('btn-fetch-live-forex');
+  const btnDefaultForex = document.getElementById('btn-default-forex');
+
+  // Payslip Modal Elements
+  const modalPayslipPreview = document.getElementById('modal-payslip-preview');
+  const btnClosePayslip = document.getElementById('btn-close-payslip');
+  const btnClosePayslipFooter = document.getElementById('btn-close-payslip-footer');
+  const btnPrintPayslipDirect = document.getElementById('btn-print-payslip-direct');
+  const payslipEmpName = document.getElementById('payslip-emp-name');
+  const payslipEmpRole = document.getElementById('payslip-emp-role');
+  const payslipPeriodDates = document.getElementById('payslip-period-dates');
+  const payslipRateApplied = document.getElementById('payslip-rate-applied');
+  const payslipBreakdownRows = document.getElementById('payslip-breakdown-rows');
+  const payslipNetUsd = document.getElementById('payslip-net-usd');
+  const payslipNetPhp = document.getElementById('payslip-net-php');
+  const payslipVoucherNo = document.getElementById('payslip-voucher-no');
 
   // DOM Elements - Settings View
   const settingsDevTableBody = document.getElementById('settings-dev-table-body');
@@ -613,7 +654,108 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
-  // 6. Timesheet & Payroll Analytics View
+  // 6. Real-Time USD ⇄ PHP Forex Exchange Engine
+  // ==========================================
+  async function fetchLiveExchangeRate(showNotification = false) {
+    try {
+      if (exchangeSourceBadge) {
+        exchangeSourceBadge.textContent = '⏳ Fetching...';
+      }
+      const response = await fetch('https://open.er-api.com/v6/latest/USD', { cache: 'no-cache' });
+      if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+      const data = await response.json();
+
+      if (data && data.rates && data.rates.PHP) {
+        const phpRate = parseFloat(data.rates.PHP);
+        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        store.setUsdToPhpRate(phpRate, timeStr);
+        updateForexUI(phpRate, timeStr, true);
+        if (showNotification) {
+          showToast(`Forex rate updated: 1 USD = ₱${phpRate.toFixed(2)} PHP`, 'success');
+        }
+        renderTimesheetsAndPayroll();
+        return;
+      }
+    } catch (err) {
+      console.warn('Live forex fetch failed, using stored/fallback rate:', err);
+      const currentRate = store.getUsdToPhpRate();
+      updateForexUI(currentRate, 'Fallback / Manual', false);
+      if (showNotification) {
+        showToast(`Using stored exchange rate: 1 USD = ₱${currentRate.toFixed(2)} PHP`, 'info');
+      }
+    }
+  }
+
+  function updateForexUI(rate, updateTime = null, isLive = true) {
+    const formatted = parseFloat(rate).toFixed(2);
+    if (exchangeRateDisplay) {
+      exchangeRateDisplay.textContent = `$1.00 USD = ₱${formatted} PHP`;
+    }
+    if (exchangeSourceBadge) {
+      exchangeSourceBadge.textContent = isLive ? '🟢 Live Forex' : '⚙️ Custom Rate';
+      exchangeSourceBadge.className = isLive ? 'badge badge-working' : 'badge badge-break';
+    }
+    if (exchangeLastUpdated) {
+      const state = store.getState();
+      const time = updateTime || state.lastRateUpdate || 'Recent';
+      exchangeLastUpdated.textContent = isLive ? `Live Forex synced at ${time}` : `Manual rate applied (₱${formatted}/$)`;
+    }
+    if (bottomActiveRateBadge) {
+      bottomActiveRateBadge.textContent = `Conversion Rate: 1 USD = ₱${formatted} PHP`;
+    }
+  }
+
+  if (btnRefreshExchangeRate) {
+    btnRefreshExchangeRate.addEventListener('click', () => {
+      fetchLiveExchangeRate(true);
+    });
+  }
+
+  if (btnCustomExchangeRate) {
+    btnCustomExchangeRate.addEventListener('click', () => {
+      inputCustomRate.value = store.getUsdToPhpRate().toFixed(2);
+      modalCustomRate.classList.add('active');
+      inputCustomRate.focus();
+    });
+  }
+
+  if (btnCloseCustomRate && btnCancelCustomRate) {
+    [btnCloseCustomRate, btnCancelCustomRate].forEach(b => b.addEventListener('click', () => {
+      modalCustomRate.classList.remove('active');
+    }));
+  }
+
+  if (btnFetchLiveForex) {
+    btnFetchLiveForex.addEventListener('click', async () => {
+      await fetchLiveExchangeRate(true);
+      inputCustomRate.value = store.getUsdToPhpRate().toFixed(2);
+    });
+  }
+
+  if (btnDefaultForex) {
+    btnDefaultForex.addEventListener('click', () => {
+      inputCustomRate.value = '58.50';
+    });
+  }
+
+  if (formCustomRate) {
+    formCustomRate.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const newRate = parseFloat(inputCustomRate.value);
+      if (isNaN(newRate) || newRate <= 0) {
+        showToast('Please enter a valid exchange rate', 'error');
+        return;
+      }
+      store.setUsdToPhpRate(newRate, new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      updateForexUI(newRate, 'Custom Manual', false);
+      modalCustomRate.classList.remove('active');
+      showToast(`Applied custom conversion rate: ₱${newRate.toFixed(2)}/USD`, 'success');
+      renderTimesheetsAndPayroll();
+    });
+  }
+
+  // ==========================================
+  // 7. Timesheet & Payroll Analytics View (Dual Currency USD & PHP)
   // ==========================================
   let currentFilteredRecords = [];
 
@@ -625,18 +767,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const projFilter = payrollProjectFilter.value;
     const start = customStartDate.value;
     const end = customEndDate.value;
+    const rate = store.getUsdToPhpRate();
 
     currentFilteredRecords = payroll.filterRecords(rangeType, devFilter, projFilter, start, end);
     const summary = payroll.generateSummary(currentFilteredRecords);
 
+    // Format Top Metric Cards
     summaryTotalHours.textContent = `${summary.totalHours} hrs`;
-    summaryTotalPayroll.textContent = store.isAdmin() ? `$${summary.totalGrossPay}` : 'Confidential 🔒';
+    if (store.isAdmin()) {
+      summaryTotalPayroll.textContent = `$${parseFloat(summary.totalGrossPay).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      summaryTotalPayrollPhp.textContent = `≈ ₱${parseFloat(summary.totalGrossPhp).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} PHP`;
+      summaryAvgRate.textContent = `$${parseFloat(summary.avgHourlyPay).toFixed(2)}/hr`;
+      summaryAvgRatePhp.textContent = `≈ ₱${parseFloat(summary.avgHourlyPhp).toFixed(2)}/hr`;
+    } else {
+      summaryTotalPayroll.textContent = 'Confidential 🔒';
+      summaryTotalPayrollPhp.textContent = 'Log in as Admin to view';
+      summaryAvgRate.textContent = 'Confidential 🔒';
+      summaryAvgRatePhp.textContent = '••••';
+    }
     summaryTotalSessions.textContent = summary.totalRecords;
-    summaryAvgRate.textContent = store.isAdmin() ? `$${summary.avgHourlyPay}/hr` : 'Confidential 🔒';
 
     // Hide dev selector for regular developers
     payrollDevFilter.style.display = store.isAdmin() ? 'block' : 'none';
 
+    // Render Table Rows
     timesheetTableBody.innerHTML = '';
     if (currentFilteredRecords.length === 0) {
       timesheetTableBody.innerHTML = `
@@ -646,54 +800,118 @@ document.addEventListener('DOMContentLoaded', () => {
           </td>
         </tr>
       `;
-      return;
+    } else {
+      currentFilteredRecords.forEach(rec => {
+        const dev = store.getDeveloperById(rec.developerId) || { name: 'Unknown', avatarColor: '#6366f1', initials: '?' };
+        const proj = store.getProjectById(rec.projectId);
+        const startT = rec.startTime ? new Date(rec.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-';
+        const endT = rec.endTime ? new Date(rec.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-';
+        const hours = ((rec.workedMinutes || 0) / 60).toFixed(2);
+        const isWfh = rec.workLocation === 'wfh';
+
+        const rateUsdVal = (rec.hourlyRate || 0);
+        const grossUsdVal = (rec.totalEarnings || 0);
+        const ratePhpVal = (rateUsdVal * rate);
+        const grossPhpVal = (grossUsdVal * rate);
+
+        const rateDisplay = store.isAdmin() 
+          ? `<span>$${rateUsdVal.toFixed(2)}</span><span class="php-subtext">≈ ₱${ratePhpVal.toFixed(2)}</span>`
+          : '<span class="confidential-pill">••••</span>';
+
+        const payDisplay = store.isAdmin()
+          ? `<span style="color: var(--status-working); font-weight: 700;">$${grossUsdVal.toFixed(2)}</span><span class="php-subtext" style="color: var(--status-working);">≈ ₱${grossPhpVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>`
+          : '<span class="confidential-pill">Confidential</span>';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 28px; height: 28px; border-radius: 50%; background: ${dev.avatarColor}; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: white;">
+                ${dev.initials}
+              </div>
+              <div>
+                <strong>${dev.name}</strong>
+              </div>
+            </div>
+          </td>
+          <td class="font-mono">${rec.date}</td>
+          <td>
+            <span class="badge" style="background: ${isWfh ? 'rgba(99, 102, 241, 0.15)' : 'rgba(16, 185, 129, 0.15)'}; color: ${isWfh ? 'var(--accent-cyan)' : 'var(--status-working)'}; font-size: 0.72rem;">
+              ${isWfh ? '🏠 WFH' : '🏢 Onsite'}
+            </span>
+          </td>
+          <td>
+            <span class="badge badge-working" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border-color: rgba(99, 102, 241, 0.3);">
+              ${proj.name}
+            </span>
+          </td>
+          <td class="font-mono">${startT} - ${endT}</td>
+          <td class="font-mono">${rec.breakDurationMinutes || 0}m</td>
+          <td class="font-mono" style="font-weight: 700; color: var(--text-primary);">${hours} hrs</td>
+          <td class="font-mono">${rateDisplay}</td>
+          <td class="font-mono">${payDisplay}</td>
+          <td>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.72rem; color: var(--accent-cyan);" onclick="generateSinglePayslip('${rec.developerId}', '${rec.id}')" title="Generate and print payslip for this entry">
+                📄 Slip
+              </button>
+              <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.72rem; color: var(--status-danger);" onclick="deleteTimesheetRecord('${rec.id}')" title="Delete record">
+                🗑️
+              </button>
+            </div>
+          </td>
+        `;
+        timesheetTableBody.appendChild(tr);
+      });
     }
 
-    currentFilteredRecords.forEach(rec => {
-      const dev = store.getDeveloperById(rec.developerId) || { name: 'Unknown', avatarColor: '#6366f1', initials: '?' };
-      const proj = store.getProjectById(rec.projectId);
-      const startT = rec.startTime ? new Date(rec.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-';
-      const endT = rec.endTime ? new Date(rec.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-';
-      const hours = ((rec.workedMinutes || 0) / 60).toFixed(2);
-      const isWfh = rec.workLocation === 'wfh';
+    // Render Bottom Real-Time Computation & PHP Summary Card
+    if (bottomConversionCard) {
+      if (store.isAdmin()) {
+        bottomUsdTotal.textContent = `$${parseFloat(summary.totalGrossPay).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        bottomPhpTotal.textContent = `₱${parseFloat(summary.totalGrossPhp).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        bottomPhpAvgRate.textContent = `₱${parseFloat(summary.avgHourlyPhp).toFixed(2)} / hr`;
+        bottomHoursCount.textContent = `${summary.totalHours} billable hours rendered`;
 
-      const rateDisplay = store.isAdmin() ? `${rec.currencySymbol}${(rec.hourlyRate || 0).toFixed(2)}` : '••••';
-      const payDisplay = store.isAdmin() ? `${rec.currencySymbol}${(rec.totalEarnings || 0).toFixed(2)}` : '••••';
-
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 28px; height: 28px; border-radius: 50%; background: ${dev.avatarColor}; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: white;">
-              ${dev.initials}
-            </div>
-            <strong>${dev.name}</strong>
+        // Render Developer-by-Developer Converted Breakdown Grid
+        bottomDevBreakdownGrid.innerHTML = '';
+        if (summary.byDeveloper.length === 0) {
+          bottomDevBreakdownGrid.innerHTML = `<div style="grid-column: span 4; color: var(--text-muted); font-size: 0.82rem;">No developer records to compute.</div>`;
+        } else {
+          summary.byDeveloper.forEach(item => {
+            const dev = item.developer;
+            const card = document.createElement('div');
+            card.className = 'glass-card';
+            card.style.padding = '14px 16px';
+            card.style.borderRadius = 'var(--radius-md)';
+            card.innerHTML = `
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <div style="width: 24px; height: 24px; border-radius: 50%; background: ${dev.avatarColor || '#6366f1'}; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; color: white;">
+                  ${dev.initials || 'DV'}
+                </div>
+                <strong style="font-size: 0.88rem; color: var(--text-primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${dev.name}</strong>
+              </div>
+              <div style="font-size: 0.76rem; color: var(--text-secondary);">${item.hoursWorked} hrs • ${item.sessionCount} session(s)</div>
+              <div style="margin-top: 6px; display: flex; justify-content: space-between; align-items: baseline;">
+                <span style="font-family: var(--font-mono); font-weight: 700; color: var(--text-primary); font-size: 0.92rem;">$${item.totalEarnings.toFixed(2)}</span>
+                <span style="font-family: var(--font-mono); font-weight: 800; color: var(--status-working); font-size: 0.95rem;">₱${parseFloat(item.totalEarningsPhp).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+            `;
+            bottomDevBreakdownGrid.appendChild(card);
+          });
+        }
+      } else {
+        bottomUsdTotal.textContent = 'Confidential 🔒';
+        bottomPhpTotal.textContent = 'Confidential 🔒';
+        bottomPhpAvgRate.textContent = '••••';
+        bottomHoursCount.textContent = `${summary.totalHours} billable hours rendered`;
+        bottomDevBreakdownGrid.innerHTML = `
+          <div style="grid-column: span 4; text-align: center; color: var(--text-muted); padding: 12px; font-size: 0.85rem;">
+            🔒 Financial conversions and team wage summaries are restricted to Administrator PIN.
           </div>
-        </td>
-        <td class="font-mono">${rec.date}</td>
-        <td>
-          <span class="badge" style="background: ${isWfh ? 'rgba(99, 102, 241, 0.15)' : 'rgba(16, 185, 129, 0.15)'}; color: ${isWfh ? 'var(--accent-cyan)' : 'var(--status-working)'}; font-size: 0.72rem;">
-            ${isWfh ? '🏠 WFH' : '🏢 Onsite'}
-          </span>
-        </td>
-        <td>
-          <span class="badge badge-working" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border-color: rgba(99, 102, 241, 0.3);">
-            ${proj.name}
-          </span>
-        </td>
-        <td class="font-mono">${startT} - ${endT}</td>
-        <td class="font-mono">${rec.breakDurationMinutes || 0}m</td>
-        <td class="font-mono" style="font-weight: 700; color: var(--text-primary);">${hours} hrs</td>
-        <td class="font-mono">${rateDisplay}</td>
-        <td class="font-mono" style="font-weight: 700; color: var(--status-working);">${payDisplay}</td>
-        <td>
-          <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="deleteTimesheetRecord('${rec.id}')">
-            Delete
-          </button>
-        </td>
-      `;
-      timesheetTableBody.appendChild(tr);
-    });
+        `;
+      }
+    }
   }
 
   function populatePayrollDevFilter() {
@@ -731,12 +949,119 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnExportCsv.addEventListener('click', () => {
     exporter.exportToCSV(currentFilteredRecords);
-    showToast('Exported timesheet records to CSV', 'success');
+    showToast('Exported timesheet records with USD & PHP conversions to CSV', 'success');
   });
 
+  // ==========================================
+  // 8. Official Payslip Generator & Print Controller
+  // ==========================================
+  window.openPayslipModal = function(targetDevId = null, targetRecordId = null) {
+    const state = store.getState();
+    const rate = store.getUsdToPhpRate();
+    const auth = store.getAuth();
+    
+    // Choose developer: explicit target or active filter or current logged dev
+    let devId = targetDevId;
+    if (!devId) {
+      devId = (store.isAdmin() && payrollDevFilter.value !== 'all') ? payrollDevFilter.value : auth.devId || state.activeDeveloperId;
+    }
+
+    const dev = store.getDeveloperById(devId) || state.developers[0];
+    let records = currentFilteredRecords.filter(r => r.developerId === dev.id);
+
+    if (targetRecordId) {
+      records = currentFilteredRecords.filter(r => r.id === targetRecordId);
+    }
+
+    if (records.length === 0) {
+      // Fallback to all records of dev if filtered subset is empty
+      records = state.attendanceRecords.filter(r => r.developerId === dev.id);
+    }
+
+    let totalMinutes = 0;
+    let totalGrossUsd = 0;
+    const projectBreakdown = {};
+
+    records.forEach(r => {
+      totalMinutes += (r.workedMinutes || 0);
+      totalGrossUsd += (r.totalEarnings || 0);
+      const pName = store.getProjectById(r.projectId).name;
+      if (!projectBreakdown[pName]) {
+        projectBreakdown[pName] = { hours: 0, usd: 0, rateUsd: r.hourlyRate || dev.hourlyRate };
+      }
+      projectBreakdown[pName].hours += (r.workedMinutes / 60);
+      projectBreakdown[pName].usd += (r.totalEarnings || 0);
+    });
+
+    const totalGrossPhp = totalGrossUsd * rate;
+    const totalHours = (totalMinutes / 60).toFixed(2);
+    const dateRangeLabel = payrollDateFilter.options[payrollDateFilter.selectedIndex]?.text || 'Current Period';
+
+    // Populate Payslip Modal fields
+    payslipEmpName.textContent = dev.name;
+    payslipEmpRole.textContent = `${dev.role} (${dev.email || 'Diverse Ideas Remote'})`;
+    payslipPeriodDates.textContent = `${dateRangeLabel} • ${records.length} Work Session(s)`;
+    payslipRateApplied.textContent = `$1.00 USD = ₱${rate.toFixed(2)} PHP`;
+    payslipVoucherNo.textContent = `VOUCHER #DIV-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}`;
+
+    // Populate rows
+    payslipBreakdownRows.innerHTML = '';
+    const projKeys = Object.keys(projectBreakdown);
+    if (projKeys.length === 0) {
+      payslipBreakdownRows.innerHTML = `
+        <tr>
+          <td>Standard Development Services</td>
+          <td style="text-align: center;">0.00 hrs</td>
+          <td style="text-align: right;">$${dev.hourlyRate.toFixed(2)}</td>
+          <td style="text-align: right;">₱${(dev.hourlyRate * rate).toFixed(2)}</td>
+          <td style="text-align: right;">$0.00</td>
+          <td style="text-align: right;">₱0.00</td>
+        </tr>
+      `;
+    } else {
+      projKeys.forEach(pName => {
+        const item = projectBreakdown[pName];
+        const phpEarned = item.usd * rate;
+        const phpRate = item.rateUsd * rate;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${pName}</strong> - Software Engineering</td>
+          <td style="text-align: center;">${item.hours.toFixed(2)} hrs</td>
+          <td style="text-align: right;">$${item.rateUsd.toFixed(2)}</td>
+          <td style="text-align: right;">₱${phpRate.toFixed(2)}</td>
+          <td style="text-align: right; font-weight: 700;">$${item.usd.toFixed(2)}</td>
+          <td style="text-align: right; font-weight: 700; color: var(--status-working);">₱${phpEarned.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        </tr>
+        `;
+        payslipBreakdownRows.appendChild(tr);
+      });
+    }
+
+    payslipNetUsd.textContent = `$${totalGrossUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
+    payslipNetPhp.textContent = `≈ ₱${totalGrossPhp.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} PHP`;
+
+    modalPayslipPreview.classList.add('active');
+  };
+
+  window.generateSinglePayslip = function(devId, recordId) {
+    window.openPayslipModal(devId, recordId);
+  };
+
   btnPrintReport.addEventListener('click', () => {
-    exporter.printPayrollReport();
+    window.openPayslipModal();
   });
+
+  if (btnClosePayslip) {
+    btnClosePayslip.addEventListener('click', () => modalPayslipPreview.classList.remove('active'));
+  }
+  if (btnClosePayslipFooter) {
+    btnClosePayslipFooter.addEventListener('click', () => modalPayslipPreview.classList.remove('active'));
+  }
+  if (btnPrintPayslipDirect) {
+    btnPrintPayslipDirect.addEventListener('click', () => {
+      window.print();
+    });
+  }
 
   // ==========================================
   // 7. Team & Rate Settings View (Admin Locked)
@@ -1332,7 +1657,22 @@ document.addEventListener('DOMContentLoaded', () => {
     renderLeavesAndRequests();
   });
 
+  function renderAll() {
+    updateForexUI(store.getUsdToPhpRate());
+    renderProjectDropdowns();
+    setDefaultWorkLocation();
+    renderClockTerminal();
+    renderAttendanceBoard();
+    populatePayrollDevFilter();
+    renderTimesheetsAndPayroll();
+    renderSettings();
+    renderLeavesAndRequests();
+    renderPaydayWidgets();
+  }
+
   initHeaderClock();
   checkAuth();
   renderAll();
+  fetchLiveExchangeRate(false);
 });
+

@@ -16,6 +16,7 @@ class ExportUtility {
       return;
     }
 
+    const rate = this.store.getUsdToPhpRate();
     const headers = [
       'Record ID',
       'Developer Name',
@@ -26,9 +27,11 @@ class ExportUtility {
       'End Time',
       'Break (Mins)',
       'Net Hours',
-      'Hourly Rate',
-      'Gross Pay',
-      'Currency',
+      'Rate (USD)',
+      'Gross Pay (USD)',
+      'Rate (PHP)',
+      'Gross Pay (PHP)',
+      'USD to PHP Exchange Rate',
       'Project',
       'Task Notes'
     ];
@@ -40,6 +43,10 @@ class ExportUtility {
       const end = rec.endTime ? new Date(rec.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-';
       const netHours = ((rec.workedMinutes || 0) / 60).toFixed(2);
       const locText = rec.workLocation === 'wfh' ? 'WFH (Home)' : 'Onsite (Office)';
+      const rateUsd = (rec.hourlyRate || 0);
+      const grossUsd = (rec.totalEarnings || 0);
+      const ratePhp = (rateUsd * rate).toFixed(2);
+      const grossPhp = (grossUsd * rate).toFixed(2);
 
       return [
         `"${rec.id}"`,
@@ -51,9 +58,11 @@ class ExportUtility {
         `"${end}"`,
         rec.breakDurationMinutes || 0,
         netHours,
-        (rec.hourlyRate || 0).toFixed(2),
-        (rec.totalEarnings || 0).toFixed(2),
-        `"${rec.currencySymbol || '$'}"`,
+        rateUsd.toFixed(2),
+        grossUsd.toFixed(2),
+        ratePhp,
+        grossPhp,
+        rate.toFixed(2),
         `"${proj.name.replace(/"/g, '""')}"`,
         `"${(rec.taskNote || '').replace(/"/g, '""')}"`
       ].join(',');

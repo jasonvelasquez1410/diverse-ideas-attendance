@@ -474,13 +474,13 @@
     </section>
 
     <!-- ----------------------------------------
-         TAB 3: Timesheets & Payroll Analytics
+         TAB 3: Timesheets & Payroll Analytics (With Real-Time PHP Conversion)
          ---------------------------------------- -->
     <section id="tab-payroll" class="tab-pane">
       <div class="section-header">
         <div class="section-title-group">
           <h1>Timesheets & Payroll</h1>
-          <p>Review work sessions, calculate billable wages, and export reports.</p>
+          <p>Review work sessions, calculate billable wages, and view real-time USD ⇄ PHP conversions.</p>
         </div>
 
         <!-- Export & Print Actions -->
@@ -491,32 +491,72 @@
           </button>
           <button class="btn btn-secondary" id="btn-export-csv">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            Export CSV
+            Export CSV (USD + PHP)
           </button>
           <button class="btn btn-primary" id="btn-print-report">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-            Print Payroll Slip
+            View / Print Payslip
           </button>
         </div>
       </div>
 
-      <!-- Analytics Metric Cards -->
+      <!-- Live Real-Time USD ⇄ PHP Conversion Ticker Banner -->
+      <div class="exchange-ticker-card">
+        <div class="exchange-ticker-left">
+          <div class="exchange-live-pulse"></div>
+          <div>
+            <div style="font-size: 0.76rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">
+              Real-Time Currency Conversion
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 10px; margin-top: 2px;">
+              <span class="exchange-rate-highlight" id="exchange-rate-display">$1.00 USD = ₱58.50 PHP</span>
+              <span class="badge badge-working" style="font-size: 0.7rem;" id="exchange-source-badge">🟢 Live Exchange</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="exchange-ticker-right">
+          <div style="font-size: 0.78rem; color: var(--text-secondary);" id="exchange-last-updated">
+            Auto-synced with live forex rates
+          </div>
+          <button class="btn btn-secondary btn-sm" id="btn-refresh-exchange-rate" title="Fetch latest USD/PHP exchange rate">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            Sync Forex Rate
+          </button>
+          <button class="btn btn-secondary btn-sm" id="btn-custom-exchange-rate" title="Manually adjust exchange rate">
+            ✏️ Set Rate
+          </button>
+        </div>
+      </div>
+
+      <!-- Analytics Metric Cards (With Dual Currency Display) -->
       <div class="grid-4" style="margin-bottom: 24px;">
         <div class="glass-card stat-card">
           <span class="stat-label">Total Billable Hours</span>
           <div class="stat-value" id="summary-total-hours">0.0 hrs</div>
+          <div class="stat-footer" id="summary-hours-subtitle">Logged for selected filter</div>
         </div>
-        <div class="glass-card stat-card">
-          <span class="stat-label">Total Gross Payroll</span>
+        
+        <div class="glass-card stat-card" style="border-color: rgba(16, 185, 129, 0.25);">
+          <span class="stat-label">Total Gross Payroll (USD & PHP)</span>
           <div class="stat-value" id="summary-total-payroll" style="color: var(--status-working);">$0.00</div>
+          <div class="stat-footer" style="font-weight: 700; color: var(--accent-cyan);" id="summary-total-payroll-php">
+            ≈ ₱0.00 PHP
+          </div>
         </div>
+
         <div class="glass-card stat-card">
           <span class="stat-label">Logged Sessions</span>
           <div class="stat-value" id="summary-total-sessions">0</div>
+          <div class="stat-footer">Individual work periods</div>
         </div>
+
         <div class="glass-card stat-card">
-          <span class="stat-label">Avg Effective Rate</span>
+          <span class="stat-label">Avg Effective Hourly Rate</span>
           <div class="stat-value" id="summary-avg-rate">$0.00/hr</div>
+          <div class="stat-footer" style="color: var(--accent-cyan);" id="summary-avg-rate-php">
+            ≈ ₱0.00/hr
+          </div>
         </div>
       </div>
 
@@ -557,7 +597,7 @@
         </div>
       </div>
 
-      <!-- Timesheet Table -->
+      <!-- Timesheet Table (Dual Currency Columns) -->
       <div class="table-responsive">
         <table class="custom-table">
           <thead>
@@ -569,15 +609,72 @@
               <th>Time (Start - End)</th>
               <th>Break</th>
               <th>Net Hours</th>
-              <th>Rate / hr</th>
-              <th>Total Pay</th>
-              <th>Action</th>
+              <th>Rate ($ USD / ₱ PHP)</th>
+              <th>Total Pay ($ USD / ₱ PHP)</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody id="timesheet-table-body">
             <!-- Rendered by JS -->
           </tbody>
         </table>
+      </div>
+
+      <!-- Bottom Real-Time Computation & PHP Conversion Summary Card -->
+      <div class="glass-card bottom-conversion-card" id="bottom-conversion-card" style="margin-top: 24px;">
+        <div class="bottom-conversion-header">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 38px; height: 38px; border-radius: var(--radius-md); background: linear-gradient(135deg, var(--status-working), var(--accent-cyan)); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+              🇵🇭
+            </div>
+            <div>
+              <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">
+                Payroll Computation & PHP Conversion Summary
+              </h3>
+              <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
+                Instant real-time currency conversion for Admin & Management review.
+              </p>
+            </div>
+          </div>
+          
+          <div class="conversion-pill-rate" id="bottom-active-rate-badge">
+            Rate: 1 USD = ₱58.50 PHP
+          </div>
+        </div>
+
+        <div class="bottom-conversion-grid">
+          <!-- Stat 1: Total USD Billable -->
+          <div class="conversion-metric-box">
+            <span class="conversion-metric-label">Gross Payroll (USD)</span>
+            <div class="conversion-metric-value" style="color: var(--text-primary);" id="bottom-usd-total">$0.00</div>
+            <span class="conversion-metric-sub" id="bottom-hours-count">0.0 billable hours</span>
+          </div>
+
+          <!-- Stat 2: Converted PHP Total -->
+          <div class="conversion-metric-box highlight-php">
+            <span class="conversion-metric-label">Converted Gross Payroll (PHP)</span>
+            <div class="conversion-metric-value" style="color: var(--status-working);" id="bottom-php-total">₱0.00</div>
+            <span class="conversion-metric-sub" id="bottom-php-sub">Ready for Philippine Bank / GCash Disbursement</span>
+          </div>
+
+          <!-- Stat 3: Avg Hourly PHP -->
+          <div class="conversion-metric-box">
+            <span class="conversion-metric-label">Average Rate in PHP</span>
+            <div class="conversion-metric-value" style="color: var(--accent-cyan);" id="bottom-php-avg-rate">₱0.00 / hr</div>
+            <span class="conversion-metric-sub">Effective hourly wage</span>
+          </div>
+        </div>
+
+        <!-- Developer-by-Developer Converted Breakdown Cards -->
+        <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+          <div style="font-size: 0.82rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <span>Developer Breakdown ($ USD & ₱ PHP)</span>
+            <span style="font-size: 0.74rem; font-weight: 500; color: var(--text-muted);">Confidential Rate Breakdown</span>
+          </div>
+          <div class="grid-4" id="bottom-dev-breakdown-grid">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
       </div>
     </section>
 
@@ -920,6 +1017,156 @@
           <button type="submit" class="btn btn-primary">Create Project</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal: Custom Forex Rate Setter -->
+  <div class="modal-overlay" id="modal-custom-rate">
+    <div class="modal-dialog" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Set USD to PHP Exchange Rate</h3>
+        <button class="modal-close-btn" id="btn-close-custom-rate">&times;</button>
+      </div>
+      <form id="form-custom-rate">
+        <div class="modal-body">
+          <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 16px;">
+            Adjust the Philippine Peso (₱) conversion rate used for all payroll computations and payslip printouts.
+          </p>
+          <div class="form-group">
+            <label class="form-label" for="input-custom-rate">Exchange Rate (1 USD to PHP ₱) *</label>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 1.2rem; font-weight: 700; color: var(--accent-cyan);">₱</span>
+              <input type="number" id="input-custom-rate" class="form-control font-mono" step="0.01" min="1" placeholder="58.50" required style="font-size: 1.15rem; font-weight: 700;">
+            </div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-fetch-live-forex">
+              🔄 Fetch Live Rate
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-default-forex">
+              Reset (₱58.50)
+            </button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-custom-rate">Cancel</button>
+          <button type="submit" class="btn btn-primary">Apply Exchange Rate</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Official Digital Payslip Preview & Print Voucher (Attendo Style) -->
+  <div class="modal-overlay" id="modal-payslip-preview">
+    <div class="modal-dialog" style="max-width: 680px; width: 95%;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--accent-primary), var(--accent-cyan)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800;">
+            DI
+          </div>
+          <div>
+            <h3 class="modal-title" style="margin: 0;">Official Payroll Statement & Payslip</h3>
+            <span style="font-size: 0.76rem; color: var(--text-muted);" id="payslip-header-subtitle">Diverse Ideas GMBH • Dual Currency Statement</span>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btn-close-payslip">&times;</button>
+      </div>
+
+      <div class="modal-body" style="padding: 24px;" id="payslip-printable-content">
+        <!-- Printable Payslip Voucher Container -->
+        <div class="payslip-voucher-card">
+          
+          <!-- Company & Voucher Header -->
+          <div class="payslip-voucher-header">
+            <div>
+              <h2 style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                DIVERSE IDEAS GMBH
+              </h2>
+              <p style="font-size: 0.78rem; color: var(--text-secondary);">IT Software Consulting & Global Developer Services</p>
+            </div>
+            <div style="text-align: right;">
+              <span class="badge badge-working" style="font-size: 0.72rem;">Official Payslip</span>
+              <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;" id="payslip-voucher-no">VOUCHER #DIV-2026-09</div>
+            </div>
+          </div>
+
+          <!-- Employee & Period Info Grid -->
+          <div class="payslip-info-grid">
+            <div class="payslip-info-item">
+              <span class="payslip-info-label">Developer / Employee</span>
+              <strong class="payslip-info-value" id="payslip-emp-name">Alex Rivera</strong>
+            </div>
+            <div class="payslip-info-item">
+              <span class="payslip-info-label">Designation / Role</span>
+              <span class="payslip-info-value" id="payslip-emp-role">Lead Full-Stack Developer</span>
+            </div>
+            <div class="payslip-info-item">
+              <span class="payslip-info-label">Payroll Period</span>
+              <span class="payslip-info-value" id="payslip-period-dates">Current Payroll Run</span>
+            </div>
+            <div class="payslip-info-item">
+              <span class="payslip-info-label">Conversion Rate Applied</span>
+              <span class="payslip-info-value" style="color: var(--accent-cyan); font-weight: 700;" id="payslip-rate-applied">1 USD = ₱58.50 PHP</span>
+            </div>
+          </div>
+
+          <!-- Earnings Table -->
+          <div style="margin: 20px 0;">
+            <table class="payslip-table">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th style="text-align: center;">Hours / Units</th>
+                  <th style="text-align: right;">Rate ($ USD)</th>
+                  <th style="text-align: right;">Rate (₱ PHP)</th>
+                  <th style="text-align: right;">Amount ($ USD)</th>
+                  <th style="text-align: right;">Amount (₱ PHP)</th>
+                </tr>
+              </thead>
+              <tbody id="payslip-breakdown-rows">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Net Pay Highlight Banner (Dual Currency) -->
+          <div class="payslip-net-banner">
+            <div>
+              <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.05em;">
+                Total Net Payable Wage
+              </div>
+              <div style="font-size: 0.78rem; color: var(--text-muted);">
+                Dual Currency Computation ($ & ₱)
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <div class="payslip-net-usd" id="payslip-net-usd">$0.00 USD</div>
+              <div class="payslip-net-php" id="payslip-net-php">≈ ₱0.00 PHP</div>
+            </div>
+          </div>
+
+          <!-- Signatures / Authentication Footer -->
+          <div class="payslip-signatures">
+            <div class="payslip-sign-col">
+              <div class="payslip-sign-line"></div>
+              <span>Approved by: Management (Diverse Ideas GMBH)</span>
+            </div>
+            <div class="payslip-sign-col">
+              <div class="payslip-sign-line"></div>
+              <span>Employee Acknowledgment</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-close-payslip-footer">Close</button>
+        <button type="button" class="btn btn-primary" id="btn-print-payslip-direct">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          Print Official Payslip Slip
+        </button>
+      </div>
     </div>
   </div>
 

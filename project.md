@@ -59,10 +59,19 @@ Admins can click **`✏️ Edit Profile`** on any employee in the *Team & Rates*
 - Real-time team roster presence cards (🟢 Working, 🟡 On Break, ⚪ Offline).
 - Displays active work mode (🏠 WFH / 🏢 Onsite) and current active project.
 
-### 📊 Module 6: Timesheets & Payday Analytics
-- Filter by date presets (*Today*, *This Week*, *This Month*, *Custom Range*).
-- 1-Click **CSV Export** for Excel / Google Sheets payroll.
-- **Printable / PDF Payroll Voucher Slips**.
+### 📊 Module 6: Timesheets, Payday Analytics & Real-Time PHP (₱) Conversion
+- **Live Real-Time USD ⇄ PHP Forex Ticker:** Auto-fetches live exchange rates (`1 USD = ₱58.50 PHP`) from public forex APIs with 1-click sync and custom manual override so management never needs to compute manually.
+- **Dual-Currency Analytics Cards:** Displays Total Gross Payroll and Average Effective Rate in both **$ USD** and converted **₱ PHP** side-by-side (`$687.00 ≈ ₱40,189.50 PHP`).
+- **Dual-Currency Timesheet Table Rows:** Shows hourly rate and total earnings in both currencies (`$35.00 ≈ ₱2,047.50` / `$245.00 ≈ ₱14,332.50`).
+- **Bottom Real-Time Computation & PHP Summary Card:** Dedicated computation summary drawer calculating gross USD, converted gross PHP, hourly average in PHP, and developer-by-developer converted wage breakdowns ready for Philippine bank / GCash disbursement.
+- **Attendo-Inspired Official Digital Payslip Voucher Modal:**
+  - Official company header with Diverse Ideas GMBH branding and voucher tracking ID.
+  - Complete employee details, work period, and active conversion rate note.
+  - Itemized project earnings in both USD and PHP.
+  - Large net payable wage highlight banner (`$687.00 USD ≈ ₱40,189.50 PHP`).
+  - Dual approval signature acknowledgment lines.
+  - 1-click **Print Official Payslip Slip** supporting standard office printers and PDF exports.
+- **Enhanced CSV Export:** Generates spreadsheets containing Net Hours, USD Rate, USD Gross Pay, PHP Rate, PHP Gross Pay, and Exchange Rate columns.
 
 ### 🇵🇭 Module 7: Philippine Holidays Calendar
 - Integrated widget displaying 2026 Philippine Regular and Special Non-Working Holidays.

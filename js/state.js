@@ -12,6 +12,9 @@ const DEFAULT_INITIAL_STATE = {
   activeDeveloperId: 'dev-1',
   currency: 'USD',
   currencySymbol: '$',
+  usdToPhpRate: 58.50, // Live USD to PHP exchange rate (PHP per 1 USD)
+  lastRateUpdate: null,
+  isLiveExchangeActive: true,
   developers: [
     {
       id: 'dev-1',
@@ -191,7 +194,9 @@ class Store {
     try {
       const serialized = localStorage.getItem(STORAGE_KEY);
       if (serialized) {
-        return JSON.parse(serialized);
+        const parsed = JSON.parse(serialized);
+        if (!parsed.usdToPhpRate) parsed.usdToPhpRate = 58.50;
+        return parsed;
       }
     } catch (e) {
       console.warn('Failed to load state from localStorage:', e);
@@ -268,6 +273,18 @@ class Store {
 
   setAdminPin(newPin) {
     this.state.adminPin = newPin;
+    this.saveState();
+  }
+
+  getUsdToPhpRate() {
+    return Number(this.state.usdToPhpRate) || 58.50;
+  }
+
+  setUsdToPhpRate(rate, lastUpdate = null) {
+    this.state.usdToPhpRate = parseFloat(rate) || 58.50;
+    if (lastUpdate) {
+      this.state.lastRateUpdate = lastUpdate;
+    }
     this.saveState();
   }
 

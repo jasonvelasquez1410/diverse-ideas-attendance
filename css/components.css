@@ -837,6 +837,267 @@ select.form-control {
   font-family: var(--font-mono);
 }
 
+/* ==========================================================================
+   Attendo Style - Exchange Rate Ticker & Currency Conversion
+   ========================================================================== */
+.exchange-ticker-card {
+  background: linear-gradient(135deg, rgba(31, 41, 55, 0.7), rgba(17, 24, 39, 0.9));
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  flex-wrap: wrap;
+}
+
+.exchange-ticker-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.exchange-live-pulse {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: pulseGreen 2s infinite;
+}
+
+@keyframes pulseGreen {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.exchange-rate-highlight {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #f9fafb;
+  letter-spacing: -0.02em;
+}
+
+.exchange-ticker-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  border-radius: var(--radius-md);
+}
+
+/* Bottom Real-Time Computation & PHP Summary Card */
+.bottom-conversion-card {
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.85), rgba(15, 23, 42, 0.95));
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+}
+
+.bottom-conversion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.conversion-pill-rate {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.bottom-conversion-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 860px) {
+  .bottom-conversion-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.conversion-metric-box {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform var(--transition-fast);
+}
+
+.conversion-metric-box.highlight-php {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(6, 182, 212, 0.08));
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.conversion-metric-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+}
+
+.conversion-metric-value {
+  font-family: var(--font-heading);
+  font-size: 1.8rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.conversion-metric-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.php-subtext {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--accent-cyan);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* Attendo Payslip Voucher Styling */
+.payslip-voucher-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+.payslip-voucher-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--border-color);
+  margin-bottom: 20px;
+}
+
+.payslip-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 20px;
+  background: var(--bg-tertiary);
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.payslip-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.payslip-info-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.payslip-info-value {
+  font-size: 0.92rem;
+  color: var(--text-primary);
+}
+
+.payslip-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.payslip-table th {
+  background: var(--bg-tertiary);
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.payslip-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.payslip-net-banner {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(16, 185, 129, 0.15));
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.payslip-net-usd {
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.payslip-net-php {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--status-working);
+  margin-top: 2px;
+}
+
+.payslip-signatures {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 36px;
+  padding-top: 12px;
+}
+
+.payslip-sign-col {
+  flex: 1;
+  text-align: center;
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+}
+
+.payslip-sign-line {
+  height: 1px;
+  background: var(--border-color);
+  margin-bottom: 8px;
+}
+
 /* Print Styles for Timesheet & Payroll Slips */
 @media print {
   body {
@@ -844,17 +1105,36 @@ select.form-control {
     color: black !important;
     background-image: none !important;
   }
-  .app-header, .toolbar-container, .clock-actions-row, .modal-overlay, .nav-tabs, .theme-toggle-btn, .auth-lock-overlay {
+  .app-header, .toolbar-container, .clock-actions-row, .nav-tabs, .theme-toggle-btn, .auth-lock-overlay, .exchange-ticker-card, .toast-container, .modal-header, .modal-footer, .modal-close-btn {
     display: none !important;
   }
-  .glass-card {
-    border: 1px solid #ccc !important;
+  .modal-overlay {
+    position: static !important;
+    background: none !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+  .modal-dialog {
+    box-shadow: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    background: white !important;
+    border: none !important;
+  }
+  .glass-card, .payslip-voucher-card, .payslip-info-grid, .payslip-net-banner {
+    border: 1px solid #999 !important;
     box-shadow: none !important;
     background: white !important;
     color: black !important;
   }
-  .custom-table th, .custom-table td {
+  .custom-table th, .custom-table td, .payslip-table th, .payslip-table td {
     color: black !important;
     border-color: #ddd !important;
+    background: white !important;
+  }
+  .payslip-net-usd, .payslip-net-php, .payslip-info-value, strong {
+    color: black !important;
   }
 }
+

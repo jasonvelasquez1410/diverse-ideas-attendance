@@ -105,19 +105,50 @@ class PayrollEngine {
 
     const totalHours = (totalMinutesWorked / 60).toFixed(1);
     const avgHourlyPay = totalMinutesWorked > 0 ? (totalGrossPay / (totalMinutesWorked / 60)).toFixed(2) : '0.00';
+    const rate = this.store.getUsdToPhpRate();
+    const totalGrossPhp = (totalGrossPay * rate).toFixed(2);
+    const avgHourlyPhp = (parseFloat(avgHourlyPay) * rate).toFixed(2);
+
+    // Compute PHP conversions for developers & projects
+    const devsList = Object.values(devMap).map(d => ({
+      ...d,
+      totalEarningsPhp: (d.totalEarnings * rate).toFixed(2),
+      hoursWorked: (d.minutesWorked / 60).toFixed(2)
+    }));
+
+    const projsList = Object.values(projectMap).map(p => ({
+      ...p,
+      totalCostPhp: (p.totalCost * rate).toFixed(2),
+      hoursWorked: (p.minutesWorked / 60).toFixed(2)
+    }));
 
     return {
       totalRecords: filteredRecords.length,
       totalMinutesWorked,
       totalHours,
       totalGrossPay: totalGrossPay.toFixed(2),
+      totalGrossPhp,
+      usdToPhpRate: rate,
       totalBreakMinutes,
       avgHourlyPay,
-      byDeveloper: Object.values(devMap),
-      byProject: Object.values(projectMap)
+      avgHourlyPhp,
+      byDeveloper: devsList,
+      byProject: projsList
     };
+  }
+
+  // Format currency helpers
+  formatCurrency(usdAmount, includePhp = true) {
+    const usd = parseFloat(usdAmount) || 0;
+    const rate = this.store.getUsdToPhpRate();
+    const php = usd * rate;
+    const usdStr = `$${usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (!includePhp) return usdStr;
+    const phpStr = `₱${php.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return { usd: usdStr, php: phpStr, combined: `${usdStr} (≈ ${phpStr})` };
   }
 }
 
 // Global payroll engine instance
 window.DevPayroll = new PayrollEngine(window.DevStore);
+
