@@ -143,9 +143,29 @@ document.addEventListener('DOMContentLoaded', () => {
     authPinInput.value = '';
 
     if (!selectedAuthDevId) {
-      selectedAuthDevId = state.developers[0].id;
+      selectedAuthDevId = 'admin';
     }
 
+    // 1. Admin Master Profile Button
+    const adminBtn = document.createElement('button');
+    adminBtn.type = 'button';
+    adminBtn.className = `auth-dev-btn ${selectedAuthDevId === 'admin' ? 'selected' : ''}`;
+    adminBtn.innerHTML = `
+      <div style="width: 26px; height: 26px; border-radius: 50%; background: #ec4899; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: white;">
+        ADM
+      </div>
+      <span>Administrator</span>
+    `;
+    adminBtn.addEventListener('click', () => {
+      selectedAuthDevId = 'admin';
+      document.querySelectorAll('.auth-dev-btn').forEach(b => b.classList.remove('selected'));
+      adminBtn.classList.add('selected');
+      authPinInput.placeholder = '••••';
+      authPinInput.focus();
+    });
+    authDevGrid.appendChild(adminBtn);
+
+    // 2. Developer Profile Buttons
     state.developers.forEach(dev => {
       const btn = document.createElement('button');
       btn.type = 'button';
@@ -161,6 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedAuthDevId = dev.id;
         document.querySelectorAll('.auth-dev-btn').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
+        authPinInput.placeholder = '••••';
         authPinInput.focus();
       });
 
@@ -172,6 +193,21 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     const pin = authPinInput.value.trim();
     if (!pin) return;
+
+    if (selectedAuthDevId === 'admin' || pin === store.getState().adminPin) {
+      const result = store.loginAdmin(pin);
+      if (result.success) {
+        authLockScreen.style.display = 'none';
+        showToast('Welcome, Administrator (Management Mode)', 'success');
+        renderAll();
+        return;
+      } else {
+        authErrorMsg.textContent = '❌ Incorrect Admin Master PIN.';
+        authPinInput.value = '';
+        authPinInput.focus();
+        return;
+      }
+    }
 
     const result = store.loginDeveloper(selectedAuthDevId, pin);
     if (result.success) {

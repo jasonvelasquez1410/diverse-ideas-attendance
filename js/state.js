@@ -245,18 +245,29 @@ class Store {
 
   // Authentication & Verification
   loginDeveloper(devId, pin) {
+    if (pin === this.state.adminPin || devId === 'admin') {
+      if (pin === this.state.adminPin) {
+        this.saveAuth({
+          isAuthenticated: true,
+          role: 'admin',
+          devId: null
+        });
+        return { success: true, role: 'admin', dev: { name: 'Administrator', role: 'System Admin' } };
+      }
+      return { success: false, message: 'Incorrect Admin PIN' };
+    }
+
     const dev = this.getDeveloperById(devId);
     if (!dev) return { success: false, message: 'Developer not found' };
 
-    if (dev.pin === pin || pin === this.state.adminPin) {
-      const isAdmin = (pin === this.state.adminPin);
+    if (dev.pin === pin) {
       this.saveAuth({
         isAuthenticated: true,
-        role: isAdmin ? 'admin' : 'developer',
+        role: 'developer',
         devId: dev.id
       });
       this.setActiveDeveloper(dev.id);
-      return { success: true, role: isAdmin ? 'admin' : 'developer', dev };
+      return { success: true, role: 'developer', dev };
     }
     return { success: false, message: 'Incorrect PIN code' };
   }
