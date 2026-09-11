@@ -76,6 +76,12 @@ Categorized into 5 dedicated sub-views:
 - **Live Real-Time USD ⇄ PHP Forex Ticker:** Auto-fetches live exchange rates (`1 USD = ₱58.50 PHP`) from public forex APIs with 1-click sync and custom manual override.
 - **Dual-Currency Analytics Cards:** Displays Total Gross Payroll and Average Effective Rate in both **$ USD** and converted **₱ PHP** side-by-side (`$687.00 ≈ ₱40,189.50 PHP`).
 - **Bottom Real-Time Computation & PHP Summary Card:** Dedicated computation summary calculating gross USD, converted gross PHP, hourly average in PHP, and developer-by-developer converted wage breakdowns ready for Philippine bank / GCash disbursement.
+- **Full Mobile, iOS & Tablet Dynamic Responsive Design:**
+  - Fluid adaptive navigation bar with horizontal touch swipe on mobile devices.
+  - Safe-area inset support (`env(safe-area-inset-bottom)`) for iPhone notch/home bar screens.
+  - 16px minimum form control typography to prevent unwanted iOS Safari auto-zoom on input focus.
+  - 1-column mobile stacked layouts for punch terminals, quick payslip bars, and conversion drawers.
+  - Momentum touch scrolling (`-webkit-overflow-scrolling: touch;`) on tables, holiday cards, and settings subnavs.
 - **Prominent Admin "Run Staff Payslip" Quick Action Bar:** Direct 1-click employee selector dropdown and `[ Run & Print Payslip ]` button on top of the Timesheets page so Admin can immediately generate any staff member's payslip without needing to filter first.
 - **Attendo-Inspired Official Digital Payslip Voucher Modal:**
   - Executive company header with Diverse Ideas GMBH branding and voucher tracking ID.
