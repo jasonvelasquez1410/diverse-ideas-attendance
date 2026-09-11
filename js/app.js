@@ -210,6 +210,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (result.success) {
         authLockScreen.style.display = 'none';
         showToast('Welcome, Administrator (Management Mode)', 'success');
+        const navBtnTerminal = document.getElementById('nav-btn-terminal');
+        if (navBtnTerminal) navBtnTerminal.click();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         renderAll();
         return;
       } else {
@@ -225,6 +228,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (result.success) {
       authLockScreen.style.display = 'none';
       showToast(`Welcome, ${result.dev.name}!`, 'success');
+      const navBtnTerminal = document.getElementById('nav-btn-terminal');
+      if (navBtnTerminal) navBtnTerminal.click();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       renderAll();
     } else {
       const targetDev = store.getDeveloperById(selectedAuthDevId);
@@ -1162,6 +1168,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     payslipNetUsd.textContent = `$${totalGrossUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
     payslipNetPhp.textContent = `≈ ₱${totalGrossPhp.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} PHP`;
+
+    const hourlyRateVal = parseFloat(dev.hourlyRate) || 0;
+    const hourlyPhpVal = (hourlyRateVal * rate).toFixed(2);
+
+    const elTotalHours = document.getElementById('payslip-total-hours');
+    if (elTotalHours) elTotalHours.textContent = `${totalHours} hrs`;
+
+    const elRateBadge = document.getElementById('payslip-rate-badge');
+    if (elRateBadge) elRateBadge.textContent = `$${hourlyRateVal.toFixed(2)} / hr (≈ ₱${hourlyPhpVal} / hr)`;
+
+    const elFootHours = document.getElementById('payslip-foot-total-hours');
+    if (elFootHours) elFootHours.textContent = `${totalHours} hrs`;
+
+    const elFootUsd = document.getElementById('payslip-foot-total-usd');
+    if (elFootUsd) elFootUsd.textContent = `$${totalGrossUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+    const elFootPhp = document.getElementById('payslip-foot-total-php');
+    if (elFootPhp) elFootPhp.textContent = `₱${totalGrossPhp.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+    const elNetHours = document.getElementById('payslip-net-hours-badge');
+    if (elNetHours) elNetHours.textContent = totalHours;
+
+    const elNetFormula = document.getElementById('payslip-net-calc-formula');
+    if (elNetFormula) {
+      elNetFormula.textContent = `Auto-computed: ${totalHours} hrs rendered × $${hourlyRateVal.toFixed(2)}/hr = $${totalGrossUsd.toFixed(2)} USD (≈ ₱${totalGrossPhp.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} PHP @ ₱${rate.toFixed(2)}/$)`;
+    }
 
     modalPayslipPreview.classList.add('active');
   };

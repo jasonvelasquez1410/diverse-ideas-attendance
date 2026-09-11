@@ -102,132 +102,8 @@
         </span>
       </div>
 
-      <!-- Sprout HR / Payday 3-Column Dashboard Layout -->
-      <div class="grid-3" style="margin-bottom: 28px;">
-        
-        <!-- Card 1: Today Greeting & Shift Status -->
-        <div class="glass-card" style="text-align: center; display: flex; flex-direction: column; justify-content: space-between; padding: 24px;">
-          <div>
-            <div style="font-weight: 700; font-size: 1.1rem; color: var(--text-primary); margin-bottom: 4px;" id="greeting-today-date">
-              📅 Today is 9/11/26
-            </div>
-            <div style="font-size: 0.85rem; color: var(--text-secondary);" id="greeting-weekday-text">
-              Official Shift: 08:00 AM – 05:00 PM
-            </div>
-          </div>
-
-          <div style="padding: 24px 0;">
-            <div style="width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(6, 182, 212, 0.2)); border: 2px solid var(--accent-cyan); display: inline-flex; align-items: center; justify-content: center; color: var(--accent-cyan); margin-bottom: 12px; box-shadow: 0 0 25px rgba(6, 182, 212, 0.3);">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            </div>
-            <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary);">Diverse Ideas Developer</div>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">We hope you are making history today!</p>
-          </div>
-
-          <div id="terminal-status-badge" class="badge badge-offline" style="align-self: center;">
-            <span class="badge-dot"></span> Offline / Not Logged In
-          </div>
-        </div>
-
-        <!-- Card 2: Attendance Timelog Summary (IN / OUT Logs) -->
-        <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between; padding: 24px;">
-          <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-              <h3 style="font-family: var(--font-heading); font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                Attendance Log
-              </h3>
-              <span class="badge badge-working" style="font-size: 0.7rem;">Live Timelog</span>
-            </div>
-
-            <div style="display: flex; flex-direction: column; gap: 10px;" id="payday-recent-timelogs">
-              <!-- Rendered by JS -->
-            </div>
-          </div>
-
-          <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-color); text-align: center;">
-            <a href="javascript:void(0)" onclick="document.getElementById('nav-btn-attendance').click()" style="color: var(--status-working); font-size: 0.85rem; font-weight: 600; text-decoration: none;">
-              Show Team Attendance &rarr;
-            </a>
-          </div>
-        </div>
-
-        <!-- Card 3: 📁 My Stuff (With Sprout Apply Dropdown) -->
-        <div class="glass-card my-stuff-card" style="padding: 24px;">
-          <div class="my-stuff-header">
-            <h3 style="font-family: var(--font-heading); font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
-              📁 My Stuff
-            </h3>
-
-            <!-- Apply Dropdown Button -->
-            <div class="apply-dropdown-wrapper">
-              <button class="btn-apply-dropdown" id="btn-apply-dropdown-toggle">
-                <span>Apply</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-              </button>
-              
-              <!-- Dropdown Menu -->
-              <div class="apply-menu-dropdown" id="apply-menu-dropdown">
-                <a class="apply-menu-item" href="javascript:void(0)" onclick="openSpecificRequestModal('Leave')">
-                  <span>🌴</span> Leave
-                </a>
-                <a class="apply-menu-item" href="javascript:void(0)" onclick="openSpecificRequestModal('Overtime')">
-                  <span>⏰</span> Overtime
-                </a>
-                <a class="apply-menu-item" href="javascript:void(0)" onclick="openSpecificRequestModal('Undertime')">
-                  <span>⏱️</span> Undertime
-                </a>
-                <a class="apply-menu-item" href="javascript:void(0)" onclick="openSpecificRequestModal('Official Business')">
-                  <span>💼</span> Official Business (OB)
-                </a>
-                <a class="apply-menu-item" href="javascript:void(0)" onclick="openSpecificRequestModal('Schedule Adjustment')">
-                  <span>🔄</span> Schedule Adjustment
-                </a>
-                <a class="apply-menu-item" href="javascript:void(0)" onclick="openSpecificRequestModal('COA')" style="font-weight: 700; color: var(--accent-cyan); border-top: 1px solid var(--border-color);">
-                  <span>📝</span> Certificate Of Attendance (COA)
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <!-- Pending Requests Summary -->
-          <div>
-            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px;">
-              Pending Requests
-            </div>
-            <div id="my-stuff-pending-list" style="margin-bottom: 12px;">
-              <!-- Rendered by JS -->
-            </div>
-
-            <!-- Leave Credits List (Sprout Style) -->
-            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px;">
-              Leave Credits
-            </div>
-            <div class="leave-credits-list">
-              <div class="leave-credit-item">
-                <span>Vacation Leave</span>
-                <strong id="mystuff-credit-vl">12</strong>
-              </div>
-              <div class="leave-credit-item">
-                <span>Sick Leave</span>
-                <strong id="mystuff-credit-sl">10</strong>
-              </div>
-              <div class="leave-credit-item">
-                <span>Emergency Leave</span>
-                <strong id="mystuff-credit-el">5</strong>
-              </div>
-              <div class="leave-credit-item">
-                <span>Bereavement Leave</span>
-                <strong>3</strong>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Sprout HR Punch Terminal Deck -->
-      <div class="sprout-attendance-deck">
+      <!-- Sprout HR Punch Terminal Deck (Immediately Visible on Staff Login) -->
+      <div class="sprout-attendance-deck" style="margin-bottom: 28px;">
         
         <!-- Live Philippine Date & Wall Clock Banner -->
         <div class="sprout-live-clock-banner">
@@ -322,6 +198,133 @@
           <div class="form-group" style="flex: 2; min-width: 260px;">
             <label class="form-label" for="terminal-task-notes">Tasks Accomplished / Work Notes</label>
             <input type="text" id="terminal-task-notes" class="form-control" placeholder="e.g. JETZ API sprint & backend fixes..." value="Core feature development">
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Sprout HR / Payday 3-Column Dashboard Layout -->
+      <div class="grid-3" style="margin-bottom: 28px;">
+        
+        <!-- Card 1: Today Greeting & Shift Status -->
+        <div class="glass-card" style="text-align: center; display: flex; flex-direction: column; justify-content: space-between; padding: 24px;">
+          <div>
+            <div style="font-weight: 700; font-size: 1.1rem; color: var(--text-primary); margin-bottom: 4px;" id="greeting-today-date">
+              📅 Today is 9/11/26
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary);" id="greeting-weekday-text">
+              Official Shift: 08:00 AM – 05:00 PM
+            </div>
+          </div>
+
+          <div style="padding: 24px 0;">
+            <div style="width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(6, 182, 212, 0.2)); border: 2px solid var(--accent-cyan); display: inline-flex; align-items: center; justify-content: center; color: var(--accent-cyan); margin-bottom: 12px; box-shadow: 0 0 25px rgba(6, 182, 212, 0.3);">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </div>
+            <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary);">Diverse Ideas Developer</div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">We hope you are making history today!</p>
+          </div>
+
+          <div id="terminal-status-badge" class="badge badge-offline" style="align-self: center;">
+            <span class="badge-dot"></span> Offline / Not Logged In
+          </div>
+        </div>
+
+        <!-- Card 2: Attendance Timelog Summary (IN / OUT Logs) -->
+        <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between; padding: 24px;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h3 style="font-family: var(--font-heading); font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                Attendance Log
+              </h3>
+              <span class="badge badge-working" style="font-size: 0.7rem;">Live Timelog</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px;" id="payday-recent-timelogs">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+          <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <a href="javascript:void(0)" onclick="document.getElementById('nav-btn-attendance').click()" style="color: var(--status-working); font-size: 0.85rem; font-weight: 600; text-decoration: none;">
+              Show Team Attendance &rarr;
+            </a>
+            <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.78rem; color: var(--accent-cyan);" onclick="openPayslipModal()" title="View your official computed payslip">
+              📄 My Payslip
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 3: 📁 My Stuff (With Sprout Apply Dropdown) -->
+        <div class="glass-card my-stuff-card" style="padding: 24px;">
+          <div class="my-stuff-header">
+            <h3 style="font-family: var(--font-heading); font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+              📁 My Stuff
+            </h3>
+
+            <!-- Apply Dropdown Button -->
+            <div class="apply-dropdown-wrapper">
+              <button class="btn-apply-dropdown" id="btn-apply-dropdown-toggle">
+                <span>Apply</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </button>
+              
+              <!-- Dropdown Menu -->
+              <div class="apply-menu-dropdown" id="apply-menu-dropdown">
+                <a class="apply-menu-item" href="javascript:void(0)" onclick="openSpecificRequestModal('Leave')">
+                  <span>🌴</span> Leave
+                </a>
+                <a class="apply-menu-item" href="javascript:void(0)" onclick="openSpecificRequestModal('Overtime')">
+                  <span>⏰</span> Overtime
+                </a>
+                <a class="apply-menu-item" href="javascript:void(0)" onclick="openSpecificRequestModal('Undertime')">
+                  <span>⏱️</span> Undertime
+                </a>
+                <a class="apply-menu-item" href="javascript:void(0)" onclick="openSpecificRequestModal('Official Business')">
+                  <span>💼</span> Official Business (OB)
+                </a>
+                <a class="apply-menu-item" href="javascript:void(0)" onclick="openSpecificRequestModal('Schedule Adjustment')">
+                  <span>🔄</span> Schedule Adjustment
+                </a>
+                <a class="apply-menu-item" href="javascript:void(0)" onclick="openSpecificRequestModal('COA')" style="font-weight: 700; color: var(--accent-cyan); border-top: 1px solid var(--border-color);">
+                  <span>📝</span> Certificate Of Attendance (COA)
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pending Requests Summary -->
+          <div>
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px;">
+              Pending Requests
+            </div>
+            <div id="my-stuff-pending-list" style="margin-bottom: 12px;">
+              <!-- Rendered by JS -->
+            </div>
+
+            <!-- Leave Credits List (Sprout Style) -->
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px;">
+              Leave Credits
+            </div>
+            <div class="leave-credits-list">
+              <div class="leave-credit-item">
+                <span>Vacation Leave</span>
+                <strong id="mystuff-credit-vl">12</strong>
+              </div>
+              <div class="leave-credit-item">
+                <span>Sick Leave</span>
+                <strong id="mystuff-credit-sl">10</strong>
+              </div>
+              <div class="leave-credit-item">
+                <span>Emergency Leave</span>
+                <strong id="mystuff-credit-el">5</strong>
+              </div>
+              <div class="leave-credit-item">
+                <span>Bereavement Leave</span>
+                <strong>3</strong>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1744,6 +1747,14 @@
               <span class="payslip-info-label">Conversion Rate Applied</span>
               <span class="payslip-info-value" style="color: var(--accent-cyan); font-weight: 700;" id="payslip-rate-applied">1 USD = ₱58.50 PHP</span>
             </div>
+            <div class="payslip-info-item">
+              <span class="payslip-info-label">Total Rendered Hours</span>
+              <strong class="payslip-info-value" style="color: var(--accent-cyan); font-weight: 800; font-size: 1.05rem;" id="payslip-total-hours">0.00 hrs</strong>
+            </div>
+            <div class="payslip-info-item">
+              <span class="payslip-info-label">Hourly Pay Rate</span>
+              <strong class="payslip-info-value" style="color: var(--status-working); font-weight: 700;" id="payslip-rate-badge">$0.00 / hr</strong>
+            </div>
           </div>
 
           <!-- Earnings Table -->
@@ -1762,6 +1773,15 @@
               <tbody id="payslip-breakdown-rows">
                 <!-- Rendered by JS -->
               </tbody>
+              <tfoot>
+                <tr style="border-top: 2px solid var(--border-color); background: rgba(99, 102, 241, 0.04); font-weight: 700;">
+                  <td><strong>Total Computed Wage</strong></td>
+                  <td style="text-align: center; color: var(--accent-cyan); font-weight: 800;" id="payslip-foot-total-hours">0.00 hrs</td>
+                  <td colspan="2" style="text-align: center; font-size: 0.78rem; color: var(--text-secondary);">Hours × Hourly Rate</td>
+                  <td style="text-align: right; font-weight: 800;" id="payslip-foot-total-usd">$0.00</td>
+                  <td style="text-align: right; font-weight: 800; color: var(--status-working);" id="payslip-foot-total-php">₱0.00</td>
+                </tr>
+              </tfoot>
             </table>
           </div>
 
@@ -1769,10 +1789,10 @@
           <div class="payslip-net-banner">
             <div>
               <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.05em;">
-                Total Net Payable Wage
+                Total Net Payable Wage (<span id="payslip-net-hours-badge">0.00</span> Rendered Hours)
               </div>
-              <div style="font-size: 0.78rem; color: var(--text-muted);">
-                Dual Currency Computation ($ & ₱)
+              <div style="font-size: 0.78rem; color: var(--text-muted);" id="payslip-net-calc-formula">
+                Dual Currency Computation ($ USD ⇄ ₱ PHP)
               </div>
             </div>
             <div style="text-align: right;">
