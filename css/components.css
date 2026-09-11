@@ -637,15 +637,19 @@ select.form-control {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   z-index: 1000;
   display: none;
   align-items: center;
   justify-content: center;
   padding: 20px;
   animation: fadeIn 150ms ease-out;
+}
+
+[data-theme="dark"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.75);
 }
 
 .modal-overlay.active {
@@ -660,7 +664,7 @@ select.form-control {
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
 }
@@ -758,14 +762,18 @@ select.form-control {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(11, 15, 25, 0.94);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
+}
+
+[data-theme="dark"] .auth-lock-overlay {
+  background: rgba(11, 15, 25, 0.94);
 }
 
 .auth-lock-card {
@@ -841,8 +849,8 @@ select.form-control {
    Attendo Style - Exchange Rate Ticker & Currency Conversion
    ========================================================================== */
 .exchange-ticker-card {
-  background: linear-gradient(135deg, rgba(31, 41, 55, 0.7), rgba(17, 24, 39, 0.9));
-  border: 1px solid rgba(99, 102, 241, 0.25);
+  background: #ffffff;
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 16px 20px;
   display: flex;
@@ -850,10 +858,16 @@ select.form-control {
   align-items: center;
   margin-bottom: 24px;
   gap: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-sm);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   flex-wrap: wrap;
+}
+
+[data-theme="dark"] .exchange-ticker-card {
+  background: linear-gradient(135deg, rgba(31, 41, 55, 0.7), rgba(17, 24, 39, 0.9));
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 
 .exchange-ticker-left {
@@ -866,22 +880,22 @@ select.form-control {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  background: #16a34a;
+  box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7);
   animation: pulseGreen 2s infinite;
 }
 
 @keyframes pulseGreen {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(22, 163, 74, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
 }
 
 .exchange-rate-highlight {
   font-family: var(--font-mono);
   font-size: 1.25rem;
   font-weight: 800;
-  color: #f9fafb;
+  color: var(--text-primary);
   letter-spacing: -0.02em;
 }
 
@@ -900,11 +914,17 @@ select.form-control {
 
 /* Bottom Real-Time Computation & PHP Summary Card */
 .bottom-conversion-card {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+}
+
+[data-theme="dark"] .bottom-conversion-card {
   background: linear-gradient(180deg, rgba(17, 24, 39, 0.85), rgba(15, 23, 42, 0.95));
   border: 1px solid rgba(16, 185, 129, 0.25);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
-  border-radius: var(--radius-xl);
-  padding: 24px;
 }
 
 .bottom-conversion-header {
