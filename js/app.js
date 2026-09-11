@@ -419,87 +419,101 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderPaydayWidgets();
 
-    terminalDevAvatar.textContent = activeDev.initials;
-    terminalDevAvatar.style.background = activeDev.avatarColor;
-    terminalDevName.textContent = activeDev.name;
-    terminalDevRole.textContent = activeDev.role;
-    terminalDevRate.textContent = `Rate: Confidential 🔒`;
+    if (terminalDevAvatar) {
+      terminalDevAvatar.textContent = activeDev.initials || 'DV';
+      terminalDevAvatar.style.background = activeDev.avatarColor || '#6366f1';
+    }
+    if (terminalDevName) terminalDevName.textContent = activeDev.name || 'Developer';
+    if (terminalDevRole) terminalDevRole.textContent = activeDev.role || 'Software Developer';
+    if (terminalDevRate) terminalDevRate.textContent = `Rate: Confidential 🔒`;
 
     // Check today's logged records for active developer
     const todayStr = new Date().toISOString().split('T')[0];
     const todayRecords = store.getState().attendanceRecords.filter(r => r.developerId === activeDev.id && r.date === todayStr);
 
     if (activeDev.status === 'working') {
-      terminalStatusBadge.className = 'badge badge-working';
-      terminalStatusBadge.innerHTML = `<span class="badge-dot"></span> Present (Working)`;
-      btnClockIn.disabled = true;
-      btnBreak.disabled = false;
-      btnBreak.textContent = '☕ Start Break';
-      btnBreak.className = 'btn btn-warning btn-lg';
-      btnClockOut.disabled = false;
+      if (terminalStatusBadge) {
+        terminalStatusBadge.className = 'badge badge-working';
+        terminalStatusBadge.innerHTML = `<span class="badge-dot"></span> Present (Working)`;
+      }
+      if (btnClockIn) btnClockIn.disabled = true;
+      if (btnBreak) {
+        btnBreak.disabled = false;
+        btnBreak.textContent = '☕ Start Break';
+        btnBreak.className = 'btn btn-warning btn-lg';
+      }
+      if (btnClockOut) btnClockOut.disabled = false;
 
       if (activeDev.activeSession) {
         const inDate = new Date(activeDev.activeSession.startTime);
-        dtrTimeIn.textContent = inDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        dtrDateIn.textContent = `Logged at ${inDate.toLocaleDateString()}`;
-        dtrTimeOut.textContent = '--:--:--';
-        dtrDateOut.textContent = 'Shift ongoing';
+        if (dtrTimeIn) dtrTimeIn.textContent = inDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        if (dtrDateIn) dtrDateIn.textContent = `Logged at ${inDate.toLocaleDateString()} (${(activeDev.activeSession.workLocation || 'onsite').toUpperCase()})`;
+        if (dtrTimeOut) dtrTimeOut.textContent = '--:--:--';
+        if (dtrDateOut) dtrDateOut.textContent = 'Shift ongoing';
         
         const totalBreakMins = Math.round((activeDev.activeSession.breaks || []).reduce((acc, b) => acc + (b.durationMs || 0), 0) / 60000);
-        dtrBreakTime.textContent = totalBreakMins > 0 ? `${totalBreakMins}m` : '0m';
-        dtrBreakStatus.textContent = 'No active break';
+        if (dtrBreakTime) dtrBreakTime.textContent = totalBreakMins > 0 ? `${totalBreakMins}m` : '0m';
+        if (dtrBreakStatus) dtrBreakStatus.textContent = 'No active break';
 
-        terminalProjectSelect.value = activeDev.activeSession.projectId || 'proj-1';
-        terminalTaskNotes.value = activeDev.activeSession.taskNote || '';
-        if (activeDev.activeSession.workLocation) {
+        if (terminalProjectSelect) terminalProjectSelect.value = activeDev.activeSession.projectId || 'proj-1';
+        if (terminalTaskNotes) terminalTaskNotes.value = activeDev.activeSession.taskNote || '';
+        if (terminalLocationSelect && activeDev.activeSession.workLocation) {
           terminalLocationSelect.value = activeDev.activeSession.workLocation;
         }
       }
     } else if (activeDev.status === 'break') {
-      terminalStatusBadge.className = 'badge badge-break';
-      terminalStatusBadge.innerHTML = `<span class="badge-dot"></span> On Scheduled Break`;
-      btnClockIn.disabled = true;
-      btnBreak.disabled = false;
-      btnBreak.textContent = '▶ End Break (Resume)';
-      btnBreak.className = 'btn btn-success btn-lg';
-      btnClockOut.disabled = false;
+      if (terminalStatusBadge) {
+        terminalStatusBadge.className = 'badge badge-break';
+        terminalStatusBadge.innerHTML = `<span class="badge-dot"></span> On Scheduled Break`;
+      }
+      if (btnClockIn) btnClockIn.disabled = true;
+      if (btnBreak) {
+        btnBreak.disabled = false;
+        btnBreak.textContent = '▶ End Break (Resume)';
+        btnBreak.className = 'btn btn-success btn-lg';
+      }
+      if (btnClockOut) btnClockOut.disabled = false;
 
       if (activeDev.activeSession) {
         const inDate = new Date(activeDev.activeSession.startTime);
-        dtrTimeIn.textContent = inDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        dtrDateIn.textContent = `Logged at ${inDate.toLocaleDateString()}`;
-        dtrBreakStatus.textContent = 'Break in progress...';
+        if (dtrTimeIn) dtrTimeIn.textContent = inDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        if (dtrDateIn) dtrDateIn.textContent = `Logged at ${inDate.toLocaleDateString()} (${(activeDev.activeSession.workLocation || 'onsite').toUpperCase()})`;
+        if (dtrBreakStatus) dtrBreakStatus.textContent = 'Break in progress...';
       }
     } else {
-      terminalStatusBadge.className = 'badge badge-offline';
-      terminalStatusBadge.innerHTML = `<span class="badge-dot"></span> Offline / Not Logged In`;
-      btnClockIn.disabled = false;
-      btnBreak.disabled = true;
-      btnBreak.textContent = '☕ Start Break';
-      btnBreak.className = 'btn btn-warning btn-lg';
-      btnClockOut.disabled = true;
+      if (terminalStatusBadge) {
+        terminalStatusBadge.className = 'badge badge-offline';
+        terminalStatusBadge.innerHTML = `<span class="badge-dot"></span> Offline / Not Logged In`;
+      }
+      if (btnClockIn) btnClockIn.disabled = false;
+      if (btnBreak) {
+        btnBreak.disabled = true;
+        btnBreak.textContent = '☕ Start Break';
+        btnBreak.className = 'btn btn-warning btn-lg';
+      }
+      if (btnClockOut) btnClockOut.disabled = true;
 
       if (todayRecords.length > 0) {
         const latest = todayRecords[0];
         const inDate = new Date(latest.startTime);
         const outDate = new Date(latest.endTime);
-        dtrTimeIn.textContent = inDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        dtrDateIn.textContent = `Time IN (${latest.workLocation.toUpperCase()})`;
-        dtrTimeOut.textContent = outDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        dtrDateOut.textContent = `Time OUT logged`;
-        dtrBreakTime.textContent = `${latest.breakDurationMinutes}m`;
-        dtrBreakStatus.textContent = 'Completed break';
-        dtrTotalRendered.textContent = `${(latest.workedMinutes / 60).toFixed(2)} hrs`;
-        dtrShiftStatus.textContent = 'Shift Completed';
+        if (dtrTimeIn) dtrTimeIn.textContent = inDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        if (dtrDateIn) dtrDateIn.textContent = `Time IN (${latest.workLocation.toUpperCase()})`;
+        if (dtrTimeOut) dtrTimeOut.textContent = outDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        if (dtrDateOut) dtrDateOut.textContent = `Time OUT logged`;
+        if (dtrBreakTime) dtrBreakTime.textContent = `${latest.breakDurationMinutes}m`;
+        if (dtrBreakStatus) dtrBreakStatus.textContent = 'Completed break';
+        if (dtrTotalRendered) dtrTotalRendered.textContent = `${(latest.workedMinutes / 60).toFixed(2)} hrs`;
+        if (dtrShiftStatus) dtrShiftStatus.textContent = 'Shift Completed';
       } else {
-        dtrTimeIn.textContent = '--:--:--';
-        dtrDateIn.textContent = 'Not yet logged';
-        dtrBreakTime.textContent = '--:--';
-        dtrBreakStatus.textContent = 'No active break';
-        dtrTimeOut.textContent = '--:--:--';
-        dtrDateOut.textContent = 'End of shift';
-        dtrTotalRendered.textContent = '0.00 hrs';
-        dtrShiftStatus.textContent = 'Standard Shift';
+        if (dtrTimeIn) dtrTimeIn.textContent = '--:--:--';
+        if (dtrDateIn) dtrDateIn.textContent = 'Not yet logged';
+        if (dtrBreakTime) dtrBreakTime.textContent = '--:--';
+        if (dtrBreakStatus) dtrBreakStatus.textContent = 'No active break';
+        if (dtrTimeOut) dtrTimeOut.textContent = '--:--:--';
+        if (dtrDateOut) dtrDateOut.textContent = 'End of shift';
+        if (dtrTotalRendered) dtrTotalRendered.textContent = '0.00 hrs';
+        if (dtrShiftStatus) dtrShiftStatus.textContent = 'Standard Shift';
       }
       setDefaultWorkLocation();
     }
@@ -643,9 +657,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const { activeDev, liveStats } = e.detail;
     if (activeDev.status === 'working' || activeDev.status === 'break') {
       const renderedHrs = (liveStats.netMinutesWorked / 60).toFixed(2);
-      dtrTotalRendered.textContent = `${renderedHrs} hrs`;
-      dtrBreakTime.textContent = `${liveStats.totalBreakMinutes}m`;
-      dtrShiftStatus.textContent = activeDev.status === 'working' ? '🟢 Present (Working)' : '🟡 On Scheduled Break';
+      if (dtrTotalRendered) dtrTotalRendered.textContent = `${renderedHrs} hrs`;
+      if (dtrBreakTime) dtrBreakTime.textContent = `${liveStats.totalBreakMinutes}m`;
+      if (dtrShiftStatus) dtrShiftStatus.textContent = activeDev.status === 'working' ? '🟢 Present (Working)' : '🟡 On Scheduled Break';
+
+      // Always guarantee Time IN timestamp is rendered while active
+      if (activeDev.activeSession && activeDev.activeSession.startTime && dtrTimeIn) {
+        if (dtrTimeIn.textContent === '--:--:--' || dtrTimeIn.textContent.includes('--')) {
+          const inDate = new Date(activeDev.activeSession.startTime);
+          dtrTimeIn.textContent = inDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          if (dtrDateIn) dtrDateIn.textContent = `Logged at ${inDate.toLocaleDateString()} (${(activeDev.activeSession.workLocation || 'onsite').toUpperCase()})`;
+        }
+      }
+
+      // Guarantee button states are synchronized
+      if (btnClockIn && !btnClockIn.disabled) btnClockIn.disabled = true;
+      if (btnBreak && btnBreak.disabled) btnBreak.disabled = false;
+      if (btnClockOut && btnClockOut.disabled) btnClockOut.disabled = false;
     }
   });
 
