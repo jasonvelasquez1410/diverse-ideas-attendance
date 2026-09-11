@@ -59,12 +59,19 @@ Cloned from the official Sprout PayDay Employee Dashboard with the **`[ Apply �
 - **Applications & Approvals Table:** Complete record of all filed leave, COA, and overtime requests with instant 1-click Approve / Reject actions for Admin.
 
 ### ⚙️ Module 4: Enterprise Settings Center (Jibble Multi-Category Layout)
-Categorized into 5 dedicated sub-views:
+Categorized into 6 dedicated sub-views:
 1. 🏢 **Organization Profile:** Company legal name, industry, headquarters address, tax ID, and payslip voucher prefix (`DIV`).
 2. ⏰ **Work Schedules & Hybrid Rules:** Shift start/end times (`08:00` - `17:00`), designated WFH days (e.g., `Monday`), and grace period in minutes.
 3. 👥 **People & Pay Rates:** Developer roster, hourly wages, 4-digit PINs, leave allocations, Run Payslip action, and Edit Profile modal.
 4. 📁 **Projects & Activities:** Client project codes and tags (`DICP`, `JETZ`, `ACCT`, `MOBI`, `TOOL`) developers can clock into.
 5. 💾 **Database & Backups:** JSON database backup download, JSON restore from file, and factory demo data reset.
+6. 📖 **Admin Guide & Tutorials:** Embedded interactive onboarding tutorial suite for Tef with step-by-step guides, live PIN cheat sheet, and 1-click invitation text copy.
+
+### 📖 Module 7: In-App Manager Guide & Staff Onboarding Hub (Tef's Tutorial Suite)
+- **Top Header Quick Launch (`[ 📖 Manager Guide ]`):** Direct 1-click modal access anywhere across the dashboard.
+- **Settings Subtab Walkthrough:** Step-by-step instructions embedded directly inside the Settings tab.
+- **Interactive Invitation Message Generator:** Formatted ready-to-send Slack/Skype message with 1-click **`[ 📋 Copy Invitation Message ]`** button.
+- **PIN Access Cheat Sheet:** Quick overview of all default and customized team PINs for effortless manager reference.
 
 ### 🔒 Module 5: Rate Confidentiality & PIN Access Security
 - **Confidential Rates:** No developer can see another developer's hourly wage or earnings. All dollar amounts are hidden on public and team views.

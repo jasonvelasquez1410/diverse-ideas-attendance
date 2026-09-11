@@ -52,12 +52,18 @@
         </button>
       </nav>
 
-      <!-- Right Actions: Live Clock, Current Auth Profile, Logout / Lock -->
+      <!-- Right Actions: Live Clock, Current Auth Profile, Manager Guide, Logout / Lock -->
       <div class="header-actions">
         <div class="live-clock-pill">
           <div class="live-pulse-dot"></div>
           <span id="header-live-time">Thu, Sep 10, 10:45 PM</span>
         </div>
+
+        <!-- Manager & Tef Guide Quick Launch -->
+        <button class="btn btn-secondary" id="btn-header-guide" title="Manager Onboarding Guide for Tef" style="padding: 6px 12px; font-size: 0.8rem; border-radius: var(--radius-full); display: inline-flex; align-items: center; gap: 6px; background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3); color: var(--accent-primary); font-weight: 700;">
+          <span>📖</span>
+          <span class="guide-btn-text">Manager Guide</span>
+        </button>
 
         <!-- Current User Pill & Lock/Switch Button -->
         <button class="btn btn-secondary" id="btn-header-auth-switch" style="padding: 6px 14px; font-size: 0.82rem; border-radius: var(--radius-full);">
@@ -751,6 +757,9 @@
         <button class="settings-subtab-btn" data-subtab="settings-view-data" id="subtab-btn-data">
           <span>💾</span> Database & Backups
         </button>
+        <button class="settings-subtab-btn" data-subtab="settings-view-guide" id="subtab-btn-guide" style="color: var(--accent-primary); font-weight: 700;">
+          <span>📖</span> Admin Guide & Tutorials
+        </button>
       </div>
 
       <!-- Subtab 1: Organization Profile -->
@@ -921,6 +930,135 @@
           </div>
         </div>
       </div>
+
+      <!-- Subtab 6: Admin Guide & Tutorial Suite for Tef -->
+      <div id="settings-view-guide" class="settings-subpane">
+        <div class="glass-card" style="margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 44px; height: 44px; border-radius: var(--radius-md); background: linear-gradient(135deg, var(--accent-primary), var(--accent-cyan)); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: white; box-shadow: 0 0 16px var(--accent-primary-glow);">
+                📖
+              </div>
+              <div>
+                <h2 style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 800; color: var(--text-primary);">
+                  Manager & Admin Onboarding Guide
+                </h2>
+                <p style="font-size: 0.84rem; color: var(--text-secondary); margin-top: 2px;">
+                  Complete system walkthrough, team PIN distribution, and payday execution guide for <strong>Tef</strong>.
+                </p>
+              </div>
+            </div>
+            <button class="btn btn-primary" id="btn-open-guide-modal-from-settings" style="font-size: 0.82rem; padding: 8px 16px;">
+              🔍 Open Full-Screen Interactive Guide
+            </button>
+          </div>
+
+          <!-- Guide Step Cards Grid -->
+          <div class="guide-container">
+            
+            <!-- Step 1 -->
+            <div class="guide-step-card">
+              <div class="guide-step-header">
+                <div class="guide-step-badge">1</div>
+                <h3 class="guide-step-title">Admin Master Access & Confidential Mode</h3>
+              </div>
+              <div class="guide-step-desc">
+                Log into DevTrack using the <strong>Administrator</strong> profile with master PIN <span class="guide-pin-chip">9999</span>. This gives Tef exclusive access to view developer hourly rates, run team payroll, approve attendance requests, and manage settings.
+              </div>
+              <div class="guide-callout">
+                🔒 <strong>Security Note:</strong> Developer staff cannot view each other's hourly rates or earnings. Rate confidentiality is enforced across all public and team views.
+              </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="guide-step-card">
+              <div class="guide-step-header">
+                <div class="guide-step-badge">2</div>
+                <h3 class="guide-step-title">Customize Team Profiles, Rates & 4-Digit PINs</h3>
+              </div>
+              <div class="guide-step-desc">
+                Go to <strong>⚙️ Settings &rarr; 👥 People & Pay Rates</strong>. Click <strong>✏️ Edit</strong> next to any employee to configure their real details:
+                <ul style="margin: 8px 0 8px 24px; color: var(--text-secondary);">
+                  <li><strong>Full Name & Role</strong> (e.g. Lead Full-Stack Dev, Senior QA)</li>
+                  <li><strong>Hourly Rate ($ USD)</strong> for accurate payroll calculation</li>
+                  <li><strong>Private 4-Digit Access PIN</strong> (e.g. <span class="guide-pin-chip">1234</span>, <span class="guide-pin-chip">2345</span>, or any custom PIN Tef chooses)</li>
+                  <li><strong>Leave Credits</strong> (Vacation, Sick, and Emergency leave balances)</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="guide-step-card">
+              <div class="guide-step-header">
+                <div class="guide-step-badge">3</div>
+                <h3 class="guide-step-title">Send Logins & Onboard the Team</h3>
+              </div>
+              <div class="guide-step-desc">
+                Once profiles and PINs are configured, copy and send this message to each staff member via Slack, Skype, or Email:
+              </div>
+              
+              <div class="guide-sample-msg-box" id="guide-sample-msg-text">
+                Hi team! We are now using <strong>DevTrack</strong> for daily attendance, time off, and payroll.<br><br>
+                🌐 <strong>App URL:</strong> https://diverse-ideas-attendance.vercel.app<br>
+                🔑 <strong>Your Access PIN:</strong> [Your 4-Digit PIN]<br><br>
+                <strong>Daily Steps:</strong><br>
+                1. Open the link on your laptop or phone.<br>
+                2. Tap your profile name and enter your 4-digit PIN.<br>
+                3. Click <strong>Time IN</strong> at shift start, <strong>Break</strong> for lunch, and <strong>Time OUT</strong> when finishing work.<br>
+                4. To file Leaves or missed time punches, use <strong>📁 My Stuff &rarr; Apply &rarr; Certificate of Attendance (COA) / Leave</strong>.
+              </div>
+
+              <button type="button" class="guide-copy-btn" id="btn-copy-staff-msg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                <span id="btn-copy-staff-msg-label">📋 Copy Invitation Message to Clipboard</span>
+              </button>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="guide-step-card">
+              <div class="guide-step-header">
+                <div class="guide-step-badge">4</div>
+                <h3 class="guide-step-title">Daily DTR Monitoring & 1-Click COA Approvals</h3>
+              </div>
+              <div class="guide-step-desc">
+                <ul style="margin: 8px 0 8px 24px; color: var(--text-secondary);">
+                  <li><strong>Live Attendance Tab:</strong> Check who is currently working, on break, or offline in real-time.</li>
+                  <li><strong>Time Off & Holidays Tab:</strong> View pending Leave and Certificate of Attendance (COA) applications. Tef can approve or reject requests with 1-click.</li>
+                  <li><strong>Work Schedules:</strong> Mondays auto-default to <em>Work From Home (WFH)</em> and Tuesdays-Fridays default to <em>Onsite</em>.</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="guide-step-card">
+              <div class="guide-step-header">
+                <div class="guide-step-badge">5</div>
+                <h3 class="guide-step-title">Payday Payroll & Official 1-Page Payslip Vouchers</h3>
+              </div>
+              <div class="guide-step-desc">
+                On payday, go to <strong>💰 Timesheets & Payday</strong>:
+                <ul style="margin: 8px 0 8px 24px; color: var(--text-secondary);">
+                  <li><strong>Live USD &rarr; PHP Conversion:</strong> Real-time exchange rate (<span class="guide-pin-chip">$1 USD = ₱58.50 PHP</span>) automatically computes converted gross earnings for bank / GCash disbursement.</li>
+                  <li><strong>Quick Payslip Bar:</strong> Select the staff member and click <strong>[ Run & Print Payslip ]</strong>.</li>
+                  <li><strong>1-Page Printable Voucher:</strong> An executive dual-currency payslip statement will pop up, formatted strictly for 1-page A4 printing or PDF export with approval signature lines.</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Step 6 -->
+            <div class="guide-step-card">
+              <div class="guide-step-header">
+                <div class="guide-step-badge">6</div>
+                <h3 class="guide-step-title">Database Safety & Local Backups</h3>
+              </div>
+              <div class="guide-step-desc">
+                In <strong>⚙️ Settings &rarr; 💾 Database & Backups</strong>, Tef can click <strong>"Download JSON Backup"</strong> at any time to save a local backup copy of all team timesheets, logs, rates, and requests.
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
     </section>
 
   </main>
@@ -928,6 +1066,115 @@
   <!-- ==========================================
        MODALS
        ========================================== -->
+
+  <!-- Modal: Manager & Tef Onboarding Tutorial Modal -->
+  <div class="modal-overlay" id="modal-manager-guide">
+    <div class="modal-dialog" style="max-width: 780px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--accent-primary), var(--accent-cyan)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.1rem;">
+            📖
+          </div>
+          <div>
+            <h3 class="modal-title" style="margin: 0;">Manager & Admin Guide for Tef</h3>
+            <span style="font-size: 0.76rem; color: var(--text-muted);">DevTrack System Walkthrough & Staff Onboarding</span>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btn-close-manager-guide">&times;</button>
+      </div>
+
+      <div class="modal-body" style="padding: 22px; max-height: 75vh; overflow-y: auto;">
+        
+        <!-- Live PIN Access Reference Table -->
+        <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 20px;">
+          <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px;">
+            🔑 Default Team PIN Access Reference (Editable in Settings)
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
+            <div style="background: var(--bg-card); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+              <span style="font-size: 0.78rem; color: var(--text-muted); display: block;">👑 Administrator</span>
+              <strong style="color: #ec4899; font-family: var(--font-mono); font-size: 0.95rem;">9999</strong>
+            </div>
+            <div style="background: var(--bg-card); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+              <span style="font-size: 0.78rem; color: var(--text-muted); display: block;">Alex Rivera</span>
+              <strong style="color: var(--accent-primary); font-family: var(--font-mono); font-size: 0.95rem;">1234</strong>
+            </div>
+            <div style="background: var(--bg-card); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+              <span style="font-size: 0.78rem; color: var(--text-muted); display: block;">Maria Santos</span>
+              <strong style="color: var(--accent-cyan); font-family: var(--font-mono); font-size: 0.95rem;">2345</strong>
+            </div>
+            <div style="background: var(--bg-card); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+              <span style="font-size: 0.78rem; color: var(--text-muted); display: block;">Kenji Takahashi</span>
+              <strong style="color: var(--status-working); font-family: var(--font-mono); font-size: 0.95rem;">3456</strong>
+            </div>
+            <div style="background: var(--bg-card); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+              <span style="font-size: 0.78rem; color: var(--text-muted); display: block;">Chloe Gomez</span>
+              <strong style="color: #f59e0b; font-family: var(--font-mono); font-size: 0.95rem;">4567</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Walkthrough Steps -->
+        <div class="guide-container">
+          
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge">1</div>
+              <h4 class="guide-step-title">How Tef Logs In</h4>
+            </div>
+            <p class="guide-step-desc">
+              Open <strong>https://diverse-ideas-attendance.vercel.app</strong>, select <strong>[ADM] Administrator</strong>, and enter PIN <span class="guide-pin-chip">9999</span>.
+            </p>
+          </div>
+
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge">2</div>
+              <h4 class="guide-step-title">How to Set & Edit Team PINs & Rates</h4>
+            </div>
+            <p class="guide-step-desc">
+              Go to <strong>⚙️ Settings &rarr; 👥 People & Pay Rates</strong>. Click <strong>✏️ Edit</strong> next to any employee to update their name, hourly USD rate, private PIN, and leave balances. You can also click <strong>+ Add Developer</strong> for new hires.
+            </p>
+          </div>
+
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge">3</div>
+              <h4 class="guide-step-title">Team Invitation Message</h4>
+            </div>
+            <div class="guide-sample-msg-box" id="guide-modal-sample-msg">
+              Hi [Name]! We are now using <strong>DevTrack</strong> for our daily attendance and timesheets.<br><br>
+              🌐 <strong>App URL:</strong> https://diverse-ideas-attendance.vercel.app<br>
+              🔑 <strong>Your Private PIN:</strong> [Your 4-Digit PIN]<br><br>
+              Please open the link, click your name, enter your PIN, and click <strong>Time IN</strong> at shift start.
+            </div>
+            <button type="button" class="guide-copy-btn" id="btn-copy-staff-msg-modal">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              <span id="btn-copy-staff-msg-modal-label">📋 Copy Invitation Text</span>
+            </button>
+          </div>
+
+          <div class="guide-step-card">
+            <div class="guide-step-header">
+              <div class="guide-step-badge">4</div>
+              <h4 class="guide-step-title">How to Run & Print Payslips on Payday</h4>
+            </div>
+            <p class="guide-step-desc">
+              Go to <strong>💰 Timesheets & Payday</strong>, choose the employee in the <strong>Quick Staff Payslip Bar</strong>, and click <strong>[ Run & Print Payslip ]</strong>. It will display the live USD ⇄ PHP converted earnings and 1-click print voucher.
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="btn-close-manager-guide-footer" style="width: 100%;">
+          Got it, Close Guide
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal: File Sprout Application (Leave / COA / Overtime) -->
   <div class="modal-overlay" id="modal-file-request">

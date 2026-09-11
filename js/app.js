@@ -1930,6 +1930,89 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPaydayWidgets();
   }
 
+  // ==========================================
+  // Manager & Admin Onboarding Guide (Tef's Tutorial Suite)
+  // ==========================================
+  const modalManagerGuide = document.getElementById('modal-manager-guide');
+  const btnHeaderGuide = document.getElementById('btn-header-guide');
+  const btnOpenGuideModalFromSettings = document.getElementById('btn-open-guide-modal-from-settings');
+  const btnCloseManagerGuide = document.getElementById('btn-close-manager-guide');
+  const btnCloseManagerGuideFooter = document.getElementById('btn-close-manager-guide-footer');
+  const btnCopyStaffMsg = document.getElementById('btn-copy-staff-msg');
+  const btnCopyStaffMsgModal = document.getElementById('btn-copy-staff-msg-modal');
+
+  function openManagerGuideModal() {
+    if (modalManagerGuide) {
+      modalManagerGuide.classList.add('active');
+    }
+  }
+
+  function closeManagerGuideModal() {
+    if (modalManagerGuide) {
+      modalManagerGuide.classList.remove('active');
+    }
+  }
+
+  if (btnHeaderGuide) {
+    btnHeaderGuide.addEventListener('click', openManagerGuideModal);
+  }
+
+  if (btnOpenGuideModalFromSettings) {
+    btnOpenGuideModalFromSettings.addEventListener('click', openManagerGuideModal);
+  }
+
+  if (btnCloseManagerGuide) {
+    btnCloseManagerGuide.addEventListener('click', closeManagerGuideModal);
+  }
+
+  if (btnCloseManagerGuideFooter) {
+    btnCloseManagerGuideFooter.addEventListener('click', closeManagerGuideModal);
+  }
+
+  const sampleStaffInvitationText = `Hi team! We are now using DevTrack for daily attendance, time off, and payroll.\n\n🌐 App URL: https://diverse-ideas-attendance.vercel.app\n🔑 Your Access PIN: [Your 4-Digit PIN]\n\nDaily Steps:\n1. Open the link on your laptop or phone.\n2. Tap your profile name and enter your 4-digit PIN.\n3. Click [Time IN] at shift start, [Break] for lunch, and [Time OUT] when finishing work.\n4. To file Leaves or missed time punches, use [📁 My Stuff -> Apply -> Certificate of Attendance (COA) / Leave].`;
+
+  function copyInvitationText(btnElement, labelElementId) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(sampleStaffInvitationText).then(() => {
+        const label = document.getElementById(labelElementId);
+        if (label) {
+          const originalText = label.textContent;
+          label.textContent = '✅ Copied Invitation to Clipboard!';
+          setTimeout(() => {
+            label.textContent = originalText;
+          }, 3000);
+        }
+        showToast('Invitation message copied to clipboard!', 'success');
+      }).catch(() => {
+        fallbackCopyText(sampleStaffInvitationText);
+      });
+    } else {
+      fallbackCopyText(sampleStaffInvitationText);
+    }
+  }
+
+  function fallbackCopyText(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand('copy');
+      showToast('Invitation message copied to clipboard!', 'success');
+    } catch (err) {
+      alert('Please manually copy the text from the screen.');
+    }
+    document.body.removeChild(textarea);
+  }
+
+  if (btnCopyStaffMsg) {
+    btnCopyStaffMsg.addEventListener('click', () => copyInvitationText(btnCopyStaffMsg, 'btn-copy-staff-msg-label'));
+  }
+
+  if (btnCopyStaffMsgModal) {
+    btnCopyStaffMsgModal.addEventListener('click', () => copyInvitationText(btnCopyStaffMsgModal, 'btn-copy-staff-msg-modal-label'));
+  }
+
   initHeaderClock();
   initSettingsSubtabs();
   checkAuth();
