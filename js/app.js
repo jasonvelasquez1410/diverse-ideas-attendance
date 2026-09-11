@@ -898,11 +898,16 @@ document.addEventListener('DOMContentLoaded', () => {
             card.style.padding = '14px 16px';
             card.style.borderRadius = 'var(--radius-md)';
             card.innerHTML = `
-              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                <div style="width: 24px; height: 24px; border-radius: 50%; background: ${dev.avatarColor || '#6366f1'}; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; color: white;">
-                  ${dev.initials || 'DV'}
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <div style="width: 24px; height: 24px; border-radius: 50%; background: ${dev.avatarColor || '#6366f1'}; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; color: white;">
+                    ${dev.initials || 'DV'}
+                  </div>
+                  <strong style="font-size: 0.88rem; color: var(--text-primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${dev.name}</strong>
                 </div>
-                <strong style="font-size: 0.88rem; color: var(--text-primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${dev.name}</strong>
+                <button class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.72rem; color: var(--accent-cyan);" onclick="openPayslipModal('${dev.id}')" title="Run official payslip for ${dev.name}">
+                  📄 Slip
+                </button>
               </div>
               <div style="font-size: 0.76rem; color: var(--text-secondary);">${item.hoursWorked} hrs • ${item.sessionCount} session(s)</div>
               <div style="margin-top: 6px; display: flex; justify-content: space-between; align-items: baseline;">
@@ -929,12 +934,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function populatePayrollDevFilter() {
     const devs = store.getState().developers;
-    payrollDevFilter.innerHTML = '<option value="all">All Team Members</option>';
-    devs.forEach(d => {
-      const opt = document.createElement('option');
-      opt.value = d.id;
-      opt.textContent = d.name;
-      payrollDevFilter.appendChild(opt);
+    const quickDevSelect = document.getElementById('quick-payslip-dev-select');
+    
+    if (payrollDevFilter) {
+      payrollDevFilter.innerHTML = '<option value="all">All Developers (Team)</option>';
+      devs.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.id;
+        opt.textContent = `${d.name} (${d.role.split(' ')[0]})`;
+        payrollDevFilter.appendChild(opt);
+      });
+    }
+
+    if (quickDevSelect) {
+      quickDevSelect.innerHTML = '';
+      devs.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.id;
+        opt.textContent = `👤 ${d.name} (${d.role})`;
+        quickDevSelect.appendChild(opt);
+      });
+    }
+  }
+
+  const btnQuickRunPayslip = document.getElementById('btn-quick-run-payslip');
+  if (btnQuickRunPayslip) {
+    btnQuickRunPayslip.addEventListener('click', () => {
+      const select = document.getElementById('quick-payslip-dev-select');
+      const devId = select ? select.value : null;
+      window.openPayslipModal(devId);
     });
   }
 

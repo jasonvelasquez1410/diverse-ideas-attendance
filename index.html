@@ -568,11 +568,40 @@
         </div>
       </div>
 
+      <!-- Quick Action Bar: Run Staff Payslip Directly (Admin) -->
+      <div class="glass-card quick-payslip-bar" id="quick-payslip-bar">
+        <div class="quick-payslip-left">
+          <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: linear-gradient(135deg, var(--accent-primary), var(--accent-cyan)); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem; box-shadow: 0 4px 12px var(--accent-primary-glow);">
+            📄
+          </div>
+          <div>
+            <div style="font-weight: 700; font-size: 1rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+              Run Staff Payslip
+              <span class="badge badge-working" style="font-size: 0.68rem;">1-Page Slip</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
+              Select any developer to instantly calculate and generate their official printable payslip voucher.
+            </div>
+          </div>
+        </div>
+
+        <div class="quick-payslip-right">
+          <select id="quick-payslip-dev-select" class="form-control" style="min-width: 220px; font-weight: 600; padding: 10px 14px;">
+            <!-- Rendered by JS -->
+          </select>
+          <button class="btn btn-primary" id="btn-quick-run-payslip" style="padding: 10px 20px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Run & Print Payslip
+          </button>
+        </div>
+      </div>
+
       <!-- Filters Toolbar -->
       <div class="toolbar-container">
         <div class="toolbar-filters">
           <!-- Date Preset -->
           <div class="form-group" style="min-width: 160px;">
+            <label class="form-label" for="payroll-date-filter" style="font-size: 0.76rem; text-transform: uppercase;">Date Period</label>
             <select id="payroll-date-filter" class="form-control">
               <option value="all">All Time</option>
               <option value="today">Today</option>
@@ -583,7 +612,8 @@
           </div>
 
           <!-- Developer Filter -->
-          <div class="form-group" style="min-width: 180px;">
+          <div class="form-group" style="min-width: 190px;" id="payroll-dev-filter-group">
+            <label class="form-label" for="payroll-dev-filter" style="font-size: 0.76rem; text-transform: uppercase;">Filter Developer</label>
             <select id="payroll-dev-filter" class="form-control">
               <!-- Rendered by JS -->
             </select>
@@ -591,16 +621,23 @@
 
           <!-- Project Filter -->
           <div class="form-group" style="min-width: 180px;">
+            <label class="form-label" for="payroll-project-filter" style="font-size: 0.76rem; text-transform: uppercase;">Filter Project</label>
             <select id="payroll-project-filter" class="form-control">
               <!-- Rendered by JS -->
             </select>
           </div>
 
           <!-- Custom Date Range Picker (Hidden by default) -->
-          <div id="custom-date-range-container" style="display: none; gap: 8px; align-items: center;">
-            <input type="date" id="custom-start-date" class="form-control" style="width: auto;">
-            <span style="color: var(--text-muted);">to</span>
-            <input type="date" id="custom-end-date" class="form-control" style="width: auto;">
+          <div id="custom-date-range-container" style="display: none; gap: 8px; align-items: flex-end;">
+            <div class="form-group">
+              <label class="form-label" for="custom-start-date" style="font-size: 0.76rem; text-transform: uppercase;">From</label>
+              <input type="date" id="custom-start-date" class="form-control" style="width: auto;">
+            </div>
+            <span style="color: var(--text-muted); margin-bottom: 10px;">to</span>
+            <div class="form-group">
+              <label class="form-label" for="custom-end-date" style="font-size: 0.76rem; text-transform: uppercase;">To</label>
+              <input type="date" id="custom-end-date" class="form-control" style="width: auto;">
+            </div>
           </div>
         </div>
       </div>

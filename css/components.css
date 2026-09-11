@@ -483,6 +483,39 @@ select.form-control {
   padding-right: 36px;
 }
 
+select.form-control option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: 10px 14px;
+}
+
+/* Quick Payslip Action Bar */
+.quick-payslip-bar {
+  padding: 16px 22px;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(16, 185, 129, 0.08));
+  border: 1.5px solid rgba(99, 102, 241, 0.3);
+  border-radius: var(--radius-lg);
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.quick-payslip-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.quick-payslip-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 /* Live Attendance Team Grid */
 .attendance-grid {
   display: grid;
