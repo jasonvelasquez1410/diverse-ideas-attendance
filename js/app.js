@@ -1056,6 +1056,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function populatePayrollDevFilter() {
     const devs = store.getState().developers;
     const quickDevSelect = document.getElementById('quick-payslip-dev-select');
+    const quickBarTitle = document.getElementById('quick-payslip-title');
+    const quickBarDesc = document.getElementById('quick-payslip-desc');
+    const auth = store.getAuth();
     
     if (payrollDevFilter) {
       payrollDevFilter.innerHTML = '<option value="all">All Developers (Team)</option>';
@@ -1069,12 +1072,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (quickDevSelect) {
       quickDevSelect.innerHTML = '';
-      devs.forEach(d => {
-        const opt = document.createElement('option');
-        opt.value = d.id;
-        opt.textContent = `👤 ${d.name} (${d.role})`;
-        quickDevSelect.appendChild(opt);
-      });
+      if (!store.isAdmin()) {
+        // Non-admin staff: locked strictly to their own name
+        const myDev = store.getDeveloperById(auth.devId);
+        if (myDev) {
+          const opt = document.createElement('option');
+          opt.value = myDev.id;
+          opt.textContent = `👤 ${myDev.name} (${myDev.role})`;
+          quickDevSelect.appendChild(opt);
+        }
+        quickDevSelect.disabled = true;
+        if (quickBarTitle) quickBarTitle.textContent = 'My Personal Payslip';
+        if (quickBarDesc) quickBarDesc.textContent = 'Preview and generate your official personal printable payslip voucher.';
+      } else {
+        quickDevSelect.disabled = false;
+        if (quickBarTitle) quickBarTitle.textContent = 'Run Staff Payslip';
+        if (quickBarDesc) quickBarDesc.textContent = 'Select any developer to instantly calculate and generate their official printable payslip voucher.';
+        devs.forEach(d => {
+          const opt = document.createElement('option');
+          opt.value = d.id;
+          opt.textContent = `👤 ${d.name} (${d.role})`;
+          quickDevSelect.appendChild(opt);
+        });
+      }
     }
   }
 
@@ -1122,10 +1142,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const rate = store.getUsdToPhpRate();
     const auth = store.getAuth();
     
-    // Choose developer: explicit target or active filter or current logged dev
+    // Choose developer: Staff is strictly locked to their OWN personal payslip
     let devId = targetDevId;
-    if (!devId) {
-      devId = (store.isAdmin() && payrollDevFilter.value !== 'all') ? payrollDevFilter.value : auth.devId || state.activeDeveloperId;
+    if (!store.isAdmin()) {
+      devId = auth.devId || state.activeDeveloperId;
+    } else if (!devId) {
+      devId = (payrollDevFilter && payrollDevFilter.value !== 'all') ? payrollDevFilter.value : state.activeDeveloperId;
     }
 
     const dev = store.getDeveloperById(devId) || state.developers[0];
