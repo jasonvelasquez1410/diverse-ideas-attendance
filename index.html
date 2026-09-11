@@ -263,8 +263,8 @@
             <a href="javascript:void(0)" onclick="document.getElementById('nav-btn-attendance').click()" style="color: var(--status-working); font-size: 0.85rem; font-weight: 600; text-decoration: none;">
               Show Team Attendance &rarr;
             </a>
-            <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.78rem; color: var(--accent-cyan);" onclick="openPayslipModal()" title="View your official computed payslip">
-              📄 My Payslip
+            <button class="btn btn-secondary" id="btn-card-my-payslip" style="display: none; padding: 4px 10px; font-size: 0.78rem; color: var(--accent-cyan);" onclick="openPayslipModal()" title="Admin: View and generate staff payslips">
+              📄 Staff Payslip
             </button>
           </div>
         </div>
@@ -523,7 +523,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             Export CSV (USD + PHP)
           </button>
-          <button class="btn btn-primary" id="btn-print-report">
+          <button class="btn btn-primary" id="btn-print-report" style="display: none;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
             View / Print Payslip
           </button>
@@ -590,8 +590,8 @@
         </div>
       </div>
 
-      <!-- Quick Action Bar: Run Staff Payslip Directly (Admin) -->
-      <div class="glass-card quick-payslip-bar" id="quick-payslip-bar">
+      <!-- Quick Action Bar: Run Staff Payslip Directly (Admin Exclusive) -->
+      <div class="glass-card quick-payslip-bar" id="quick-payslip-bar" style="display: none;">
         <div class="quick-payslip-left">
           <div style="width: 40px; height: 40px; border-radius: var(--radius-md); background: linear-gradient(135deg, var(--accent-primary), var(--accent-cyan)); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem; box-shadow: 0 4px 12px var(--accent-primary-glow);">
             📄

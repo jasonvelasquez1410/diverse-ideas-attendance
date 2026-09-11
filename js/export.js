@@ -91,8 +91,14 @@ class ExportUtility {
     downloadAnchor.remove();
   }
 
-  // Trigger Print Payroll Slip
+  // Trigger Print Payroll Slip (Admin Exclusive)
   printPayrollReport() {
+    if (!this.store.isAdmin()) {
+      if (window.showToast) {
+        window.showToast('🔒 Access Restricted: Payslip generation is confidential and exclusive to Administrator (Master PIN 9999).', 'warning');
+      }
+      return;
+    }
     if (window.openPayslipModal) {
       window.openPayslipModal();
     }

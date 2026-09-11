@@ -258,6 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateHeaderAuthProfile() {
     const auth = store.getAuth();
+    const btnCardPayslip = document.getElementById('btn-card-my-payslip');
     if (auth.role === 'admin') {
       headerUserAvatar.textContent = 'ADM';
       headerUserAvatar.style.background = '#ec4899';
@@ -269,6 +270,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (btnHeaderGuide) {
         btnHeaderGuide.style.display = 'inline-flex';
       }
+      // Payslip generation is strictly exclusive to Admin (Master PIN 9999)
+      if (btnCardPayslip) {
+        btnCardPayslip.style.display = 'inline-flex';
+      }
     } else {
       const dev = store.getDeveloperById(auth.devId);
       if (dev) {
@@ -279,9 +284,12 @@ document.addEventListener('DOMContentLoaded', () => {
         headerUserRoleBadge.style.background = 'rgba(99, 102, 241, 0.2)';
         headerUserRoleBadge.style.color = 'var(--accent-cyan)';
       }
-      // Hide Manager Guide completely for individual staff logins
+      // Hide Manager Guide and Payslip buttons completely for individual staff logins
       if (btnHeaderGuide) {
         btnHeaderGuide.style.display = 'none';
+      }
+      if (btnCardPayslip) {
+        btnCardPayslip.style.display = 'none';
       }
     }
   }
@@ -924,6 +932,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Hide dev selector for regular developers
     payrollDevFilter.style.display = store.isAdmin() ? 'block' : 'none';
 
+    // Payslip quick bar and export buttons strictly exclusive to Admin (PIN 9999)
+    const quickPayslipBar = document.getElementById('quick-payslip-bar');
+    if (quickPayslipBar) {
+      quickPayslipBar.style.display = store.isAdmin() ? 'flex' : 'none';
+    }
+    if (btnPrintReport) {
+      btnPrintReport.style.display = store.isAdmin() ? 'inline-flex' : 'none';
+    }
+
     // Render Table Rows
     timesheetTableBody.innerHTML = '';
     if (currentFilteredRecords.length === 0) {
@@ -986,9 +1003,11 @@ document.addEventListener('DOMContentLoaded', () => {
           <td class="font-mono">${payDisplay}</td>
           <td>
             <div style="display: flex; gap: 6px;">
+              ${store.isAdmin() ? `
               <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.72rem; color: var(--accent-cyan);" onclick="generateSinglePayslip('${rec.developerId}', '${rec.id}')" title="Generate and print payslip for this entry">
                 📄 Slip
               </button>
+              ` : ''}
               <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.72rem; color: var(--status-danger);" onclick="deleteTimesheetRecord('${rec.id}')" title="Delete record">
                 🗑️
               </button>
@@ -1073,17 +1092,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (quickDevSelect) {
       quickDevSelect.innerHTML = '';
       if (!store.isAdmin()) {
-        // Non-admin staff: locked strictly to their own name
-        const myDev = store.getDeveloperById(auth.devId);
-        if (myDev) {
-          const opt = document.createElement('option');
-          opt.value = myDev.id;
-          opt.textContent = `👤 ${myDev.name} (${myDev.role})`;
-          quickDevSelect.appendChild(opt);
-        }
         quickDevSelect.disabled = true;
-        if (quickBarTitle) quickBarTitle.textContent = 'My Personal Payslip';
-        if (quickBarDesc) quickBarDesc.textContent = 'Preview and generate your official personal printable payslip voucher.';
       } else {
         quickDevSelect.disabled = false;
         if (quickBarTitle) quickBarTitle.textContent = 'Run Staff Payslip';
@@ -1135,18 +1144,20 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================================
-  // 8. Official Payslip Generator & Print Controller
+  // 8. Official Payslip Generator & Print Controller (Admin Exclusive PIN 9999)
   // ==========================================
   window.openPayslipModal = function(targetDevId = null, targetRecordId = null) {
+    if (!store.isAdmin()) {
+      showToast('🔒 Access Restricted: Payslip generation is confidential and strictly exclusive to Administrator (Master PIN 9999).', 'warning');
+      return;
+    }
+
     const state = store.getState();
     const rate = store.getUsdToPhpRate();
-    const auth = store.getAuth();
     
-    // Choose developer: Staff is strictly locked to their OWN personal payslip
+    // Choose developer (Admin mode)
     let devId = targetDevId;
-    if (!store.isAdmin()) {
-      devId = auth.devId || state.activeDeveloperId;
-    } else if (!devId) {
+    if (!devId) {
       devId = (payrollDevFilter && payrollDevFilter.value !== 'all') ? payrollDevFilter.value : state.activeDeveloperId;
     }
 
@@ -1275,10 +1286,18 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   window.generateSinglePayslip = function(devId, recordId) {
+    if (!store.isAdmin()) {
+      showToast('🔒 Access Restricted: Payslip generation is confidential and strictly exclusive to Administrator (Master PIN 9999).', 'warning');
+      return;
+    }
     window.openPayslipModal(devId, recordId);
   };
 
   btnPrintReport.addEventListener('click', () => {
+    if (!store.isAdmin()) {
+      showToast('🔒 Access Restricted: Payslip generation is confidential and strictly exclusive to Administrator (Master PIN 9999).', 'warning');
+      return;
+    }
     window.openPayslipModal();
   });
 
@@ -1295,7 +1314,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   window.addEventListener('beforeprint', () => {
-    if (!modalPayslipPreview.classList.contains('active')) {
+    if (store.isAdmin() && !modalPayslipPreview.classList.contains('active')) {
       window.openPayslipModal();
     }
   });
