@@ -2103,7 +2103,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
-  // Manager & Admin Onboarding Guide (Tef's Tutorial Suite)
+  // Manager & Admin Onboarding Guide (Operations Manager Tutorial Suite)
   // ==========================================
   const modalManagerGuide = document.getElementById('modal-manager-guide');
   const btnHeaderGuide = document.getElementById('btn-header-guide');

@@ -59,8 +59,8 @@
           <span id="header-live-time">Thu, Sep 10, 10:45 PM</span>
         </div>
 
-        <!-- Manager & Tef Guide Quick Launch -->
-        <button class="btn btn-secondary" id="btn-header-guide" title="Manager Onboarding Guide for Tef" style="padding: 6px 12px; font-size: 0.8rem; border-radius: var(--radius-full); display: inline-flex; align-items: center; gap: 6px; background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3); color: var(--accent-primary); font-weight: 700;">
+        <!-- Manager & Operations Manager Guide Quick Launch -->
+        <button class="btn btn-secondary" id="btn-header-guide" title="Manager Onboarding Guide for Operations Manager" style="padding: 6px 12px; font-size: 0.8rem; border-radius: var(--radius-full); display: inline-flex; align-items: center; gap: 6px; background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3); color: var(--accent-primary); font-weight: 700;">
           <span>📖</span>
           <span class="guide-btn-text">Manager Guide</span>
         </button>
@@ -933,7 +933,7 @@
         </div>
       </div>
 
-      <!-- Subtab 6: Admin Guide & Tutorial Suite for Tef -->
+      <!-- Subtab 6: Admin Guide & Tutorial Suite for Operations Manager -->
       <div id="settings-view-guide" class="settings-subpane">
         <div class="glass-card" style="margin-bottom: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 16px;">
@@ -946,7 +946,7 @@
                   Manager & Admin Onboarding Guide
                 </h2>
                 <p style="font-size: 0.84rem; color: var(--text-secondary); margin-top: 2px;">
-                  Complete system walkthrough, team PIN distribution, and payday execution guide for <strong>Tef</strong>.
+                  Complete system walkthrough, team PIN distribution, and payday execution guide for <strong>Operations Manager</strong>.
                 </p>
               </div>
             </div>
@@ -965,7 +965,7 @@
                 <h3 class="guide-step-title">Admin Master Access & Confidential Mode</h3>
               </div>
               <div class="guide-step-desc">
-                Log into DevTrack using the <strong>Administrator</strong> profile with master PIN <span class="guide-pin-chip">9999</span>. This gives Tef exclusive access to view developer hourly rates, run team payroll, approve attendance requests, and manage settings.
+                Log into DevTrack using the <strong>Administrator</strong> profile with master PIN <span class="guide-pin-chip">9999</span>. This gives Operations Manager exclusive access to view developer hourly rates, run team payroll, approve attendance requests, and manage settings.
               </div>
               <div class="guide-callout">
                 🔒 <strong>Security Note:</strong> Developer staff cannot view each other's hourly rates or earnings. Rate confidentiality is enforced across all public and team views.
@@ -1044,7 +1044,7 @@
               <div class="guide-step-desc">
                 <ul style="margin: 8px 0 8px 24px; color: var(--text-secondary);">
                   <li><strong>Live Attendance Tab:</strong> Check who is currently working, on break, or offline in real-time.</li>
-                  <li><strong>Time Off & Holidays Tab:</strong> View pending Leave and Certificate of Attendance (COA) applications. Tef can approve or reject requests with 1-click.</li>
+                  <li><strong>Time Off & Holidays Tab:</strong> View pending Leave and Certificate of Attendance (COA) applications. Operations Manager can approve or reject requests with 1-click.</li>
                   <li><strong>Work Schedules:</strong> Mondays auto-default to <em>Work From Home (WFH)</em> and Tuesdays-Fridays default to <em>Onsite</em>.</li>
                 </ul>
               </div>
@@ -1073,7 +1073,7 @@
                 <h3 class="guide-step-title">Managing Projects & Client Codes</h3>
               </div>
               <div class="guide-step-desc">
-                Go to <strong>⚙️ Settings → 📁 Projects & Activities</strong>. As admin, Tef can:
+                Go to <strong>⚙️ Settings → 📁 Projects & Activities</strong>. As admin, Operations Manager can:
                 <ul style="margin: 8px 0 8px 24px; color: var(--text-secondary);">
                   <li><strong>Add New Projects:</strong> Create project codes (e.g. <span class="guide-pin-chip">LOGI</span>) and names for developers to clock into.</li>
                   <li><strong>Edit Projects:</strong> Update project name, description, or status at any time.</li>
@@ -1092,8 +1092,8 @@
                 In the <strong>🌴 Time Off & Holidays</strong> tab:
                 <ul style="margin: 8px 0 8px 24px; color: var(--text-secondary);">
                   <li><strong>Add Philippine / CDO Holidays:</strong> Use the quick preset selector to add national or CDO local holidays (e.g. Higalaay Festival, Charter Day). Custom company events can also be added.</li>
-                  <li><strong>Approve or Reject Leave:</strong> Pending leave applications from staff appear here. Tef reviews the reason and approves or declines with 1 click.</li>
-                  <li><strong>COA (Certificate of Attendance):</strong> If a developer forgot to clock in/out, they file a COA. Tef approves to correct the timesheet record.</li>
+                  <li><strong>Approve or Reject Leave:</strong> Pending leave applications from staff appear here. Operations Manager reviews the reason and approves or declines with 1 click.</li>
+                  <li><strong>COA (Certificate of Attendance):</strong> If a developer forgot to clock in/out, they file a COA. Operations Manager approves to correct the timesheet record.</li>
                 </ul>
               </div>
             </div>
@@ -1105,45 +1105,10 @@
                 <h3 class="guide-step-title">Database Safety & Local Backups</h3>
               </div>
               <div class="guide-step-desc">
-                In <strong>⚙️ Settings → 💾 Database & Backups</strong>, Tef can click <strong>"Download JSON Backup"</strong> at any time to save a local backup copy of all team timesheets, logs, rates, and requests.
+                In <strong>⚙️ Settings → 💾 Database & Backups</strong>, Operations Manager can click <strong>"Download JSON Backup"</strong> at any time to save a local backup copy of all team timesheets, logs, rates, and requests.
               </div>
             </div>
 
-            <!-- Tef Role Callout -->
-            <div class="guide-step-card" style="background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(6,182,212,0.08)); border-color: rgba(99,102,241,0.3);">
-              <div class="guide-step-header">
-                <div class="guide-step-badge" style="background: linear-gradient(135deg, #ec4899, #8b5cf6);">👑</div>
-                <h3 class="guide-step-title" style="color: var(--accent-primary);">Tef's Official Role in outflows and the System</h3>
-              </div>
-              <div class="guide-step-desc">
-                Tef manages all HR, payroll, and team administration in DevTrack. Suggested official titles based on her responsibilities:
-              </div>
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; margin-top: 10px;">
-                <div style="padding: 8px 12px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--accent-primary); text-align: center;">
-                  <div style="font-weight: 700; color: var(--accent-primary); font-size: 0.88rem;">HR & Payroll Manager</div>
-                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Recommended ✅</div>
-                </div>
-                <div style="padding: 8px 12px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
-                  <div style="font-weight: 700; color: var(--text-primary); font-size: 0.88rem;">Operations Manager</div>
-                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Broad scope</div>
-                </div>
-                <div style="padding: 8px 12px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
-                  <div style="font-weight: 700; color: var(--text-primary); font-size: 0.88rem;">People & Culture Lead</div>
-                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Modern HR title</div>
-                </div>
-                <div style="padding: 8px 12px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
-                  <div style="font-weight: 700; color: var(--text-primary); font-size: 0.88rem;">Admin & HR Coordinator</div>
-                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Formal & precise</div>
-                </div>
-                <div style="padding: 8px 12px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
-                  <div style="font-weight: 700; color: var(--text-primary); font-size: 0.88rem;">Office & HR Manager</div>
-                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Classic & clear</div>
-                </div>
-              </div>
-              <div class="guide-callout" style="margin-top: 12px;">
-                💡 <strong>Tip:</strong> You can set Tef's official title in the system by going to <strong>⚙️ Settings → 👥 People & Pay Rates</strong>, then clicking <strong>✏️ Edit</strong> next to Administrator and updating the Role field.
-              </div>
-            </div>
 
           </div>
         </div>
@@ -1156,7 +1121,7 @@
        MODALS
        ========================================== -->
 
-  <!-- Modal: Manager & Tef Onboarding Tutorial Modal -->
+  <!-- Modal: Operations Manager Onboarding Tutorial Modal -->
   <div class="modal-overlay" id="modal-manager-guide">
     <div class="modal-dialog" style="max-width: 780px;">
       <div class="modal-header">
@@ -1165,7 +1130,7 @@
             📖
           </div>
           <div>
-            <h3 class="modal-title" style="margin: 0;">Manager & Admin Guide for Tef</h3>
+            <h3 class="modal-title" style="margin: 0;">Operations Manager & Admin Guide</h3>
             <span style="font-size: 0.76rem; color: var(--text-muted);">DevTrack System Walkthrough & Staff Onboarding</span>
           </div>
         </div>
@@ -1209,10 +1174,10 @@
           <div class="guide-step-card">
             <div class="guide-step-header">
               <div class="guide-step-badge">1</div>
-              <h4 class="guide-step-title">How Tef Logs In</h4>
+              <h4 class="guide-step-title">How Operations Manager Logs In</h4>
             </div>
             <p class="guide-step-desc">
-              Open <strong>https://diverse-ideas-attendance.vercel.app</strong>, select <strong>[ADM] Administrator</strong>, and enter PIN <span class="guide-pin-chip">9999</span>. As admin, Tef gets exclusive access to payroll, rates, and team settings.
+              Open <strong>https://diverse-ideas-attendance.vercel.app</strong>, select <strong>[ADM] Administrator</strong>, and enter PIN <span class="guide-pin-chip">9999</span>. As admin, Operations Manager gets exclusive access to payroll, rates, and team settings.
             </p>
           </div>
 
@@ -1266,7 +1231,7 @@
               <h4 class="guide-step-title">Leave & COA Approvals (Time Off Tab)</h4>
             </div>
             <p class="guide-step-desc">
-              In the <strong>🌴 Time Off & Holidays</strong> tab, Tef sees all pending leave applications and COA (missed punch) requests. Click <strong>✅ Approve</strong> or <strong>❌ Reject</strong> on each request. Approved leaves automatically deduct from the employee's leave balance and mark the date on the attendance calendar.
+              In the <strong>🌴 Time Off & Holidays</strong> tab, Operations Manager sees all pending leave applications and COA (missed punch) requests. Click <strong>✅ Approve</strong> or <strong>❌ Reject</strong> on each request. Approved leaves automatically deduct from the employee's leave balance and mark the date on the attendance calendar.
             </p>
           </div>
 
@@ -1280,31 +1245,6 @@
             </p>
           </div>
 
-          <div class="guide-step-card" style="background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(6,182,212,0.08)); border-color: rgba(99,102,241,0.3);">
-            <div class="guide-step-header">
-              <div class="guide-step-badge" style="background: linear-gradient(135deg, #ec4899, #8b5cf6);">👑</div>
-              <h4 class="guide-step-title" style="color: var(--accent-primary);">Suggested Official Title for Tef</h4>
-            </div>
-            <p class="guide-step-desc" style="margin-bottom: 10px;">Based on Tef's responsibilities in the system, here are suggested professional titles:</p>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px;">
-              <div style="padding: 8px 12px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--accent-primary); text-align: center;">
-                <div style="font-weight: 700; color: var(--accent-primary); font-size: 0.85rem;">HR & Payroll Manager</div>
-                <div style="font-size: 0.73rem; color: var(--text-muted);">Recommended ✅</div>
-              </div>
-              <div style="padding: 8px 12px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
-                <div style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem;">Operations Manager</div>
-                <div style="font-size: 0.73rem; color: var(--text-muted);">Broad scope</div>
-              </div>
-              <div style="padding: 8px 12px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
-                <div style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem;">People & Culture Lead</div>
-                <div style="font-size: 0.73rem; color: var(--text-muted);">Modern HR</div>
-              </div>
-              <div style="padding: 8px 12px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
-                <div style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem;">Admin & HR Coordinator</div>
-                <div style="font-size: 0.73rem; color: var(--text-muted);">Formal & precise</div>
-              </div>
-            </div>
-          </div>
 
         </div>
 

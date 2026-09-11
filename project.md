@@ -74,9 +74,10 @@ Categorized into 6 dedicated sub-views:
    - **Edit Project (`✏️ Edit`):** Update project names, codes, descriptions, and toggle active/archived status.
    - **Delete Project (`🗑️ Delete`):** Admin-only removal with confirmation prompt.
 5. 💾 **Database & Backups:** JSON database backup download, JSON restore from file, and factory demo data reset.
-6. 📖 **Admin Guide & Tutorials:** Embedded interactive onboarding tutorial suite for Tef with step-by-step guides, live PIN cheat sheet, and 1-click invitation text copy.
+6. 📖 **Admin Guide & Tutorials:** Embedded interactive onboarding tutorial suite for Operations Manager with step-by-step guides, live PIN cheat sheet, and 1-click invitation text copy.
+7. 🚀 **Staff Onboarding Modal & Quick Share:** Pre-written WhatsApp/Slack onboarding invite templates with staff login PINs, role, and custom portal URL ready to send to team members.
 
-### 📖 Module 7: In-App Manager Guide & Staff Onboarding Hub (Tef's Tutorial Suite)
+### 📖 Module 7: In-App Manager Guide & Staff Onboarding Hub (Operations Manager Tutorial Suite)
 - **Top Header Quick Launch (`[ 📖 Manager Guide ]`):** Direct 1-click modal access anywhere across the dashboard.
 - **Settings Subtab Walkthrough:** Step-by-step instructions embedded directly inside the Settings tab.
 - **Interactive Invitation Message Generator:** Formatted ready-to-send Slack/Skype message with 1-click **`[ 📋 Copy Invitation Message ]`** button.
