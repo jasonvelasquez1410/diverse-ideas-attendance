@@ -79,14 +79,24 @@ Categorized into 6 dedicated sub-views:
 
 ### 📖 Module 7: In-App Manager Guide & Staff Onboarding Hub (Operations Manager Tutorial Suite)
 - **Top Header Quick Launch (`[ 📖 Manager Guide ]`):** Direct 1-click modal access anywhere across the dashboard.
-- **Settings Subtab Walkthrough:** Step-by-step instructions embedded directly inside the Settings tab.
+- **Settings Subtab Walkthrough:** Step-by-step instructions embedded directly inside the Settings tab (**⚙️ Settings → 📖 Admin Guide & Tutorials**).
+- **Comprehensive Step-by-Step Tutorial:**
+  1. *Admin Master Access & Confidential Mode:* Master PIN `9999` exclusive access.
+  2. *Configure Employee Profiles, Rates & 4-Digit PINs:* Field-by-field breakdown (Name/Role, USD/PHP Hourly Rates, Private PIN, Leave Credits VL/SL/EL, Contact Email).
+  3. *Distribute PINs & Onboard Staff:* 1-click formatted invitation generator for WhatsApp/Slack.
+  4. *Daily Attendance Tracking:* Review live punch-ins, WFH/Onsite badges, and rendered hours.
+  5. *Review & Export Payday Payroll:* Dual currency USD + PHP computation and 1-page payslip generation.
+  6. *Project Tracking & Activity Codes:* Admin-only CRUD for client and internal projects.
+  7. *Leave & COA Approvals:* Time Off tab 1-click approvals for VL/SL/EL and missed punches.
+  8. *Database Safety & Local Backups:* 1-click JSON database download and restore.
 - **Interactive Invitation Message Generator:** Formatted ready-to-send Slack/Skype message with 1-click **`[ 📋 Copy Invitation Message ]`** button.
 - **PIN Access Cheat Sheet:** Quick overview of all default and customized team PINs for effortless manager reference.
 
 ### 🔒 Module 5: Rate Confidentiality & PIN Access Security
 - **Confidential Rates:** No developer can see another developer's hourly wage or earnings. All dollar amounts are hidden on public and team views.
-- **Private 4-Digit PIN Access:** Every developer enters their private PIN to unlock their personal DTR and timesheet.
-- **Admin Master PIN (`9999`):** Unlocks full company-wide payroll, rate configurations, and manager approvals.
+- **Private 4-Digit PIN Access:** Every developer enters their own private PIN to unlock their personal DTR and timesheet.
+- **Strict Role Isolation:** Staff PINs (`1234`–`4567`) cannot access Admin/Management privileges, rate adjustments, project deletions, or approval queues.
+- **Admin Master PIN (`9999`):** Exclusively unlocks company-wide payroll, rate configurations, employee profile editing, and manager approvals. Only the Administrator/Operations Manager can log in with `9999`.
 - **Header Lock Button (`🔒`):** 1-click lock before stepping away from desk.
 
 ### 📊 Module 6: Timesheets, Payday Analytics & Real-Time PHP (₱) Conversion
@@ -114,13 +124,15 @@ Categorized into 6 dedicated sub-views:
 
 ## 4. Team Credentials & Access Codes
 
-| Name | Role | Currency & Rate | Default PIN | Default Leave Credits |
-| :--- | :--- | :--- | :---: | :---: |
-| **Alex Rivera** | Lead Full-Stack Dev | $35.00 / hr | **`1234`** | 12 VL / 10 SL / 5 EL |
-| **Maria Santos** | Senior Frontend Engineer | $28.00 / hr | **`2345`** | 15 VL / 10 SL / 5 EL |
-| **Kenji Takahashi** | Backend Systems Engineer | $30.00 / hr | **`3456`** | 10 VL / 8 SL / 5 EL |
-| **Chloe Gomez** | UI/UX & QA Specialist | $22.00 / hr | **`4567`** | 14 VL / 10 SL / 5 EL |
-| **Administrator** | Management Mode | *Full Access* | **`9999`** | *Manager Privileges* |
+| Name | Role | Currency & Rate | Default PIN | Default Leave Credits | Access Level |
+| :--- | :--- | :--- | :---: | :---: | :--- |
+| **Alex Rivera** | Lead Full-Stack Dev | $35.00 / hr | **`1234`** | 12 VL / 10 SL / 5 EL | Personal DTR & My Stuff Only |
+| **Maria Santos** | Senior Frontend Engineer | $28.00 / hr | **`2345`** | 15 VL / 10 SL / 5 EL | Personal DTR & My Stuff Only |
+| **Kenji Takahashi** | Backend Systems Engineer | $30.00 / hr | **`3456`** | 10 VL / 8 SL / 5 EL | Personal DTR & My Stuff Only |
+| **Chloe Gomez** | UI/UX & QA Specialist | $22.00 / hr | **`4567`** | 14 VL / 10 SL / 5 EL | Personal DTR & My Stuff Only |
+| **Administrator** | Operations Manager | *Executive* | **`9999`** | *Manager Privileges* | **Full Admin Master Access** |
+
+> 📌 **Note:** All PINs, hourly rates, and leave balances can be customized and updated by the Operations Manager at any time under **⚙️ Settings → 👥 People & Pay Rates**.
 
 ---
 
@@ -141,33 +153,49 @@ Diverse Ideas GMBH/
 │   ├── payroll.js        # Timesheet aggregation, wage calculation, date filtering
 │   ├── export.js         # CSV generator and printable payroll slips
 │   └── app.js            # UI coordinator, settings subtabs, holiday modal, approval workflow
-├── server.js             # Zero-dependency local network server (Wi-Fi sharing)
+├── server.js             # Zero-dependency local network server (Wi-Fi sharing, port 3000)
 ├── start.bat             # 1-click Windows server launcher
 ├── vercel.json           # Vercel deployment configuration
 ├── netlify.toml          # Netlify configuration
 ├── package.json          # Node scripts and metadata
-└── project.md            # Comprehensive project documentation (This file)
+├── data.json             # Local JSON file backup/persistence
+└── project.md            # Comprehensive project documentation & persistent memory
 ```
 
 ---
 
-## 6. How to Run Locally or Deploy After Laptop Restart
+## 6. How to Resume After Laptop Restart
 
-### A. Accessing the Live Web App (Any Device / Home / Office)
-Simply open the live Vercel URL in any browser:
+### A. Accessing the Live Production Web App
+If working online or on mobile/tablet, simply open:
 🌐 **`https://diverse-ideas-attendance.vercel.app`**
+- Operations Manager unlocks with PIN **`9999`**.
+- Developers unlock with their assigned PINs (**`1234`**, **`2345`**, **`3456`**, **`4567`**).
 
-### B. Running Locally (Offline / Local Wi-Fi Network)
-1. Open this folder: `c:\Users\USER\Documents\Programming Folder Rep\Diverse Ideas GMBH`
-2. Double click **`start.bat`** (or open terminal and run `node server.js`).
-3. Open `http://localhost:3000` in your browser.
-4. Other laptops on the same office Wi-Fi can open `http://<your-ip>:3000`.
+### B. Starting the Local Development Server
+When restarting your laptop or working offline on local Wi-Fi:
+1. Navigate to: `c:\Users\USER\Documents\Programming Folder Rep\Diverse Ideas GMBH`
+2. **Option 1 (1-Click):** Double-click **`start.bat`**.
+3. **Option 2 (Terminal):** Open PowerShell / Command Prompt in this folder and run:
+   ```powershell
+   node server.js
+   ```
+4. Open your browser to:
+   - Local: `http://localhost:3000`
+   - Office Wi-Fi (other laptops/phones): `http://<your-local-ip>:3000` (printed in terminal upon startup)
 
-### C. Updating and Pushing Changes
-Whenever code is updated:
-```bash
-git add .
-git commit -m "Your update description"
+### C. Git Workflow (Saving & Deploying Updates)
+All changes pushed to `main` automatically deploy to Vercel within seconds:
+```powershell
+git status
+git add -A
+git commit -m "feat: your descriptive update message"
 git push origin main
 ```
-*Vercel will automatically re-deploy in ~10 seconds.*
+
+### D. Key Context for AI Agent on Next Session
+- **Repository:** `jasonvelasquez1410/diverse-ideas-attendance` on branch `main`.
+- **Role Designation:** The in-app administrator role is **Operations Manager**. Do NOT use or re-introduce the name "Tef" or title recommendation cards in user-facing views or guides.
+- **PIN Isolation Rule:** Master PIN `9999` belongs strictly to Administrator / Operations Manager. Developers have dedicated PINs and cannot access rate data or admin actions.
+- **Holidays:** National PH + Cagayan de Oro (CDO) holidays (Charter Day June 15, Higalaay Aug 28, City Fiesta Jan 10) are built into the presets.
+- **Dual Currency:** Real-time forex ticker with USD base, live PHP rate conversion, and single-page printable payslips with dual signatures.
