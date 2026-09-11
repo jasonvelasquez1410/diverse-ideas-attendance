@@ -72,6 +72,12 @@
           <span id="header-user-role-badge" class="badge" style="margin-left: 6px; font-size: 0.68rem; background: rgba(236, 72, 153, 0.2); color: #f472b6;">ADMIN</span>
         </button>
 
+        <!-- Change PIN Action Button -->
+        <button class="btn btn-secondary" id="btn-header-change-pin" style="padding: 6px 12px; font-size: 0.8rem; border-radius: var(--radius-full); display: inline-flex; align-items: center; gap: 6px;" title="Change your private 4-digit access PIN">
+          <span>🔑</span>
+          <span class="change-pin-text">Change PIN</span>
+        </button>
+
         <button class="theme-toggle-btn" id="btn-logout" title="Lock & Switch Developer" aria-label="Lock App">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
         </button>
@@ -337,6 +343,14 @@
                 <span>Bereavement Leave</span>
                 <strong>3</strong>
               </div>
+            </div>
+
+            <!-- Self-Service Account Security -->
+            <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.76rem; color: var(--text-muted);">Account Security</span>
+              <button class="btn btn-secondary" style="padding: 3px 10px; font-size: 0.74rem; color: var(--accent-cyan);" onclick="openChangePinModal()" title="Change your 4-digit access PIN">
+                🔑 Change PIN
+              </button>
             </div>
           </div>
         </div>
@@ -813,6 +827,42 @@
             <div style="margin-top: 24px; display: flex; justify-content: flex-end;">
               <button type="submit" class="btn btn-primary">
                 💾 Save Company Profile
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Admin Master PIN Security Card -->
+        <div class="glass-card" style="margin-top: 24px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <h3 style="font-family: var(--font-heading); font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
+              🔐 Security & Admin Master PIN
+            </h3>
+            <span class="badge" style="background: rgba(236, 72, 153, 0.2); color: #f472b6; font-size: 0.72rem; font-weight: 700;">Admin Exclusive</span>
+          </div>
+          <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 16px;">
+            Update the 4-digit master access PIN used by the Administrator to manage rates, view confidential payroll, approve team leaves, and access enterprise settings.
+          </p>
+
+          <form id="form-settings-admin-pin" style="max-width: 520px;">
+            <div class="grid-2" style="gap: 16px;">
+              <div class="form-group">
+                <label class="form-label" for="setting-current-admin-pin">Current Admin PIN *</label>
+                <input type="password" id="setting-current-admin-pin" class="form-control" maxlength="6" placeholder="Enter current PIN" required autocomplete="off" inputmode="numeric">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="setting-new-admin-pin">New 4-Digit Admin PIN *</label>
+                <input type="password" id="setting-new-admin-pin" class="form-control" maxlength="4" placeholder="4 digits (e.g. 9999)" required autocomplete="off" inputmode="numeric">
+              </div>
+            </div>
+            <div class="form-group" style="margin-top: 12px;">
+              <label class="form-label" for="setting-confirm-admin-pin">Confirm New Admin PIN *</label>
+              <input type="password" id="setting-confirm-admin-pin" class="form-control" maxlength="4" placeholder="Re-enter new 4 digits" required autocomplete="off" inputmode="numeric">
+            </div>
+
+            <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
+              <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #ec4899, #f43f5e);">
+                🔐 Update Master PIN
               </button>
             </div>
           </form>
@@ -1851,6 +1901,55 @@
           Print Official Payslip Slip
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: Universal Change PIN (Self-Service)
+       ========================================== -->
+  <div class="modal-overlay" id="modal-change-pin">
+    <div class="modal-dialog" style="max-width: 440px; width: 95%;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--accent-primary), var(--accent-cyan)); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem;">
+            🔑
+          </div>
+          <div>
+            <h3 class="modal-title" style="margin: 0;" id="change-pin-modal-title">Change Access PIN</h3>
+            <span style="font-size: 0.76rem; color: var(--text-muted);" id="change-pin-modal-user">Update your 4-digit login passcode</span>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btn-close-change-pin">&times;</button>
+      </div>
+
+      <form id="form-change-pin">
+        <div class="modal-body" style="padding: 20px;">
+          <div id="change-pin-alert" style="display: none; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 0.82rem; margin-bottom: 16px;"></div>
+
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label" for="input-current-pin" style="font-size: 0.82rem;">Current PIN Code *</label>
+            <input type="password" id="input-current-pin" class="form-control" maxlength="6" placeholder="Enter your current PIN" required autocomplete="off" inputmode="numeric">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label" for="input-new-pin" style="font-size: 0.82rem;">New 4-Digit PIN *</label>
+            <input type="password" id="input-new-pin" class="form-control" maxlength="4" placeholder="Enter new 4 digits" required autocomplete="off" inputmode="numeric">
+            <span style="font-size: 0.72rem; color: var(--text-muted);">Must be exactly 4 numeric digits (e.g. 1234).</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="input-confirm-pin" style="font-size: 0.82rem;">Confirm New PIN *</label>
+            <input type="password" id="input-confirm-pin" class="form-control" maxlength="4" placeholder="Re-enter new 4 digits" required autocomplete="off" inputmode="numeric">
+          </div>
+        </div>
+
+        <div class="modal-footer" style="padding: 16px 20px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color);">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-change-pin">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-change-pin">
+            Save New PIN
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 

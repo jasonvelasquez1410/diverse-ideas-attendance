@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
       <div style="display: flex; flex-direction: column; text-align: left; line-height: 1.15;">
         <span style="font-weight: 700; color: #f472b6;">Administrator</span>
-        <span style="font-size: 0.65rem; color: var(--text-muted);">PIN: 9999</span>
+        <span style="font-size: 0.65rem; color: var(--text-muted);">PIN: ${state.adminPin || '9999'}</span>
       </div>
     `;
     adminBtn.addEventListener('click', () => {
@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div style="display: flex; flex-direction: column; text-align: left; line-height: 1.15;">
           <span style="font-weight: 600;">${dev.name.split(' ')[0]}</span>
-          <span style="font-size: 0.65rem; color: var(--text-muted);">${dev.role.split(' ')[0]}</span>
+          <span style="font-size: 0.65rem; color: var(--text-muted);">${dev.role.split(' ')[0]} (PIN: ${dev.pin || '••••'})</span>
         </div>
       `;
 
@@ -263,6 +263,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateHeaderAuthProfile() {
     const auth = store.getAuth();
     const btnCardPayslip = document.getElementById('btn-card-my-payslip');
+    const btnHeaderChangePin = document.getElementById('btn-header-change-pin');
+
     if (auth && auth.isAuthenticated && auth.role === 'admin') {
       headerUserAvatar.textContent = 'ADM';
       headerUserAvatar.style.background = '#ec4899';
@@ -277,6 +279,9 @@ document.addEventListener('DOMContentLoaded', () => {
       // Payslip generation is strictly exclusive to Admin (Master PIN 9999)
       if (btnCardPayslip) {
         btnCardPayslip.style.display = 'inline-flex';
+      }
+      if (btnHeaderChangePin) {
+        btnHeaderChangePin.style.display = 'inline-flex';
       }
     } else if (auth && auth.isAuthenticated && auth.role === 'developer' && auth.devId) {
       const dev = store.getDeveloperById(auth.devId);
@@ -295,6 +300,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (btnCardPayslip) {
         btnCardPayslip.style.display = 'none';
       }
+      if (btnHeaderChangePin) {
+        btnHeaderChangePin.style.display = 'inline-flex';
+      }
     } else {
       // Locked state
       headerUserAvatar.textContent = '🔒';
@@ -305,6 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
       headerUserRoleBadge.style.color = 'var(--text-muted)';
       if (btnHeaderGuide) btnHeaderGuide.style.display = 'none';
       if (btnCardPayslip) btnCardPayslip.style.display = 'none';
+      if (btnHeaderChangePin) btnHeaderChangePin.style.display = 'none';
     }
   }
 
@@ -1384,6 +1393,41 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Admin Master PIN Update Form (Settings)
+  const formSettingsAdminPin = document.getElementById('form-settings-admin-pin');
+  if (formSettingsAdminPin) {
+    formSettingsAdminPin.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const currentPin = document.getElementById('setting-current-admin-pin').value.trim();
+      const newPin = document.getElementById('setting-new-admin-pin').value.trim();
+      const confirmPin = document.getElementById('setting-confirm-admin-pin').value.trim();
+
+      const actualAdminPin = String(store.getState().adminPin || '9999').trim();
+      if (currentPin !== actualAdminPin) {
+        alert('❌ Current Admin PIN is incorrect.');
+        document.getElementById('setting-current-admin-pin').focus();
+        return;
+      }
+
+      if (!/^\d{4}$/.test(newPin)) {
+        alert('❌ New Admin PIN must be exactly 4 numeric digits.');
+        document.getElementById('setting-new-admin-pin').focus();
+        return;
+      }
+
+      if (newPin !== confirmPin) {
+        alert('❌ New Admin PIN and confirmation PIN do not match.');
+        document.getElementById('setting-confirm-admin-pin').focus();
+        return;
+      }
+
+      store.setAdminPin(newPin);
+      showToast(`🔐 Master Admin PIN updated to ${newPin}!`, 'success');
+      formSettingsAdminPin.reset();
+      renderAll();
+    });
+  }
+
   function renderScheduleSettings() {
     const sched = store.getWorkSchedules();
     const startEl = document.getElementById('setting-shift-start');
@@ -1557,6 +1601,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const vacation = parseInt(document.getElementById('edit-dev-vl').value) || 0;
     const sick = parseInt(document.getElementById('edit-dev-sl').value) || 0;
     const emergency = parseInt(document.getElementById('edit-dev-el').value) || 0;
+
+    if (!/^\d{4}$/.test(pin)) {
+      alert('❌ PIN must be exactly 4 numeric digits.');
+      document.getElementById('edit-dev-pin').focus();
+      return;
+    }
+
+    if (pin === String(store.getState().adminPin).trim()) {
+      alert('❌ Staff PIN cannot be the same as the Admin Master PIN.');
+      document.getElementById('edit-dev-pin').focus();
+      return;
+    }
 
     const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'DV';
 
@@ -2359,8 +2415,133 @@ document.addEventListener('DOMContentLoaded', () => {
     btnCopyStaffMsg.addEventListener('click', () => copyInvitationText(btnCopyStaffMsg, 'btn-copy-staff-msg-label'));
   }
 
-  if (btnCopyStaffMsgModal) {
-    btnCopyStaffMsgModal.addEventListener('click', () => copyInvitationText(btnCopyStaffMsgModal, 'btn-copy-staff-msg-modal-label'));
+  // ==========================================
+  // Universal Change PIN Controller (Self-Service)
+  // ==========================================
+  const modalChangePin = document.getElementById('modal-change-pin');
+  const formChangePin = document.getElementById('form-change-pin');
+  const btnHeaderChangePin = document.getElementById('btn-header-change-pin');
+  const btnCloseChangePin = document.getElementById('btn-close-change-pin');
+  const btnCancelChangePin = document.getElementById('btn-cancel-change-pin');
+  const inputCurrentPin = document.getElementById('input-current-pin');
+  const inputNewPin = document.getElementById('input-new-pin');
+  const inputConfirmPin = document.getElementById('input-confirm-pin');
+  const changePinAlert = document.getElementById('change-pin-alert');
+  const changePinModalTitle = document.getElementById('change-pin-modal-title');
+  const changePinModalUser = document.getElementById('change-pin-modal-user');
+
+  window.openChangePinModal = function() {
+    const auth = store.getAuth();
+    if (!auth || !auth.isAuthenticated) {
+      showToast('Please log in with your PIN first.', 'warning');
+      checkAuth();
+      return;
+    }
+
+    if (formChangePin) formChangePin.reset();
+    if (changePinAlert) {
+      changePinAlert.style.display = 'none';
+      changePinAlert.textContent = '';
+    }
+
+    if (auth.role === 'admin') {
+      if (changePinModalTitle) changePinModalTitle.textContent = 'Change Admin Master PIN';
+      if (changePinModalUser) changePinModalUser.textContent = 'Administrator • Master Security PIN';
+    } else {
+      const dev = store.getDeveloperById(auth.devId);
+      const name = dev ? dev.name : 'Staff Member';
+      const role = dev ? dev.role : 'Developer';
+      if (changePinModalTitle) changePinModalTitle.textContent = 'Change My Access PIN';
+      if (changePinModalUser) changePinModalUser.textContent = `${name} (${role}) • Private 4-Digit Passcode`;
+    }
+
+    if (modalChangePin) {
+      modalChangePin.classList.add('active');
+      setTimeout(() => {
+        if (inputCurrentPin) inputCurrentPin.focus();
+      }, 100);
+    }
+  };
+
+  if (btnHeaderChangePin) {
+    btnHeaderChangePin.addEventListener('click', window.openChangePinModal);
+  }
+
+  [btnCloseChangePin, btnCancelChangePin].forEach(btn => {
+    if (btn) {
+      btn.addEventListener('click', () => {
+        if (modalChangePin) modalChangePin.classList.remove('active');
+      });
+    }
+  });
+
+  if (formChangePin) {
+    formChangePin.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const auth = store.getAuth();
+      if (!auth || !auth.isAuthenticated) return;
+
+      const currentPin = inputCurrentPin.value.trim();
+      const newPin = inputNewPin.value.trim();
+      const confirmPin = inputConfirmPin.value.trim();
+
+      function showAlert(msg, isError = true) {
+        if (changePinAlert) {
+          changePinAlert.style.display = 'block';
+          changePinAlert.style.background = isError ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)';
+          changePinAlert.style.border = isError ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(16, 185, 129, 0.3)';
+          changePinAlert.style.color = isError ? '#f87171' : 'var(--status-working)';
+          changePinAlert.textContent = msg;
+        }
+      }
+
+      if (!/^\d{4}$/.test(newPin)) {
+        showAlert('❌ New PIN must be exactly 4 numeric digits (e.g. 1234).');
+        inputNewPin.focus();
+        return;
+      }
+
+      if (newPin !== confirmPin) {
+        showAlert('❌ New PIN and Confirm PIN do not match.');
+        inputConfirmPin.focus();
+        return;
+      }
+
+      if (auth.role === 'admin') {
+        const actualAdminPin = String(store.getState().adminPin || '9999').trim();
+        if (currentPin !== actualAdminPin) {
+          showAlert('❌ Current Admin PIN is incorrect.');
+          inputCurrentPin.focus();
+          return;
+        }
+
+        store.setAdminPin(newPin);
+        showToast(`👑 Administrator Master PIN changed successfully to ${newPin}!`, 'success');
+        modalChangePin.classList.remove('active');
+        renderAll();
+      } else {
+        const dev = store.getDeveloperById(auth.devId);
+        if (!dev) return;
+
+        if (String(dev.pin).trim() !== currentPin) {
+          showAlert(`❌ Current PIN for ${dev.name} is incorrect.`);
+          inputCurrentPin.focus();
+          return;
+        }
+
+        const adminPin = String(store.getState().adminPin || '9999').trim();
+        if (newPin === adminPin) {
+          showAlert('❌ This PIN is reserved for the Administrator. Please choose a different 4-digit code.');
+          inputNewPin.focus();
+          return;
+        }
+
+        store.updateDeveloper(dev.id, { pin: newPin });
+        showToast(`✅ Your PIN has been changed to ${newPin}! Use this PIN on your next login.`, 'success');
+        modalChangePin.classList.remove('active');
+        renderAll();
+      }
+    });
   }
 
   initHeaderClock();
