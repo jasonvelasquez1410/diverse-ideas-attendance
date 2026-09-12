@@ -1162,10 +1162,10 @@ select.form-control option {
    ========================================================================== */
 .settings-subnav {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 24px;
-  overflow-x: auto;
-  padding-bottom: 4px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -1203,6 +1203,23 @@ select.form-control option {
 [data-theme="dark"] .settings-subtab-btn.active {
   color: var(--accent-cyan);
   border-bottom-color: var(--accent-cyan);
+}
+
+.settings-subtab-btn.highlight-feature {
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  color: var(--accent-cyan);
+  font-weight: 700;
+}
+.settings-subtab-btn.highlight-feature:hover {
+  background: rgba(99, 102, 241, 0.16);
+  border-color: var(--accent-cyan);
+}
+.settings-subtab-btn.highlight-feature.active {
+  background: var(--bg-card);
+  border-color: var(--border-color) var(--border-color) transparent var(--border-color);
+  border-bottom: 2px solid var(--accent-cyan);
+  color: var(--accent-cyan);
 }
 
 .settings-subpane {

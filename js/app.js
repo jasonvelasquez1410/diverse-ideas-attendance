@@ -2737,6 +2737,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  window.openFeatureSettingsDirectly = function() {
+    const navBtnSettings = document.getElementById('nav-btn-settings');
+    if (navBtnSettings) navBtnSettings.click();
+    setTimeout(() => {
+      const subtabBtnFeatures = document.getElementById('subtab-btn-features');
+      if (subtabBtnFeatures) {
+        subtabBtnFeatures.click();
+        subtabBtnFeatures.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 60);
+  };
+
   initHeaderClock();
   initSettingsSubtabs();
   checkAuth();
