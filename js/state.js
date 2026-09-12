@@ -22,6 +22,16 @@ const DEFAULT_INITIAL_STATE = {
     taxId: 'DE-2026-DIV99',
     voucherPrefix: 'DIV'
   },
+  // Modular Policy & Feature Switches ("No Work, No Pay" Model)
+  features: {
+    leaveCreditsEnabled: false,       // Default disabled for No Work, No Pay (paid leave balances hidden)
+    overtimeFilingEnabled: false,     // Default disabled (hours automatically logged from time clock)
+    undertimeFilingEnabled: false,    // Default disabled (automatic pay deduction from clock out)
+    coaFilingEnabled: true,           // Certificate of Attendance / Missed Log adjustment (Enabled)
+    scheduleNoticeEnabled: true,      // Schedule Adjustment / WFH notice (Enabled)
+    forexTickerEnabled: true,         // Live Forex USD ⇄ PHP ticker & conversion (Enabled)
+    holidaysCalendarEnabled: true     // Official Holiday Calendar (Enabled)
+  },
   workSchedules: {
     shiftStart: '09:00',
     shiftEnd: '17:00',
@@ -262,6 +272,13 @@ class Store {
             saturdayPolicy: 'Optional / Rest Day (No Forcing)'
           };
         }
+
+        // Ensure feature switches are loaded and defaults applied
+        parsed.features = {
+          ...DEFAULT_INITIAL_STATE.features,
+          ...(parsed.features || {})
+        };
+
         return parsed;
       }
     } catch (e) {
@@ -349,7 +366,25 @@ class Store {
   }
 
   setAdminPin(newPin) {
-    this.state.adminPin = newPin;
+    this.state.adminPin = String(newPin).trim();
+    this.saveState();
+  }
+
+  // Feature Toggles (No Work, No Pay Configuration)
+  getFeatures() {
+    return this.state.features || DEFAULT_INITIAL_STATE.features;
+  }
+
+  isFeatureEnabled(featureKey) {
+    const feats = this.getFeatures();
+    return feats[featureKey] !== false;
+  }
+
+  setFeature(featureKey, isEnabled) {
+    if (!this.state.features) {
+      this.state.features = { ...DEFAULT_INITIAL_STATE.features };
+    }
+    this.state.features[featureKey] = Boolean(isEnabled);
     this.saveState();
   }
 

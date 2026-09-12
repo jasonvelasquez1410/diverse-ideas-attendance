@@ -291,22 +291,22 @@
               
               <!-- Dropdown Menu -->
               <div class="apply-menu-dropdown" id="apply-menu-dropdown">
-                <a class="apply-menu-item" href="javascript:void(0)" onclick="openSpecificRequestModal('Leave')">
+                <a class="apply-menu-item" id="apply-item-leave" href="javascript:void(0)" onclick="openSpecificRequestModal('Leave')">
                   <span>🌴</span> Leave
                 </a>
-                <a class="apply-menu-item" href="javascript:void(0)" onclick="openSpecificRequestModal('Overtime')">
+                <a class="apply-menu-item" id="apply-item-overtime" href="javascript:void(0)" onclick="openSpecificRequestModal('Overtime')">
                   <span>⏰</span> Overtime
                 </a>
-                <a class="apply-menu-item" href="javascript:void(0)" onclick="openSpecificRequestModal('Undertime')">
+                <a class="apply-menu-item" id="apply-item-undertime" href="javascript:void(0)" onclick="openSpecificRequestModal('Undertime')">
                   <span>⏱️</span> Undertime
                 </a>
-                <a class="apply-menu-item" href="javascript:void(0)" onclick="openSpecificRequestModal('Official Business')">
+                <a class="apply-menu-item" id="apply-item-ob" href="javascript:void(0)" onclick="openSpecificRequestModal('Official Business')">
                   <span>💼</span> Official Business (OB)
                 </a>
-                <a class="apply-menu-item" href="javascript:void(0)" onclick="openSpecificRequestModal('Schedule Adjustment')">
+                <a class="apply-menu-item" id="apply-item-schedule" href="javascript:void(0)" onclick="openSpecificRequestModal('Schedule Adjustment')">
                   <span>🔄</span> Schedule Adjustment
                 </a>
-                <a class="apply-menu-item" href="javascript:void(0)" onclick="openSpecificRequestModal('COA')" style="font-weight: 700; color: var(--accent-cyan); border-top: 1px solid var(--border-color);">
+                <a class="apply-menu-item" id="apply-item-coa" href="javascript:void(0)" onclick="openSpecificRequestModal('COA')" style="font-weight: 700; color: var(--accent-cyan); border-top: 1px solid var(--border-color);">
                   <span>📝</span> Certificate Of Attendance (COA)
                 </a>
               </div>
@@ -322,26 +322,42 @@
               <!-- Rendered by JS -->
             </div>
 
-            <!-- Leave Credits List (Sprout Style) -->
-            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px;">
-              Leave Credits
+            <!-- Leave Credits List (Shown only when Leave Credits Feature is Enabled) -->
+            <div id="mystuff-leave-credits-wrapper" style="display: none;">
+              <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px;">
+                Leave Credits
+              </div>
+              <div class="leave-credits-list">
+                <div class="leave-credit-item">
+                  <span>Vacation Leave</span>
+                  <strong id="mystuff-credit-vl">12</strong>
+                </div>
+                <div class="leave-credit-item">
+                  <span>Sick Leave</span>
+                  <strong id="mystuff-credit-sl">10</strong>
+                </div>
+                <div class="leave-credit-item">
+                  <span>Emergency Leave</span>
+                  <strong id="mystuff-credit-el">5</strong>
+                </div>
+                <div class="leave-credit-item">
+                  <span>Bereavement Leave</span>
+                  <strong>3</strong>
+                </div>
+              </div>
             </div>
-            <div class="leave-credits-list">
-              <div class="leave-credit-item">
-                <span>Vacation Leave</span>
-                <strong id="mystuff-credit-vl">12</strong>
+
+            <!-- No Work, No Pay Policy Card (Shown by Default under No Work, No Pay Model) -->
+            <div id="mystuff-nowork-nopay-wrapper" style="background: rgba(99, 102, 241, 0.07); border: 1px solid rgba(99, 102, 241, 0.22); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 12px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <span style="font-size: 0.74rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.05em;">Compensation Policy</span>
+                <span class="badge badge-working" style="font-size: 0.65rem; padding: 2px 6px;">Hourly Active</span>
               </div>
-              <div class="leave-credit-item">
-                <span>Sick Leave</span>
-                <strong id="mystuff-credit-sl">10</strong>
+              <div style="font-weight: 700; font-size: 0.86rem; color: var(--text-primary); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                <span>⚖️</span> No Work, No Pay
               </div>
-              <div class="leave-credit-item">
-                <span>Emergency Leave</span>
-                <strong id="mystuff-credit-el">5</strong>
-              </div>
-              <div class="leave-credit-item">
-                <span>Bereavement Leave</span>
-                <strong>3</strong>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.45;">
+                Earnings calculated directly from recorded shift hours. Use <strong>Apply &rarr; COA</strong> for power/internet missed punches.
               </div>
             </div>
 
@@ -448,8 +464,8 @@
         </div>
       </div>
 
-      <!-- Sprout HR Leave Credit Balances -->
-      <div class="grid-4" style="margin-bottom: 28px;">
+      <!-- Sprout HR Leave Credit Balances (Paid Leaves Mode) -->
+      <div class="grid-4" id="leaves-stat-grid-paid" style="margin-bottom: 28px; display: none;">
         <div class="glass-card stat-card">
           <span class="stat-label">Vacation Leave (VL)</span>
           <div class="stat-value" id="credit-vl" style="color: var(--accent-primary);">12 Days</div>
@@ -469,6 +485,30 @@
           <span class="stat-label">Schedule Mode</span>
           <div class="stat-value" id="stat-schedule-mode" style="font-size: 1.35rem; color: var(--status-working);">Hybrid WFH</div>
           <div class="stat-footer" id="stat-schedule-sub">Mondays Home • Tue-Fri Office</div>
+        </div>
+      </div>
+
+      <!-- No Work, No Pay Policy Deck (Hourly Compensation Model) -->
+      <div class="grid-4" id="leaves-stat-grid-nowork" style="margin-bottom: 28px;">
+        <div class="glass-card stat-card" style="border-color: rgba(99, 102, 241, 0.3);">
+          <span class="stat-label">Compensation Model</span>
+          <div class="stat-value" style="font-size: 1.3rem; color: var(--accent-primary);">⚖️ No Work No Pay</div>
+          <div class="stat-footer">Direct Billable Hourly Rates</div>
+        </div>
+        <div class="glass-card stat-card" style="border-color: rgba(6, 182, 212, 0.3);">
+          <span class="stat-label">Shift Hours & WFH</span>
+          <div class="stat-value" style="font-size: 1.3rem; color: var(--accent-cyan);">09:00 – 17:00</div>
+          <div class="stat-footer">Mondays Home • Tue-Fri Onsite</div>
+        </div>
+        <div class="glass-card stat-card" style="border-color: rgba(16, 185, 129, 0.3);">
+          <span class="stat-label">Weekly Target</span>
+          <div class="stat-value" style="font-size: 1.3rem; color: var(--status-working);">35h – 45h</div>
+          <div class="stat-footer">Target work commitment</div>
+        </div>
+        <div class="glass-card stat-card" style="border-color: rgba(245, 158, 11, 0.3);">
+          <span class="stat-label">Saturday Policy</span>
+          <div class="stat-value" style="font-size: 1.3rem; color: #f59e0b;">Rest Day</div>
+          <div class="stat-footer">Optional / Walay pugsanay</div>
         </div>
       </div>
 
@@ -789,6 +829,9 @@
         </button>
         <button class="settings-subtab-btn" data-subtab="settings-view-guide" id="subtab-btn-guide" style="color: var(--accent-primary); font-weight: 700;">
           <span>📖</span> Admin Guide & Tutorials
+        </button>
+        <button class="settings-subtab-btn" data-subtab="settings-view-features" id="subtab-btn-features" style="color: var(--accent-cyan); font-weight: 700;">
+          <span>🎛️</span> Feature Sliders & Policy
         </button>
       </div>
 
@@ -1194,6 +1237,169 @@
           </div>
         </div>
       </div>
+
+      <!-- Subtab 7: Feature Sliders & Policy Control Center (No Work, No Pay Modular Options) -->
+      <div id="settings-view-features" class="settings-subpane">
+        <div class="glass-card">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <h3 style="font-family: var(--font-heading); font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+                🎛️ Feature Sliders & Company Policy Switches
+              </h3>
+              <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 2px;">
+                Tailor DevTrack to your operating model. Under <strong>"No Work, No Pay"</strong>, paid leave balances and unnecessary paperwork are disabled by default. Admin can slide any module ON or OFF instantly.
+              </p>
+            </div>
+            <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: var(--accent-cyan); font-weight: 700;">
+              Admin Modular Control
+            </span>
+          </div>
+
+          <div style="margin-top: 24px;">
+            
+            <!-- Toggle 1: Leave Credits Tracking -->
+            <div class="feature-toggle-card">
+              <div class="feature-toggle-left">
+                <div class="feature-toggle-icon" style="background: rgba(236, 72, 153, 0.1); color: #ec4899;">🌴</div>
+                <div>
+                  <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    Paid Leave Credits Tracking (VL / SL / EL Balances)
+                    <span class="badge" id="badge-feature-leaves" style="font-size: 0.7rem;">Disabled (No Work No Pay)</span>
+                  </div>
+                  <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 3px; line-height: 1.45;">
+                    When <strong>Disabled</strong>: Hides paid leave days (12 VL, 10 SL, 5 EL) from staff DTR and tab cards. Staff are compensated strictly per billable hour worked. Enable this only if your company offers paid time off days.
+                  </div>
+                </div>
+              </div>
+              <label class="switch" title="Toggle Leave Credits Tracking">
+                <input type="checkbox" id="switch-feature-leaves">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- Toggle 2: Overtime Filing -->
+            <div class="feature-toggle-card">
+              <div class="feature-toggle-left">
+                <div class="feature-toggle-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">⏰</div>
+                <div>
+                  <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    Overtime (OT) Request Filing Form
+                    <span class="badge" id="badge-feature-overtime" style="font-size: 0.7rem;">Disabled (Direct Clock)</span>
+                  </div>
+                  <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 3px; line-height: 1.45;">
+                    When <strong>Disabled</strong>: Overtime forms are removed. Total hours worked beyond standard shift are logged automatically and directly by the punch clock into payroll.
+                  </div>
+                </div>
+              </div>
+              <label class="switch" title="Toggle Overtime Filing">
+                <input type="checkbox" id="switch-feature-overtime">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- Toggle 3: Undertime Filing -->
+            <div class="feature-toggle-card">
+              <div class="feature-toggle-left">
+                <div class="feature-toggle-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">⏱️</div>
+                <div>
+                  <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    Undertime Request Filing Form
+                    <span class="badge" id="badge-feature-undertime" style="font-size: 0.7rem;">Disabled (Direct Deduction)</span>
+                  </div>
+                  <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 3px; line-height: 1.45;">
+                    When <strong>Disabled</strong>: Undertime paperwork is disabled. In an hourly system, leaving early is automatically reflected in the actual rendered hours.
+                  </div>
+                </div>
+              </div>
+              <label class="switch" title="Toggle Undertime Filing">
+                <input type="checkbox" id="switch-feature-undertime">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- Toggle 4: Certificate of Attendance (COA) -->
+            <div class="feature-toggle-card">
+              <div class="feature-toggle-left">
+                <div class="feature-toggle-icon" style="background: rgba(6, 182, 212, 0.1); color: var(--accent-cyan);">📝</div>
+                <div>
+                  <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    Certificate of Attendance (COA / Missed Timelog Filing)
+                    <span class="badge badge-working" id="badge-feature-coa" style="font-size: 0.7rem;">Active (Recommended)</span>
+                  </div>
+                  <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 3px; line-height: 1.45;">
+                    Allows staff to file an adjustment request when they missed a punch due to brownouts, power cuts, or internet outages. Admin approves with 1 click.
+                  </div>
+                </div>
+              </div>
+              <label class="switch" title="Toggle Certificate of Attendance">
+                <input type="checkbox" id="switch-feature-coa" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- Toggle 5: Schedule Adjustment & WFH Notices -->
+            <div class="feature-toggle-card">
+              <div class="feature-toggle-left">
+                <div class="feature-toggle-icon" style="background: rgba(99, 102, 241, 0.1); color: var(--accent-primary);">🔄</div>
+                <div>
+                  <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    Schedule Adjustment & Remote WFH Notices
+                    <span class="badge badge-working" id="badge-feature-schedule" style="font-size: 0.7rem;">Active</span>
+                  </div>
+                  <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 3px; line-height: 1.45;">
+                    Allows developers to submit official notices for shift adjustments or remote work arrangements outside standard Monday WFH schedules.
+                  </div>
+                </div>
+              </div>
+              <label class="switch" title="Toggle Schedule Adjustments">
+                <input type="checkbox" id="switch-feature-schedule" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- Toggle 6: Live Forex USD to PHP Ticker -->
+            <div class="feature-toggle-card">
+              <div class="feature-toggle-left">
+                <div class="feature-toggle-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--status-working);">💵</div>
+                <div>
+                  <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    Real-Time Currency Ticker (USD ⇄ PHP)
+                    <span class="badge badge-working" id="badge-feature-forex" style="font-size: 0.7rem;">Active</span>
+                  </div>
+                  <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 3px; line-height: 1.45;">
+                    Displays the live forex conversion bar ($1 USD = ₱58.50 PHP) and computes dual-currency wages across timesheets and printable payslip vouchers.
+                  </div>
+                </div>
+              </div>
+              <label class="switch" title="Toggle Forex Ticker">
+                <input type="checkbox" id="switch-feature-forex" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- Toggle 7: Holidays Calendar -->
+            <div class="feature-toggle-card">
+              <div class="feature-toggle-left">
+                <div class="feature-toggle-icon" style="background: rgba(236, 72, 153, 0.1); color: #f472b6;">🇵🇭</div>
+                <div>
+                  <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    Official Holidays & Company Calendar Grid
+                    <span class="badge badge-working" id="badge-feature-holidays" style="font-size: 0.7rem;">Active</span>
+                  </div>
+                  <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 3px; line-height: 1.45;">
+                    Displays national Philippine holidays and Cagayan de Oro (CDO) city celebration dates for staff awareness.
+                  </div>
+                </div>
+              </div>
+              <label class="switch" title="Toggle Holidays Calendar">
+                <input type="checkbox" id="switch-feature-holidays" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+          </div>
+        </div>
+      </div>
     </section>
 
   </main>
@@ -1351,9 +1557,9 @@
           <div class="form-group">
             <label class="form-label" for="req-type-select">Application Type *</label>
             <select id="req-type-select" class="form-control" required>
-              <option value="Leave">🌴 Leave Application (Vacation / Sick / Emergency)</option>
-              <option value="COA">📝 Certificate of Attendance (COA / Missed Timelog)</option>
-              <option value="Overtime">⏰ Overtime Request (OT Pre/Post Shift)</option>
+              <option value="COA" id="req-option-coa">📝 Certificate of Attendance (COA / Missed Timelog)</option>
+              <option value="Leave" id="req-option-leave">🌴 Leave Application (Vacation / Sick / Emergency)</option>
+              <option value="Overtime" id="req-option-overtime">⏰ Overtime Request (OT Pre/Post Shift)</option>
             </select>
           </div>
 
@@ -1520,7 +1726,7 @@
             <label class="form-label" for="edit-dev-pin">Private 4-Digit Access PIN *</label>
             <input type="text" id="edit-dev-pin" class="form-control" maxlength="4" placeholder="1234" required pattern="\d{4}">
           </div>
-          <div style="display: flex; gap: 12px;">
+          <div id="edit-dev-leaves-group" style="display: flex; gap: 12px;">
             <div class="form-group" style="flex: 1;">
               <label class="form-label" for="edit-dev-vl">Vacation (VL)</label>
               <input type="number" id="edit-dev-vl" class="form-control" min="0" value="12">
@@ -1533,6 +1739,9 @@
               <label class="form-label" for="edit-dev-el">Emergency (EL)</label>
               <input type="number" id="edit-dev-el" class="form-control" min="0" value="5">
             </div>
+          </div>
+          <div id="edit-dev-nowork-badge" style="display: none; padding: 10px 14px; background: rgba(99, 102, 241, 0.08); border: 1px dashed rgba(99, 102, 241, 0.3); border-radius: var(--radius-sm); font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px;">
+            ⚖️ <strong>No Work, No Pay Mode Active:</strong> Paid leave credit balances are disabled. Developer compensation is computed strictly on logged hourly time.
           </div>
         </div>
         <div class="modal-footer">

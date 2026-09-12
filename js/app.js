@@ -1479,6 +1479,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const state = store.getState();
     renderOrganizationSettings();
     renderScheduleSettings();
+    renderFeatureToggles();
 
     settingsDevTableBody.innerHTML = '';
     state.developers.forEach(dev => {
@@ -1559,6 +1560,180 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ==========================================
+  // Feature Sliders & Modular Policy Controller (No Work, No Pay Mode)
+  // ==========================================
+  const featureConfigs = [
+    {
+      id: 'switch-feature-leaves',
+      badgeId: 'badge-feature-leaves',
+      key: 'leaveCreditsEnabled',
+      activeText: 'Active (Paid Leaves Mode)',
+      disabledText: 'Disabled (No Work No Pay)',
+      activeClass: 'badge-working',
+      disabledClass: 'badge-offline'
+    },
+    {
+      id: 'switch-feature-overtime',
+      badgeId: 'badge-feature-overtime',
+      key: 'overtimeFilingEnabled',
+      activeText: 'Active (Filing Enabled)',
+      disabledText: 'Disabled (Direct Clock)',
+      activeClass: 'badge-working',
+      disabledClass: 'badge-offline'
+    },
+    {
+      id: 'switch-feature-undertime',
+      badgeId: 'badge-feature-undertime',
+      key: 'undertimeFilingEnabled',
+      activeText: 'Active (Filing Enabled)',
+      disabledText: 'Disabled (Direct Deduction)',
+      activeClass: 'badge-working',
+      disabledClass: 'badge-offline'
+    },
+    {
+      id: 'switch-feature-coa',
+      badgeId: 'badge-feature-coa',
+      key: 'coaFilingEnabled',
+      activeText: 'Active (Recommended)',
+      disabledText: 'Disabled',
+      activeClass: 'badge-working',
+      disabledClass: 'badge-offline'
+    },
+    {
+      id: 'switch-feature-schedule',
+      badgeId: 'badge-feature-schedule',
+      key: 'scheduleNoticeEnabled',
+      activeText: 'Active',
+      disabledText: 'Disabled',
+      activeClass: 'badge-working',
+      disabledClass: 'badge-offline'
+    },
+    {
+      id: 'switch-feature-forex',
+      badgeId: 'badge-feature-forex',
+      key: 'forexTickerEnabled',
+      activeText: 'Active',
+      disabledText: 'Disabled',
+      activeClass: 'badge-working',
+      disabledClass: 'badge-offline'
+    },
+    {
+      id: 'switch-feature-holidays',
+      badgeId: 'badge-feature-holidays',
+      key: 'holidaysCalendarEnabled',
+      activeText: 'Active',
+      disabledText: 'Disabled',
+      activeClass: 'badge-working',
+      disabledClass: 'badge-offline'
+    }
+  ];
+
+  let featureListenersInitialized = false;
+
+  function renderFeatureToggles() {
+    featureConfigs.forEach(cfg => {
+      const el = document.getElementById(cfg.id);
+      const isEnabled = store.isFeatureEnabled(cfg.key);
+
+      if (el) {
+        el.checked = isEnabled;
+        if (!featureListenersInitialized) {
+          el.addEventListener('change', (e) => {
+            if (!store.isAdmin()) {
+              e.preventDefault();
+              el.checked = !el.checked;
+              showToast('🔒 Access Restricted: Only the Administrator can modify feature policy sliders.', 'warning');
+              return;
+            }
+            const checked = el.checked;
+            store.setFeature(cfg.key, checked);
+            updateFeatureBadge(cfg, checked);
+            applyFeatureVisibility();
+            showToast(`${cfg.key.replace('Enabled', '')} feature is now ${checked ? 'enabled' : 'disabled'}.`, 'info');
+          });
+        }
+      }
+      updateFeatureBadge(cfg, isEnabled);
+    });
+    featureListenersInitialized = true;
+  }
+
+  function updateFeatureBadge(cfg, isEnabled) {
+    const badge = document.getElementById(cfg.badgeId);
+    if (!badge) return;
+    badge.textContent = isEnabled ? cfg.activeText : cfg.disabledText;
+    badge.className = `badge ${isEnabled ? cfg.activeClass : cfg.disabledClass}`;
+    if (!isEnabled) {
+      badge.style.background = 'rgba(239, 68, 68, 0.15)';
+      badge.style.color = '#ef4444';
+    } else {
+      badge.style.background = 'rgba(16, 185, 129, 0.15)';
+      badge.style.color = 'var(--status-working)';
+    }
+  }
+
+  function applyFeatureVisibility() {
+    const leavesOn = store.isFeatureEnabled('leaveCreditsEnabled');
+    const otOn = store.isFeatureEnabled('overtimeFilingEnabled');
+    const utOn = store.isFeatureEnabled('undertimeFilingEnabled');
+    const coaOn = store.isFeatureEnabled('coaFilingEnabled');
+    const schedOn = store.isFeatureEnabled('scheduleNoticeEnabled');
+    const forexOn = store.isFeatureEnabled('forexTickerEnabled');
+    const holidaysOn = store.isFeatureEnabled('holidaysCalendarEnabled');
+
+    // 1. My Stuff Card: Leave Credits vs No Work No Pay Policy Card
+    const leaveCreditsWrapper = document.getElementById('mystuff-leave-credits-wrapper');
+    const noWorkNoPayWrapper = document.getElementById('mystuff-nowork-nopay-wrapper');
+    if (leaveCreditsWrapper) leaveCreditsWrapper.style.display = leavesOn ? 'block' : 'none';
+    if (noWorkNoPayWrapper) noWorkNoPayWrapper.style.display = leavesOn ? 'none' : 'block';
+
+    // 2. Tab 3: Paid Leave stats vs No Work No Pay policy cards
+    const paidGrid = document.getElementById('leaves-stat-grid-paid');
+    const noworkGrid = document.getElementById('leaves-stat-grid-nowork');
+    if (paidGrid) paidGrid.style.display = leavesOn ? 'grid' : 'none';
+    if (noworkGrid) noworkGrid.style.display = leavesOn ? 'none' : 'grid';
+
+    // 3. Apply Dropdown Items in DTR Card 3
+    const applyItemLeave = document.getElementById('apply-item-leave');
+    const applyItemOt = document.getElementById('apply-item-overtime');
+    const applyItemUt = document.getElementById('apply-item-undertime');
+    const applyItemSched = document.getElementById('apply-item-schedule');
+    const applyItemCoa = document.getElementById('apply-item-coa');
+
+    if (applyItemLeave) applyItemLeave.style.display = leavesOn ? 'flex' : 'none';
+    if (applyItemOt) applyItemOt.style.display = otOn ? 'flex' : 'none';
+    if (applyItemUt) applyItemUt.style.display = utOn ? 'flex' : 'none';
+    if (applyItemSched) applyItemSched.style.display = schedOn ? 'flex' : 'none';
+    if (applyItemCoa) applyItemCoa.style.display = coaOn ? 'flex' : 'none';
+
+    // 4. File Request Modal Options
+    const reqOptionLeave = document.getElementById('req-option-leave');
+    const reqOptionCoa = document.getElementById('req-option-coa');
+    const reqOptionOt = document.getElementById('req-option-overtime');
+    if (reqOptionLeave) reqOptionLeave.style.display = leavesOn ? 'block' : 'none';
+    if (reqOptionCoa) reqOptionCoa.style.display = coaOn ? 'block' : 'none';
+    if (reqOptionOt) reqOptionOt.style.display = otOn ? 'block' : 'none';
+
+    // 5. Forex Ticker Bar in Tab 4
+    const exchangeTickerCard = document.querySelector('.exchange-ticker-card');
+    if (exchangeTickerCard) {
+      exchangeTickerCard.style.display = forexOn ? 'flex' : 'none';
+    }
+
+    // 6. Holidays Calendar Container
+    const holidaysCard = document.getElementById('holidays-grid')?.closest('.glass-card');
+    if (holidaysCard) {
+      holidaysCard.style.display = holidaysOn ? 'block' : 'none';
+    }
+
+    // 7. Edit Developer Modal Leave Inputs
+    const editDevLeavesGroup = document.getElementById('edit-dev-leaves-group');
+    const editDevNoWorkBadge = document.getElementById('edit-dev-nowork-badge');
+    if (editDevLeavesGroup) editDevLeavesGroup.style.display = leavesOn ? 'flex' : 'none';
+    if (editDevNoWorkBadge) editDevNoWorkBadge.style.display = leavesOn ? 'none' : 'block';
+  }
+
   // Edit Developer Modal Handler (Admin)
   const modalEditDev = document.getElementById('modal-edit-dev');
   const formEditDev = document.getElementById('form-edit-dev');
@@ -1581,6 +1756,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('edit-dev-vl').value = credits.vacation;
     document.getElementById('edit-dev-sl').value = credits.sick;
     document.getElementById('edit-dev-el').value = credits.emergency;
+
+    const isLeaveEnabled = store.isFeatureEnabled('leaveCreditsEnabled');
+    const editDevLeavesGroup = document.getElementById('edit-dev-leaves-group');
+    const editDevNoWorkBadge = document.getElementById('edit-dev-nowork-badge');
+    if (editDevLeavesGroup) editDevLeavesGroup.style.display = isLeaveEnabled ? 'flex' : 'none';
+    if (editDevNoWorkBadge) editDevNoWorkBadge.style.display = isLeaveEnabled ? 'none' : 'block';
 
     modalEditDev.classList.add('active');
   };
@@ -2163,6 +2344,17 @@ document.addEventListener('DOMContentLoaded', () => {
     applyMenuDropdown.classList.remove('active');
     document.getElementById('req-start-date').value = new Date().toISOString().split('T')[0];
 
+    if (type === 'Leave' && !store.isFeatureEnabled('leaveCreditsEnabled')) {
+      showToast('⚖️ Paid leave tracking is disabled under No Work, No Pay. Switched to Certificate of Attendance (COA).', 'info');
+      type = 'COA';
+    } else if (type === 'Overtime' && !store.isFeatureEnabled('overtimeFilingEnabled')) {
+      showToast('⏰ Overtime filing form is disabled. Hours are computed directly from clocked time.', 'info');
+      return;
+    } else if (type === 'Undertime' && !store.isFeatureEnabled('undertimeFilingEnabled')) {
+      showToast('⏱️ Undertime filing is disabled. Clocking out early automatically reflects in billable hours.', 'info');
+      return;
+    }
+
     if (type === 'COA') {
       reqTypeSelect.value = 'COA';
       reqSubtypeGroup.style.display = 'none';
@@ -2330,6 +2522,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSettings();
     renderLeavesAndRequests();
     renderPaydayWidgets();
+    applyFeatureVisibility();
   }
 
   // ==========================================
