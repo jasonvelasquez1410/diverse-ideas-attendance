@@ -52,36 +52,31 @@
         </button>
       </nav>
 
-      <!-- Right Actions: Live Clock, Current Auth Profile, Manager Guide, Logout / Lock -->
+      <!-- Right Actions: Current Auth Profile, Logout (Prioritized), Change PIN, Guide, Theme -->
       <div class="header-actions">
-        <div class="live-clock-pill">
-          <div class="live-pulse-dot"></div>
-          <span id="header-live-time">Thu, Sep 10, 10:45 PM</span>
-        </div>
-
-        <!-- Manager & Operations Manager Guide Quick Launch (Admin Master PIN 9999 Only) -->
-        <button class="btn btn-secondary" id="btn-header-guide" title="Manager Onboarding Guide for Operations Manager" style="display: none; padding: 6px 12px; font-size: 0.8rem; border-radius: var(--radius-full); align-items: center; gap: 6px; background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3); color: var(--accent-primary); font-weight: 700;">
-          <span>📖</span>
-          <span class="guide-btn-text">Manager Guide</span>
-        </button>
-
         <!-- Current User Pill & Lock/Switch Button -->
-        <button class="btn btn-secondary" id="btn-header-auth-switch" style="padding: 6px 14px; font-size: 0.82rem; border-radius: var(--radius-full);" title="Click to switch profile or enter Admin PIN">
+        <button class="btn btn-secondary" id="btn-header-auth-switch" style="padding: 5px 12px; font-size: 0.8rem; border-radius: var(--radius-full); display: inline-flex; align-items: center;" title="Click to switch profile or enter Admin PIN">
           <div id="header-user-avatar" style="width: 22px; height: 22px; border-radius: 50%; background: #ec4899; display: inline-flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; color: white; margin-right: 6px;">ADM</div>
           <span id="header-user-name">Administrator</span>
           <span id="header-user-role-badge" class="badge" style="margin-left: 6px; font-size: 0.68rem; background: rgba(236, 72, 153, 0.2); color: #f472b6;">ADMIN</span>
         </button>
 
-        <!-- Change PIN Action Button -->
-        <button class="btn btn-secondary" id="btn-header-change-pin" style="padding: 6px 12px; font-size: 0.8rem; border-radius: var(--radius-full); display: inline-flex; align-items: center; gap: 6px;" title="Change your private 4-digit access PIN">
-          <span>🔑</span>
-          <span class="change-pin-text">Change PIN</span>
+        <!-- Prominent Logout Button (Always Visible Right Next to Profile) -->
+        <button class="btn" id="btn-logout" style="padding: 6px 14px; font-size: 0.82rem; border-radius: var(--radius-full); display: inline-flex; align-items: center; gap: 6px; background: #dc2626 !important; color: white !important; font-weight: 700; box-shadow: 0 2px 10px rgba(220, 38, 38, 0.4); border: none; cursor: pointer;" title="Logout / Lock Profile">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          <span class="logout-btn-text">Logout</span>
         </button>
 
-        <!-- Logout / Switch User Action Button -->
-        <button class="btn btn-secondary" id="btn-logout" style="padding: 6px 12px; font-size: 0.8rem; border-radius: var(--radius-full); display: inline-flex; align-items: center; gap: 6px; color: var(--status-danger);" title="Logout / Lock Profile">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-          <span class="logout-btn-text">Logout</span>
+        <!-- Change PIN Action Button (Compact) -->
+        <button class="btn btn-secondary" id="btn-header-change-pin" style="padding: 6px 10px; font-size: 0.8rem; border-radius: var(--radius-full); display: inline-flex; align-items: center; gap: 4px;" title="Change your private 4-digit access PIN">
+          <span>🔑</span>
+          <span class="change-pin-text">PIN</span>
+        </button>
+
+        <!-- Manager Guide Quick Launch (Admin Master PIN 9999 Only) -->
+        <button class="btn btn-secondary" id="btn-header-guide" title="Manager Onboarding Guide for Operations Manager" style="display: none; padding: 6px 10px; font-size: 0.8rem; border-radius: var(--radius-full); align-items: center; gap: 4px; background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3); color: var(--accent-primary); font-weight: 700;">
+          <span>📖</span>
+          <span class="guide-btn-text">Guide</span>
         </button>
 
         <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
