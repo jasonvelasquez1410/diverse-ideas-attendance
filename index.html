@@ -221,10 +221,10 @@
             </div>
             <div>
               <div style="display: flex; align-items: center; gap: 8px;">
-                <span id="terminal-gps-status-text" style="font-weight: 700; font-size: 0.88rem; color: var(--text-primary);">GPS Location Active</span>
-                <span class="badge" id="terminal-gps-badge" style="font-size: 0.7rem; background: rgba(16, 185, 129, 0.15); color: var(--status-working);">Office Geofence Active</span>
+                <span id="terminal-gps-status-text">GPS Location Active</span>
+                <span class="badge-gps-verified" id="terminal-gps-badge">Office Geofence Active</span>
               </div>
-              <div id="terminal-gps-detail-text" style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 2px;">
+              <div id="terminal-gps-detail-text">
                 🏢 Onsite requires being within 250m of office • 🏠 WFH can login anywhere
               </div>
             </div>
@@ -234,7 +234,7 @@
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
               Refresh GPS
             </button>
-            <span id="terminal-gps-distance-pill" class="badge" style="font-size: 0.74rem; background: rgba(99, 102, 241, 0.15); color: var(--accent-cyan);">Detecting GPS...</span>
+            <span id="terminal-gps-distance-pill" class="badge-gps-wfh">Detecting GPS...</span>
           </div>
         </div>
 

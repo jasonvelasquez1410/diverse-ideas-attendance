@@ -716,15 +716,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (statusText) statusText.textContent = 'GPS Geofencing Disabled';
       if (badge) {
         badge.textContent = 'Anywhere Permitted';
-        badge.className = 'badge badge-offline';
-        badge.style.background = 'rgba(255, 255, 255, 0.1)';
-        badge.style.color = 'var(--text-secondary)';
+        badge.className = 'badge-gps-wfh';
+        badge.removeAttribute('style');
       }
       if (detailText) detailText.textContent = 'Geofence verification is currently turned off by company policy.';
       if (distancePill) {
         distancePill.textContent = '🌐 Open Access';
-        distancePill.style.background = 'rgba(99, 102, 241, 0.15)';
-        distancePill.style.color = 'var(--accent-cyan)';
+        distancePill.className = 'badge-gps-wfh';
+        distancePill.removeAttribute('style');
       }
       return;
     }
@@ -735,15 +734,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (statusText) statusText.textContent = 'Work From Home (WFH)';
       if (badge) {
         badge.textContent = 'Login Anywhere';
-        badge.className = 'badge badge-working';
-        badge.style.background = 'rgba(99, 102, 241, 0.15)';
-        badge.style.color = 'var(--accent-cyan)';
+        badge.className = 'badge-gps-wfh';
+        badge.removeAttribute('style');
       }
       if (detailText) detailText.textContent = 'Remote WFH Mode: You are permitted to login and clock in from any remote location.';
       if (distancePill) {
-        distancePill.textContent = '🏠 WFH Anywhere Permitted';
-        distancePill.style.background = 'rgba(99, 102, 241, 0.15)';
-        distancePill.style.color = 'var(--accent-cyan)';
+        distancePill.textContent = '🏠 WFH Mode Active';
+        distancePill.className = 'badge-gps-wfh';
+        distancePill.removeAttribute('style');
       }
       return;
     }
@@ -755,9 +753,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (badge) {
       badge.textContent = 'Checking GPS';
       badge.className = 'badge badge-break';
+      badge.removeAttribute('style');
     }
     if (detailText) detailText.textContent = `Target: ${gpsSettings.officeName} (Within ${gpsSettings.radiusMeters}m required)`;
-    if (distancePill) distancePill.textContent = 'Detecting GPS...';
+    if (distancePill) {
+      distancePill.textContent = 'Detecting GPS...';
+      distancePill.className = 'badge badge-break';
+      distancePill.removeAttribute('style');
+    }
 
     try {
       let coords = cachedDeviceGps;
@@ -773,15 +776,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (statusText) statusText.textContent = 'Inside Office Geofence';
         if (badge) {
           badge.textContent = 'Verified Onsite';
-          badge.className = 'badge badge-working';
-          badge.style.background = 'rgba(16, 185, 129, 0.15)';
-          badge.style.color = 'var(--status-working)';
+          badge.className = 'badge-gps-verified';
+          badge.removeAttribute('style');
         }
         if (detailText) detailText.textContent = `📍 You are ~${result.distanceMeters}m from ${gpsSettings.officeName} (Limit: ${gpsSettings.radiusMeters}m). Ready to punch!`;
         if (distancePill) {
           distancePill.textContent = `🟢 ${result.distanceMeters}m from office`;
-          distancePill.style.background = 'rgba(16, 185, 129, 0.15)';
-          distancePill.style.color = 'var(--status-working)';
+          distancePill.className = 'badge-gps-verified';
+          distancePill.removeAttribute('style');
         }
       } else {
         if (dot) dot.className = 'gps-pulse-icon outside-mode';
@@ -789,15 +791,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (statusText) statusText.textContent = 'Outside Office Geofence';
         if (badge) {
           badge.textContent = `${result.distanceMeters}m Away`;
-          badge.className = 'badge badge-offline';
-          badge.style.background = 'rgba(239, 68, 68, 0.15)';
-          badge.style.color = '#ef4444';
+          badge.className = 'badge-gps-outside';
+          badge.removeAttribute('style');
         }
         if (detailText) detailText.textContent = `⚠️ You are ${result.distanceMeters}m away from the office (Max allowed: ${gpsSettings.radiusMeters}m). Move closer or select WFH.`;
         if (distancePill) {
           distancePill.textContent = `⛔ ${result.distanceMeters}m away`;
-          distancePill.style.background = 'rgba(239, 68, 68, 0.15)';
-          distancePill.style.color = '#ef4444';
+          distancePill.className = 'badge-gps-outside';
+          distancePill.removeAttribute('style');
         }
       }
     } catch (err) {
@@ -806,15 +807,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (statusText) statusText.textContent = 'GPS Permission Needed';
       if (badge) {
         badge.textContent = 'Location Blocked';
-        badge.className = 'badge badge-offline';
-        badge.style.background = 'rgba(245, 158, 11, 0.15)';
-        badge.style.color = '#f59e0b';
+        badge.className = 'badge-gps-outside';
+        badge.removeAttribute('style');
       }
       if (detailText) detailText.textContent = err.message || 'Please enable browser location access to clock in Onsite.';
       if (distancePill) {
         distancePill.textContent = '⚠️ Location Inactive';
-        distancePill.style.background = 'rgba(245, 158, 11, 0.15)';
-        distancePill.style.color = '#f59e0b';
+        distancePill.className = 'badge-gps-outside';
+        distancePill.removeAttribute('style');
       }
     }
   }
