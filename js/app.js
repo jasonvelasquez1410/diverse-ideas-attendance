@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
     authPinInput.value = '';
     selectedAuthDevId = 'admin'; // Always default selection to Administrator
 
-    // 1. Admin Master Profile Button
+    // 1. Admin Master Profile Button (PIN hidden for security)
     const adminBtn = document.createElement('button');
     adminBtn.type = 'button';
     adminBtn.className = 'auth-dev-btn selected';
@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
       <div style="display: flex; flex-direction: column; text-align: left; line-height: 1.15;">
         <span style="font-weight: 700; color: #f472b6;">Administrator</span>
-        <span style="font-size: 0.65rem; color: var(--text-muted);">PIN: ${state.adminPin || '9999'}</span>
+        <span style="font-size: 0.65rem; color: var(--text-muted);">Confidential Access 🔒</span>
       </div>
     `;
     adminBtn.addEventListener('click', () => {
@@ -176,18 +176,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     authDevGrid.appendChild(adminBtn);
 
-    // 2. Developer Profile Buttons
+    // 2. Developer Profile Buttons (PIN hidden for security)
     state.developers.forEach(dev => {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'auth-dev-btn';
+      
+      const displayName = dev.name.includes(',') 
+        ? `${dev.name.split(',')[1].trim()} ${dev.name.split(',')[0].trim()}` 
+        : dev.name;
+
       btn.innerHTML = `
         <div style="width: 28px; height: 28px; border-radius: 50%; background: ${dev.avatarColor}; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: white;">
           ${dev.initials}
         </div>
-        <div style="display: flex; flex-direction: column; text-align: left; line-height: 1.15;">
-          <span style="font-weight: 600;">${dev.name.split(' ')[0]}</span>
-          <span style="font-size: 0.65rem; color: var(--text-muted);">${dev.role.split(' ')[0]} (PIN: ${dev.pin || '••••'})</span>
+        <div style="display: flex; flex-direction: column; text-align: left; line-height: 1.15; overflow: hidden;">
+          <span style="font-weight: 600; font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;" title="${displayName}">${displayName}</span>
+          <span style="font-size: 0.65rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;">${dev.role.split(' ')[0]} Developer</span>
         </div>
       `;
 
