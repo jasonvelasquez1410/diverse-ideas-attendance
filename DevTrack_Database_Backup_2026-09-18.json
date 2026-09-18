@@ -1,0 +1,385 @@
+{
+  "adminPin": "0104",
+  "activeDeveloperId": "dev-1",
+  "currency": "USD",
+  "currencySymbol": "$",
+  "usdToPhpRate": 62.7776,
+  "lastRateUpdate": "11:01:57 AM",
+  "isLiveExchangeActive": true,
+  "organization": {
+    "companyName": "Diverse Ideas GMBH",
+    "industry": "Software Engineering & IT Consulting",
+    "address": "Frankfurt, Germany • Global Remote Office",
+    "taxId": "DE-2026-DIV99",
+    "voucherPrefix": "DIV"
+  },
+  "features": {
+    "leaveCreditsEnabled": false,
+    "overtimeFilingEnabled": false,
+    "undertimeFilingEnabled": false,
+    "coaFilingEnabled": true,
+    "scheduleNoticeEnabled": true,
+    "forexTickerEnabled": true,
+    "holidaysCalendarEnabled": true,
+    "gpsGeofenceEnabled": true
+  },
+  "workSchedules": {
+    "shiftStart": "09:00",
+    "shiftEnd": "17:00",
+    "wfhDays": [
+      "Monday"
+    ],
+    "onsiteDays": [
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday"
+    ],
+    "minWeeklyHours": 35,
+    "maxWeeklyHours": 45,
+    "saturdayPolicy": "Optional / Rest Day (No Forcing)",
+    "gracePeriodMins": 15
+  },
+  "developers": [
+    {
+      "id": "dev-1",
+      "name": "BAYSON, Cyreh",
+      "role": "Junior Software Developer",
+      "pin": "7532",
+      "hourlyRate": 5,
+      "currency": "USD",
+      "currencySymbol": "$",
+      "avatarColor": "#6366f1",
+      "initials": "BC",
+      "email": "",
+      "status": "offline",
+      "activeSession": null,
+      "leaveCredits": {
+        "vacation": 12,
+        "sick": 10,
+        "emergency": 5
+      }
+    },
+    {
+      "id": "dev-2",
+      "name": "IBANEZ, Ella",
+      "role": "Junior Software Developer",
+      "pin": "1598",
+      "hourlyRate": 5,
+      "currency": "USD",
+      "currencySymbol": "$",
+      "avatarColor": "#06b6d4",
+      "initials": "IE",
+      "email": "",
+      "status": "offline",
+      "activeSession": null,
+      "leaveCredits": {
+        "vacation": 15,
+        "sick": 10,
+        "emergency": 5
+      }
+    },
+    {
+      "id": "dev-3",
+      "name": "NALUGON, Abner",
+      "role": "Senior Software Developer",
+      "pin": "5478",
+      "hourlyRate": 18,
+      "currency": "USD",
+      "currencySymbol": "$",
+      "avatarColor": "#10b981",
+      "initials": "NA",
+      "email": "",
+      "status": "offline",
+      "activeSession": null,
+      "leaveCredits": {
+        "vacation": 10,
+        "sick": 8,
+        "emergency": 5
+      }
+    },
+    {
+      "id": "dev-4",
+      "name": "VELASQUEZ, Jason Jeff",
+      "role": "Senior Sofware Developer",
+      "pin": "9654",
+      "hourlyRate": 12,
+      "currency": "USD",
+      "currencySymbol": "$",
+      "avatarColor": "#f59e0b",
+      "initials": "VJ",
+      "email": "",
+      "status": "offline",
+      "activeSession": null,
+      "leaveCredits": {
+        "vacation": 14,
+        "sick": 10,
+        "emergency": 5
+      }
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj-1",
+      "name": "Diverse Ideas Core Portal",
+      "code": "DICP",
+      "description": "Internal staff management & attendance suite",
+      "status": "Active"
+    },
+    {
+      "id": "proj-2",
+      "name": "JETZ Enterprise System",
+      "code": "JETZ",
+      "description": "Enterprise resource planning & client platform",
+      "status": "Active"
+    },
+    {
+      "id": "proj-3",
+      "name": "Accounting & Payroll Module",
+      "code": "ACCT",
+      "description": "Multi-currency dual USD/PHP wage calculation system",
+      "status": "Active"
+    },
+    {
+      "id": "proj-4",
+      "name": "Mobile App Optimization",
+      "code": "MOBI",
+      "description": "Cross-platform iOS/Android responsive UI enhancements",
+      "status": "Active"
+    },
+    {
+      "id": "proj-5",
+      "name": "Internal Tooling & Automation",
+      "code": "TOOL",
+      "description": "DevOps pipelines, scripts & database automations",
+      "status": "Active"
+    }
+  ],
+  "requests": [
+    {
+      "id": "req-201",
+      "developerId": "dev-1",
+      "type": "Leave",
+      "subType": "Vacation Leave",
+      "startDate": "2026-09-18",
+      "endDate": "2026-09-19",
+      "days": 2,
+      "reason": "Family milestone gathering",
+      "status": "Approved",
+      "dateFiled": "2026-09-08"
+    },
+    {
+      "id": "req-202",
+      "developerId": "dev-2",
+      "type": "COA",
+      "subType": "Missed Clock OUT",
+      "startDate": "2026-09-09",
+      "hours": "05:00 PM",
+      "reason": "Internet power fluctuation at home office",
+      "status": "Approved",
+      "dateFiled": "2026-09-10"
+    },
+    {
+      "id": "req-203",
+      "developerId": "dev-3",
+      "type": "Overtime",
+      "subType": "Post-shift Overtime",
+      "startDate": "2026-09-10",
+      "hours": 2.5,
+      "reason": "Critical database indexing sprint for JETZ release",
+      "status": "Pending",
+      "dateFiled": "2026-09-10"
+    }
+  ],
+  "holidays": [
+    {
+      "date": "2026-01-01",
+      "name": "New Year’s Day",
+      "type": "Regular Holiday",
+      "location": "National"
+    },
+    {
+      "date": "2026-01-10",
+      "name": "Cagayan de Oro City Fiesta",
+      "type": "CDO Local Holiday",
+      "location": "Cagayan de Oro (CDO)"
+    },
+    {
+      "date": "2026-02-17",
+      "name": "Chinese Lunar New Year",
+      "type": "Special Non-Working",
+      "location": "National"
+    },
+    {
+      "date": "2026-02-25",
+      "name": "EDSA People Power Revolution Anniversary",
+      "type": "Special Non-Working",
+      "location": "National"
+    },
+    {
+      "date": "2026-04-02",
+      "name": "Maundy Thursday",
+      "type": "Regular Holiday",
+      "location": "National"
+    },
+    {
+      "date": "2026-04-03",
+      "name": "Good Friday",
+      "type": "Regular Holiday",
+      "location": "National"
+    },
+    {
+      "date": "2026-04-04",
+      "name": "Black Saturday",
+      "type": "Special Non-Working",
+      "location": "National"
+    },
+    {
+      "date": "2026-04-09",
+      "name": "Araw ng Kagitingan (Day of Valor)",
+      "type": "Regular Holiday",
+      "location": "National"
+    },
+    {
+      "date": "2026-05-01",
+      "name": "Labor Day",
+      "type": "Regular Holiday",
+      "location": "National"
+    },
+    {
+      "date": "2026-06-12",
+      "name": "Independence Day",
+      "type": "Regular Holiday",
+      "location": "National"
+    },
+    {
+      "date": "2026-06-15",
+      "name": "Cagayan de Oro Charter Day (CDO Anniversary)",
+      "type": "CDO Local Holiday",
+      "location": "Cagayan de Oro (CDO)"
+    },
+    {
+      "date": "2026-08-21",
+      "name": "Ninoy Aquino Day",
+      "type": "Special Non-Working",
+      "location": "National"
+    },
+    {
+      "date": "2026-08-28",
+      "name": "Higalaay Festival & Feast of St. Augustine",
+      "type": "CDO Local Holiday",
+      "location": "Cagayan de Oro (CDO)"
+    },
+    {
+      "date": "2026-08-31",
+      "name": "National Heroes Day",
+      "type": "Regular Holiday",
+      "location": "National"
+    },
+    {
+      "date": "2026-11-01",
+      "name": "All Saints’ Day",
+      "type": "Special Non-Working",
+      "location": "National"
+    },
+    {
+      "date": "2026-11-02",
+      "name": "All Souls’ Day",
+      "type": "Special Non-Working",
+      "location": "National"
+    },
+    {
+      "date": "2026-11-30",
+      "name": "Bonifacio Day",
+      "type": "Regular Holiday",
+      "location": "National"
+    },
+    {
+      "date": "2026-12-08",
+      "name": "Feast of the Immaculate Conception",
+      "type": "Special Non-Working",
+      "location": "National"
+    },
+    {
+      "date": "2026-12-24",
+      "name": "Christmas Eve",
+      "type": "Special Non-Working",
+      "location": "National"
+    },
+    {
+      "date": "2026-12-25",
+      "name": "Christmas Day",
+      "type": "Regular Holiday",
+      "location": "National"
+    },
+    {
+      "date": "2026-12-30",
+      "name": "Rizal Day",
+      "type": "Regular Holiday",
+      "location": "National"
+    },
+    {
+      "date": "2026-12-31",
+      "name": "Last Day of the Year (New Year’s Eve)",
+      "type": "Special Non-Working",
+      "location": "National"
+    }
+  ],
+  "attendanceRecords": [
+    {
+      "id": "rec-101",
+      "developerId": "dev-1",
+      "date": "2026-09-17",
+      "startTime": "2026-09-17T04:48:52.774Z",
+      "endTime": "2026-09-17T12:48:52.774Z",
+      "breakDurationMinutes": 60,
+      "workedMinutes": 420,
+      "hourlyRate": 35,
+      "currencySymbol": "$",
+      "totalEarnings": 245,
+      "projectId": "proj-2",
+      "workLocation": "onsite",
+      "taskNote": "API endpoints implementation and testing"
+    },
+    {
+      "id": "rec-102",
+      "developerId": "dev-2",
+      "date": "2026-09-17",
+      "startTime": "2026-09-17T04:18:52.774Z",
+      "endTime": "2026-09-17T12:48:52.774Z",
+      "breakDurationMinutes": 45,
+      "workedMinutes": 465,
+      "hourlyRate": 28,
+      "currencySymbol": "$",
+      "totalEarnings": 217,
+      "projectId": "proj-1",
+      "workLocation": "onsite",
+      "taskNote": "Modern responsive glassmorphic dashboard design"
+    },
+    {
+      "id": "rec-103",
+      "developerId": "dev-3",
+      "date": "2026-09-17",
+      "startTime": "2026-09-17T04:48:52.774Z",
+      "endTime": "2026-09-17T12:48:52.774Z",
+      "breakDurationMinutes": 30,
+      "workedMinutes": 450,
+      "hourlyRate": 30,
+      "currencySymbol": "$",
+      "totalEarnings": 225,
+      "projectId": "proj-3",
+      "workLocation": "wfh",
+      "taskNote": "Database schema migration and ledger query optimizations"
+    }
+  ],
+  "gpsSettings": {
+    "enabled": true,
+    "officeName": "Diverse Ideas Office (Cagayan de Oro Hub)",
+    "latitude": 8.4856,
+    "longitude": 124.6567,
+    "radiusMeters": 250,
+    "strictGeofence": true,
+    "allowWfhAnywhere": true,
+    "wfhCaptureGps": true
+  }
+}

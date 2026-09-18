@@ -8,7 +8,7 @@ const SESSION_AUTH_KEY = 'devtrack_active_session_auth';
 
 // Default initial state
 const DEFAULT_INITIAL_STATE = {
-  adminPin: '9999', // Default Admin Master PIN
+  adminPin: '0104', // Admin Master PIN (Tefanny)
   activeDeveloperId: 'dev-1',
   currency: 'USD',
   currencySymbol: '$',
@@ -57,60 +57,60 @@ const DEFAULT_INITIAL_STATE = {
   developers: [
     {
       id: 'dev-1',
-      name: 'Alex Rivera',
-      role: 'Lead Full-Stack Developer',
-      pin: '1234',
-      hourlyRate: 35.00,
+      name: 'BAYSON, Cyreh',
+      role: 'Junior Software Developer',
+      pin: '7532',
+      hourlyRate: 5.00,
       currency: 'USD',
       currencySymbol: '$',
       avatarColor: '#6366f1',
-      initials: 'AR',
-      email: 'alex.rivera@diverseideas.de',
+      initials: 'BC',
+      email: 'cyreh.bayson@diverseideas.de',
       status: 'offline',
       activeSession: null,
       leaveCredits: { vacation: 12, sick: 10, emergency: 5 }
     },
     {
       id: 'dev-2',
-      name: 'Maria Santos',
-      role: 'Senior Frontend Engineer',
-      pin: '2345',
-      hourlyRate: 28.00,
+      name: 'IBANEZ, Ella',
+      role: 'Junior Software Developer',
+      pin: '1598',
+      hourlyRate: 5.00,
       currency: 'USD',
       currencySymbol: '$',
       avatarColor: '#06b6d4',
-      initials: 'MS',
-      email: 'maria.santos@diverseideas.de',
+      initials: 'IE',
+      email: 'ella.ibanez@diverseideas.de',
       status: 'offline',
       activeSession: null,
       leaveCredits: { vacation: 15, sick: 10, emergency: 5 }
     },
     {
       id: 'dev-3',
-      name: 'Kenji Takahashi',
-      role: 'Backend & Systems Engineer',
-      pin: '3456',
-      hourlyRate: 30.00,
+      name: 'NALUGON, Abner',
+      role: 'Senior Software Developer',
+      pin: '5478',
+      hourlyRate: 18.00,
       currency: 'USD',
       currencySymbol: '$',
       avatarColor: '#10b981',
-      initials: 'KT',
-      email: 'kenji.t@diverseideas.de',
+      initials: 'NA',
+      email: 'abner.nalugon@diverseideas.de',
       status: 'offline',
       activeSession: null,
       leaveCredits: { vacation: 10, sick: 8, emergency: 5 }
     },
     {
       id: 'dev-4',
-      name: 'Chloe Gomez',
-      role: 'UI/UX & QA Specialist',
-      pin: '4567',
-      hourlyRate: 22.00,
+      name: 'VELASQUEZ, Jason Jeff',
+      role: 'Senior Software Developer',
+      pin: '9654',
+      hourlyRate: 12.00,
       currency: 'USD',
       currencySymbol: '$',
       avatarColor: '#f59e0b',
-      initials: 'CG',
-      email: 'chloe.g@diverseideas.de',
+      initials: 'VJ',
+      email: 'jason.velasquez@diverseideas.de',
       status: 'offline',
       activeSession: null,
       leaveCredits: { vacation: 14, sick: 10, emergency: 5 }
@@ -261,14 +261,10 @@ class Store {
           });
         }
 
-        // Ensure developer PINs are isolated and none have Master PIN (9999)
-        if (parsed.developers && Array.isArray(parsed.developers)) {
-          const defaultPins = { 'dev-1': '1234', 'dev-2': '2345', 'dev-3': '3456', 'dev-4': '4567' };
-          parsed.developers.forEach(d => {
-            if (String(d.pin).trim() === '9999') {
-              d.pin = defaultPins[d.id] || '1234';
-            }
-          });
+        // Automatic migration: if old placeholder demo names exist, replace with real team roster
+        if (!parsed.developers || parsed.developers.some(d => d.name.includes('Alex Rivera') || d.name.includes('Chloe Gomez') || !d.name.includes('BAYSON'))) {
+          parsed.developers = DEFAULT_INITIAL_STATE.developers;
+          parsed.adminPin = '0104';
         }
 
         // Apply updated 09:00 AM – 05:00 PM and 35h-45h/wk policy (Tefanny work policy)
