@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCloseLocationHelp = document.getElementById('btn-close-location-help');
   const btnCloseLocationHelpFooter = document.getElementById('btn-close-location-help-footer');
   const btnLocationFallbackWfh = document.getElementById('btn-location-fallback-wfh');
-  const btnLocationForceOnsite = document.getElementById('btn-location-force-onsite');
+  const btnLocationRetryGpsMain = document.getElementById('btn-location-retry-gps-main');
   const btnLocationRetryGps = document.getElementById('btn-location-retry-gps');
   const btnOpenLocationHelp = document.getElementById('btn-open-location-help');
   const locationHelpErrorText = document.getElementById('location-help-error-text');
@@ -978,7 +978,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let capturedGps = null;
 
-    if (isGpsFeatureOn && gpsSettings.enabled && !bypassGps) {
+    if (isGpsFeatureOn && gpsSettings.enabled) {
       if (location === 'onsite') {
         const originalText = btnClockIn.innerHTML;
         btnClockIn.disabled = true;
@@ -1003,7 +1003,7 @@ document.addEventListener('DOMContentLoaded', () => {
             openLocationHelpModal(
               `⛔ OUTSIDE OFFICE GEOFENCE:\n\n` +
               `You are currently ${result.distanceMeters}m away from the office (${gpsSettings.officeName}). Allowed radius is ${gpsSettings.radiusMeters}m.\n\n` +
-              `👉 If you are working from home today, tap "Switch to WFH & Clock In Now" below.`
+              `👉 If you are working from home today, tap "Working Remote? Switch to WFH" below.`
             );
             updateTerminalGpsStatus(true);
             return;
@@ -1013,9 +1013,9 @@ document.addEventListener('DOMContentLoaded', () => {
           btnClockIn.innerHTML = originalText;
           if (gpsSettings.strictGeofence) {
             openLocationHelpModal(
-              `⚠️ GPS LOCATION NOT ACQUIRED:\n\n` +
+              `⚠️ GPS LOCATION REQUIRED FOR ONSITE:\n\n` +
               `${err.message}\n\n` +
-              `👉 You can tap "Clock In Onsite Anyway (GPS Offline)" or "Switch to WFH & Clock In Now" below.`
+              `👉 Tap "Prompt / Enable GPS on this Phone" below to allow browser location, or switch to WFH if remote.`
             );
             updateTerminalGpsStatus(true);
             return;
@@ -1038,18 +1038,10 @@ document.addEventListener('DOMContentLoaded', () => {
           // Ignore WFH background capture error
         }
       }
-    } else if (bypassGps) {
-      capturedGps = {
-        isWithinGeofence: true,
-        bypassed: true,
-        officeName: gpsSettings.officeName,
-        note: 'GPS Offline / Manual Bypass',
-        timestamp: new Date().toISOString()
-      };
     }
 
     attendance.clockIn(dev.id, projId, taskNotes, location, capturedGps);
-    const locLabel = location === 'wfh' ? 'WFH (Home)' : (capturedGps && capturedGps.bypassed ? 'ONSITE (Offline Mode)' : (capturedGps && capturedGps.distanceMeters != null ? `ONSITE (${capturedGps.distanceMeters}m verified)` : 'ONSITE'));
+    const locLabel = location === 'wfh' ? 'WFH (Home)' : (capturedGps && capturedGps.distanceMeters != null ? `ONSITE (${capturedGps.distanceMeters}m verified)` : 'ONSITE');
     showToast(`Time IN recorded (${locLabel}) for ${dev.name}!`, 'success');
     renderClockTerminal();
     renderAttendanceBoard();
@@ -1122,19 +1114,38 @@ document.addEventListener('DOMContentLoaded', () => {
       executeClockIn('wfh');
     });
   }
-  if (btnLocationForceOnsite) {
-    btnLocationForceOnsite.addEventListener('click', () => {
-      closeLocationHelpModal();
-      setWorkMode('onsite');
-      executeClockIn('onsite', true);
-    });
-  }
-  if (btnLocationRetryGps) {
-    btnLocationRetryGps.addEventListener('click', () => {
-      closeLocationHelpModal();
-      showToast('🔄 Retrying GPS location...', 'info');
+
+  async function handleGpsPromptRequest() {
+    showToast('🔄 Requesting device GPS permission...', 'info');
+    try {
+      const coords = await getCurrentDeviceGPS();
+      const gpsSettings = store.getGpsSettings();
+      const result = store.checkGeofence(coords.latitude, coords.longitude);
+      
       updateTerminalGpsStatus(true);
-    });
+      
+      if (result.isWithin) {
+        closeLocationHelpModal();
+        showToast(`🟢 Office GPS Verified! (${result.distanceMeters}m from ${gpsSettings.officeName}). You can now punch Onsite!`, 'success');
+      } else {
+        if (locationHelpErrorText) {
+          locationHelpErrorText.textContent = `⚠️ GPS acquired, but you are ${result.distanceMeters}m away from the office (${gpsSettings.officeName}). Allowed limit is ${gpsSettings.radiusMeters}m.`;
+        }
+      }
+    } catch (err) {
+      updateTerminalGpsStatus(true);
+      if (locationHelpErrorText) {
+        locationHelpErrorText.textContent = err.message || 'Could not acquire GPS. Please ensure Location is enabled in phone settings.';
+      }
+    }
+  }
+
+  if (btnLocationRetryGpsMain) {
+    btnLocationRetryGpsMain.addEventListener('click', handleGpsPromptRequest);
+  }
+
+  if (btnLocationRetryGps) {
+    btnLocationRetryGps.addEventListener('click', handleGpsPromptRequest);
   }
 
   btnBreak.addEventListener('click', () => {

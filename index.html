@@ -2529,20 +2529,20 @@
           </div>
         </div>
 
-        <!-- 1-Tap Solution: Instant Actions -->
+        <!-- Required GPS Action & WFH Alternative -->
         <div style="background: rgba(99, 102, 241, 0.08); border: 1.5px dashed rgba(99, 102, 241, 0.35); border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px; text-align: center;">
           <div style="font-size: 0.88rem; font-weight: 700; color: var(--accent-primary); margin-bottom: 6px;">
-            🚀 Need to punch in immediately without GPS?
+            🏢 Office Onsite Attendance
           </div>
           <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0 0 12px 0;">
-            Choose an instant option below so your time record is not delayed:
+            Physical office presence within <strong>250m</strong> is required for Onsite shifts. Please enable location on your phone or switch to WFH if working remotely:
           </p>
           <div style="display: flex; flex-direction: column; gap: 8px;">
-            <button type="button" class="btn btn-primary" id="btn-location-fallback-wfh" style="width: 100%; font-weight: 700; padding: 12px; font-size: 0.95rem; justify-content: center;">
-              🏠 Switch to WFH & Clock In Now
+            <button type="button" class="btn btn-success" id="btn-location-retry-gps-main" style="width: 100%; font-weight: 700; padding: 12px; font-size: 0.95rem; justify-content: center;">
+              📍 Prompt / Enable GPS on this Phone
             </button>
-            <button type="button" class="btn btn-secondary" id="btn-location-force-onsite" style="width: 100%; font-weight: 700; padding: 10px; font-size: 0.88rem; justify-content: center;">
-              🏢 Clock In Onsite Anyway (GPS Offline)
+            <button type="button" class="btn btn-primary" id="btn-location-fallback-wfh" style="width: 100%; font-weight: 700; padding: 10px; font-size: 0.88rem; justify-content: center;">
+              🏠 Working Remote? Switch to WFH
             </button>
           </div>
         </div>
