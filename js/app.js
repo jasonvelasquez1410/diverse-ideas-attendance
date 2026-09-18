@@ -535,12 +535,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (btnClockIn) btnClockIn.disabled = true;
       if (btnBreak) {
         btnBreak.disabled = false;
-        const isLunch = terminalBreakType && terminalBreakType.value === 'lunch';
-        btnBreak.textContent = isLunch ? '🍱 Start Lunch' : '☕ Start Break';
+        btnBreak.textContent = '🍱 Start Lunch';
         btnBreak.className = 'btn btn-warning btn-lg';
       }
       if (btnClockOut) btnClockOut.disabled = false;
-      if (terminalBreakType) terminalBreakType.disabled = false;
       if (terminalBreakAlert) terminalBreakAlert.style.display = 'none';
 
       if (activeDev.activeSession) {
@@ -552,7 +550,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const totalBreakMins = Math.round((activeDev.activeSession.breaks || []).reduce((acc, b) => acc + (b.durationMs || 0), 0) / 60000);
         if (dtrBreakTime) dtrBreakTime.textContent = totalBreakMins > 0 ? `${totalBreakMins}m` : '0m';
-        if (dtrBreakStatus) dtrBreakStatus.textContent = 'No active break';
+        if (dtrBreakStatus) dtrBreakStatus.textContent = 'No active lunch';
 
         if (terminalProjectSelect) terminalProjectSelect.value = activeDev.activeSession.projectId || 'proj-1';
         if (terminalTaskNotes) terminalTaskNotes.value = activeDev.activeSession.taskNote || '';
@@ -563,16 +561,15 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (activeDev.status === 'break') {
       if (terminalStatusBadge) {
         terminalStatusBadge.className = 'badge badge-break';
-        terminalStatusBadge.innerHTML = `<span class="badge-dot"></span> On Scheduled Break`;
+        terminalStatusBadge.innerHTML = `<span class="badge-dot"></span> On Lunch Break`;
       }
       if (btnClockIn) btnClockIn.disabled = true;
       if (btnBreak) {
         btnBreak.disabled = false;
-        btnBreak.textContent = '▶ End Break (Resume)';
+        btnBreak.textContent = '▶ End Lunch (Resume)';
         btnBreak.className = 'btn btn-success btn-lg';
       }
       if (btnClockOut) btnClockOut.disabled = false;
-      if (terminalBreakType) terminalBreakType.disabled = true;
 
       if (activeDev.activeSession) {
         const inDate = new Date(activeDev.activeSession.startTime);
@@ -583,15 +580,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (activeDev.activeSession.currentBreakStart) {
           elapsedBreakMins = Math.max(0, Math.round((new Date() - new Date(activeDev.activeSession.currentBreakStart)) / 60000));
         }
-        if (dtrBreakStatus) dtrBreakStatus.textContent = `Break in progress (${elapsedBreakMins}m)`;
+        if (dtrBreakStatus) dtrBreakStatus.textContent = `Lunch in progress (${elapsedBreakMins}m)`;
 
         if (terminalBreakAlert) {
           terminalBreakAlert.style.display = 'flex';
           const breakStartFormatted = activeDev.activeSession.currentBreakStart 
             ? new Date(activeDev.activeSession.currentBreakStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
             : 'now';
-          if (terminalBreakAlertTitle) terminalBreakAlertTitle.textContent = `Break in Progress (${elapsedBreakMins}m elapsed)`;
-          if (terminalBreakAlertDesc) terminalBreakAlertDesc.innerHTML = `Started at <strong>${breakStartFormatted}</strong>. Click the green <strong>"▶ End Break (Resume Work)"</strong> button when done to continue shift.`;
+          if (terminalBreakAlertTitle) terminalBreakAlertTitle.textContent = `🍱 Lunch in Progress (${elapsedBreakMins}m elapsed)`;
+          if (terminalBreakAlertDesc) terminalBreakAlertDesc.innerHTML = `Started at <strong>${breakStartFormatted}</strong>. Click the green <strong>"▶ End Lunch (Resume Work)"</strong> button when done eating to continue shift.`;
         }
       }
     } else {
@@ -602,12 +599,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (btnClockIn) btnClockIn.disabled = false;
       if (btnBreak) {
         btnBreak.disabled = true;
-        const isLunch = terminalBreakType && terminalBreakType.value === 'lunch';
-        btnBreak.textContent = isLunch ? '🍱 Start Lunch' : '☕ Start Break';
+        btnBreak.textContent = '🍱 Start Lunch';
         btnBreak.className = 'btn btn-warning btn-lg';
       }
       if (btnClockOut) btnClockOut.disabled = true;
-      if (terminalBreakType) terminalBreakType.disabled = false;
       if (terminalBreakAlert) terminalBreakAlert.style.display = 'none';
 
       if (todayRecords.length > 0) {
@@ -619,14 +614,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (dtrTimeOut) dtrTimeOut.textContent = outDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         if (dtrDateOut) dtrDateOut.textContent = `Time OUT logged`;
         if (dtrBreakTime) dtrBreakTime.textContent = `${latest.breakDurationMinutes}m`;
-        if (dtrBreakStatus) dtrBreakStatus.textContent = 'Completed break';
+        if (dtrBreakStatus) dtrBreakStatus.textContent = 'Completed lunch';
         if (dtrTotalRendered) dtrTotalRendered.textContent = `${(latest.workedMinutes / 60).toFixed(2)} hrs`;
         if (dtrShiftStatus) dtrShiftStatus.textContent = 'Shift Completed';
       } else {
         if (dtrTimeIn) dtrTimeIn.textContent = '--:--:--';
         if (dtrDateIn) dtrDateIn.textContent = 'Not yet logged';
         if (dtrBreakTime) dtrBreakTime.textContent = '--:--';
-        if (dtrBreakStatus) dtrBreakStatus.textContent = 'No active break';
+        if (dtrBreakStatus) dtrBreakStatus.textContent = 'No active lunch';
         if (dtrTimeOut) dtrTimeOut.textContent = '--:--:--';
         if (dtrDateOut) dtrDateOut.textContent = 'End of shift';
         if (dtrTotalRendered) dtrTotalRendered.textContent = '0.00 hrs';
@@ -1151,32 +1146,22 @@ document.addEventListener('DOMContentLoaded', () => {
   btnBreak.addEventListener('click', () => {
     const dev = store.getActiveDeveloper();
     if (dev.status === 'working') {
-      const isLunch = terminalBreakType && terminalBreakType.value === 'lunch';
       attendance.startBreak(dev.id);
-      showToast(`${isLunch ? '🍱 Lunch break' : '☕ Coffee break'} started at ${new Date().toLocaleTimeString()}`, 'warning');
+      showToast(`🍱 Lunch break started at ${new Date().toLocaleTimeString()}`, 'warning');
     } else if (dev.status === 'break') {
       attendance.resumeWork(dev.id);
-      showToast(`Break ended. Resumed shift at ${new Date().toLocaleTimeString()}`, 'success');
+      showToast(`Lunch ended. Resumed shift at ${new Date().toLocaleTimeString()}`, 'success');
     }
     renderClockTerminal();
     renderAttendanceBoard();
   });
-
-  if (terminalBreakType) {
-    terminalBreakType.addEventListener('change', () => {
-      const dev = store.getActiveDeveloper();
-      if (dev.status === 'working' && btnBreak) {
-        btnBreak.textContent = terminalBreakType.value === 'lunch' ? '🍱 Start Lunch' : '☕ Start Break';
-      }
-    });
-  }
 
   if (btnQuickEndBreak) {
     btnQuickEndBreak.addEventListener('click', () => {
       const dev = store.getActiveDeveloper();
       if (dev && dev.status === 'break') {
         attendance.resumeWork(dev.id);
-        showToast(`Break ended. Resumed shift at ${new Date().toLocaleTimeString()}`, 'success');
+        showToast(`Lunch ended. Resumed shift at ${new Date().toLocaleTimeString()}`, 'success');
         renderClockTerminal();
         renderAttendanceBoard();
       }
