@@ -17,7 +17,7 @@ class AttendanceEngine {
     }, 1000);
   }
 
-  clockIn(devId, projectId, taskNote, workLocation = 'onsite') {
+  clockIn(devId, projectId, taskNote, workLocation = 'onsite', gpsData = null) {
     const dev = this.store.getDeveloperById(devId);
     if (!dev) return false;
 
@@ -29,7 +29,8 @@ class AttendanceEngine {
       currentBreakStart: null,
       projectId: projectId || 'proj-1',
       taskNote: taskNote || 'Active development sprint',
-      workLocation: workLocation || (now.getDay() === 1 ? 'wfh' : 'onsite') // Monday defaults to WFH
+      workLocation: workLocation || (now.getDay() === 1 ? 'wfh' : 'onsite'), // Monday defaults to WFH
+      gps: gpsData || null
     };
 
     this.store.saveState();
@@ -66,7 +67,7 @@ class AttendanceEngine {
     return true;
   }
 
-  clockOut(devId) {
+  clockOut(devId, gpsData = null) {
     const dev = this.store.getDeveloperById(devId);
     if (!dev || !dev.activeSession) return null;
 
@@ -109,7 +110,8 @@ class AttendanceEngine {
       totalEarnings,
       projectId: session.projectId,
       workLocation: session.workLocation || 'onsite',
-      taskNote: session.taskNote
+      taskNote: session.taskNote,
+      gps: session.gps || gpsData || null
     };
 
     // Save record & reset active session

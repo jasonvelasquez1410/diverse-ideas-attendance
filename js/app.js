@@ -585,11 +585,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       div.innerHTML = `
         <div>
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
             <strong style="font-size: 0.95rem; color: var(--text-primary);">${proj.name}</strong>
             <span class="badge badge-working" style="font-size: 0.72rem;">${duration} hrs</span>
-            <span class="badge" style="font-size: 0.72rem; background: rgba(99, 102, 241, 0.15); color: var(--accent-cyan);">
-              ${isWfh ? '🏠 WFH (Home)' : '🏢 Onsite (Office)'}
+            <span class="badge" style="font-size: 0.72rem; background: ${isWfh ? 'rgba(99, 102, 241, 0.15)' : 'rgba(16, 185, 129, 0.15)'}; color: ${isWfh ? 'var(--accent-cyan)' : 'var(--status-working)'};">
+              ${isWfh ? '🏠 WFH (Home)' : (r.gps && r.gps.distanceMeters != null ? `🏢 Onsite (${r.gps.distanceMeters}m)` : '🏢 Onsite (Office)')}
             </span>
           </div>
           <div style="font-size: 0.82rem; color: var(--text-secondary); display: flex; align-items: center; gap: 12px;">
@@ -609,15 +609,246 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ==========================================
+  // GPS Geolocation & Geofencing Controller
+  // ==========================================
+  let cachedDeviceGps = null;
+
+  function getCurrentDeviceGPS(options = { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }) {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        return reject(new Error('Geolocation is not supported by your browser.'));
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const gps = {
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            accuracy: Math.round(pos.coords.accuracy || 0),
+            timestamp: pos.timestamp
+          };
+          cachedDeviceGps = gps;
+          resolve(gps);
+        },
+        (err) => {
+          let errorMsg = 'Could not acquire GPS position.';
+          if (err.code === 1) errorMsg = 'Location permission was denied. Please allow location access in your browser settings to verify office attendance.';
+          else if (err.code === 2) errorMsg = 'Location unavailable. Ensure device GPS is turned on.';
+          else if (err.code === 3) errorMsg = 'GPS acquisition timed out. Please try again.';
+          reject(new Error(errorMsg));
+        },
+        options
+      );
+    });
+  }
+
+  async function updateTerminalGpsStatus(forceRefresh = false) {
+    const banner = document.getElementById('terminal-gps-banner');
+    const dot = document.getElementById('gps-status-dot');
+    const emoji = document.getElementById('gps-status-emoji');
+    const statusText = document.getElementById('terminal-gps-status-text');
+    const badge = document.getElementById('terminal-gps-badge');
+    const detailText = document.getElementById('terminal-gps-detail-text');
+    const distancePill = document.getElementById('terminal-gps-distance-pill');
+
+    if (!banner) return;
+
+    const isGpsFeatureOn = store.isFeatureEnabled('gpsGeofenceEnabled');
+    const gpsSettings = store.getGpsSettings();
+    const currentLocMode = terminalLocationSelect ? terminalLocationSelect.value : 'onsite';
+
+    if (!isGpsFeatureOn || !gpsSettings.enabled) {
+      if (dot) dot.className = 'gps-pulse-icon';
+      if (emoji) emoji.textContent = '🌐';
+      if (statusText) statusText.textContent = 'GPS Geofencing Disabled';
+      if (badge) {
+        badge.textContent = 'Anywhere Permitted';
+        badge.className = 'badge badge-offline';
+        badge.style.background = 'rgba(255, 255, 255, 0.1)';
+        badge.style.color = 'var(--text-secondary)';
+      }
+      if (detailText) detailText.textContent = 'Geofence verification is currently turned off by company policy.';
+      if (distancePill) {
+        distancePill.textContent = '🌐 Open Access';
+        distancePill.style.background = 'rgba(99, 102, 241, 0.15)';
+        distancePill.style.color = 'var(--accent-cyan)';
+      }
+      return;
+    }
+
+    if (currentLocMode === 'wfh') {
+      if (dot) dot.className = 'gps-pulse-icon wfh-mode';
+      if (emoji) emoji.textContent = '🏠';
+      if (statusText) statusText.textContent = 'Work From Home (WFH)';
+      if (badge) {
+        badge.textContent = 'Login Anywhere';
+        badge.className = 'badge badge-working';
+        badge.style.background = 'rgba(99, 102, 241, 0.15)';
+        badge.style.color = 'var(--accent-cyan)';
+      }
+      if (detailText) detailText.textContent = 'Remote WFH Mode: You are permitted to login and clock in from any remote location.';
+      if (distancePill) {
+        distancePill.textContent = '🏠 WFH Anywhere Permitted';
+        distancePill.style.background = 'rgba(99, 102, 241, 0.15)';
+        distancePill.style.color = 'var(--accent-cyan)';
+      }
+      return;
+    }
+
+    // Onsite Mode: check office geofence
+    if (dot) dot.className = 'gps-pulse-icon loading-mode';
+    if (emoji) emoji.textContent = '📡';
+    if (statusText) statusText.textContent = 'Verifying Office Geofence...';
+    if (badge) {
+      badge.textContent = 'Checking GPS';
+      badge.className = 'badge badge-break';
+    }
+    if (detailText) detailText.textContent = `Target: ${gpsSettings.officeName} (Within ${gpsSettings.radiusMeters}m required)`;
+    if (distancePill) distancePill.textContent = 'Detecting GPS...';
+
+    try {
+      let coords = cachedDeviceGps;
+      if (!coords || forceRefresh) {
+        coords = await getCurrentDeviceGPS();
+      }
+
+      const result = store.checkGeofence(coords.latitude, coords.longitude);
+
+      if (result.isWithin) {
+        if (dot) dot.className = 'gps-pulse-icon';
+        if (emoji) emoji.textContent = '🟢';
+        if (statusText) statusText.textContent = 'Inside Office Geofence';
+        if (badge) {
+          badge.textContent = 'Verified Onsite';
+          badge.className = 'badge badge-working';
+          badge.style.background = 'rgba(16, 185, 129, 0.15)';
+          badge.style.color = 'var(--status-working)';
+        }
+        if (detailText) detailText.textContent = `📍 You are ~${result.distanceMeters}m from ${gpsSettings.officeName} (Limit: ${gpsSettings.radiusMeters}m). Ready to punch!`;
+        if (distancePill) {
+          distancePill.textContent = `🟢 ${result.distanceMeters}m from office`;
+          distancePill.style.background = 'rgba(16, 185, 129, 0.15)';
+          distancePill.style.color = 'var(--status-working)';
+        }
+      } else {
+        if (dot) dot.className = 'gps-pulse-icon outside-mode';
+        if (emoji) emoji.textContent = '⛔';
+        if (statusText) statusText.textContent = 'Outside Office Geofence';
+        if (badge) {
+          badge.textContent = `${result.distanceMeters}m Away`;
+          badge.className = 'badge badge-offline';
+          badge.style.background = 'rgba(239, 68, 68, 0.15)';
+          badge.style.color = '#ef4444';
+        }
+        if (detailText) detailText.textContent = `⚠️ You are ${result.distanceMeters}m away from the office (Max allowed: ${gpsSettings.radiusMeters}m). Move closer or select WFH.`;
+        if (distancePill) {
+          distancePill.textContent = `⛔ ${result.distanceMeters}m away`;
+          distancePill.style.background = 'rgba(239, 68, 68, 0.15)';
+          distancePill.style.color = '#ef4444';
+        }
+      }
+    } catch (err) {
+      if (dot) dot.className = 'gps-pulse-icon outside-mode';
+      if (emoji) emoji.textContent = '⚠️';
+      if (statusText) statusText.textContent = 'GPS Permission Needed';
+      if (badge) {
+        badge.textContent = 'Location Blocked';
+        badge.className = 'badge badge-offline';
+        badge.style.background = 'rgba(245, 158, 11, 0.15)';
+        badge.style.color = '#f59e0b';
+      }
+      if (detailText) detailText.textContent = err.message || 'Please enable browser location access to clock in Onsite.';
+      if (distancePill) {
+        distancePill.textContent = '⚠️ Location Inactive';
+        distancePill.style.background = 'rgba(245, 158, 11, 0.15)';
+        distancePill.style.color = '#f59e0b';
+      }
+    }
+  }
+
+  const btnRefreshGps = document.getElementById('btn-refresh-gps');
+  if (btnRefreshGps) {
+    btnRefreshGps.addEventListener('click', () => {
+      showToast('🔄 Refreshing device GPS location...', 'info');
+      updateTerminalGpsStatus(true);
+    });
+  }
+
   // Punch Action Listeners (Time IN / Break / Time OUT)
-  btnClockIn.addEventListener('click', () => {
+  btnClockIn.addEventListener('click', async () => {
     const dev = store.getActiveDeveloper();
     const projId = terminalProjectSelect.value;
     const taskNotes = terminalTaskNotes.value.trim() || 'Development Sprint';
     const location = terminalLocationSelect.value || 'onsite';
 
-    attendance.clockIn(dev.id, projId, taskNotes, location);
-    showToast(`Time IN recorded (${location.toUpperCase()}) for ${dev.name}!`, 'success');
+    const isGpsFeatureOn = store.isFeatureEnabled('gpsGeofenceEnabled');
+    const gpsSettings = store.getGpsSettings();
+
+    let capturedGps = null;
+
+    if (isGpsFeatureOn && gpsSettings.enabled) {
+      if (location === 'onsite') {
+        const originalText = btnClockIn.innerHTML;
+        btnClockIn.disabled = true;
+        btnClockIn.innerHTML = `📍 Verifying Office GPS...`;
+
+        try {
+          const coords = await getCurrentDeviceGPS();
+          const result = store.checkGeofence(coords.latitude, coords.longitude);
+          capturedGps = {
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+            accuracy: coords.accuracy,
+            distanceMeters: result.distanceMeters,
+            isWithinGeofence: result.isWithin,
+            officeName: gpsSettings.officeName,
+            timestamp: new Date().toISOString()
+          };
+
+          if (!result.isWithin && gpsSettings.strictGeofence) {
+            btnClockIn.disabled = false;
+            btnClockIn.innerHTML = originalText;
+            alert(`⛔ OUTSIDE OFFICE GEOFENCE:\n\n` +
+                  `You are currently ${result.distanceMeters} meters away from the office (${gpsSettings.officeName}).\n` +
+                  `Allowed radius is ${gpsSettings.radiusMeters} meters.\n\n` +
+                  `👉 To clock in Onsite, you must be physically at the office.\n` +
+                  `👉 If you are working remotely today, switch Work Mode to "🏠 Home (WFH)".`);
+            updateTerminalGpsStatus(true);
+            return;
+          }
+        } catch (err) {
+          btnClockIn.disabled = false;
+          btnClockIn.innerHTML = originalText;
+          if (gpsSettings.strictGeofence) {
+            alert(`⚠️ GPS LOCATION REQUIRED:\n\n${err.message}\n\n` +
+                  `To record an Onsite shift, your browser must be allowed to verify your office location.\n` +
+                  `Click the lock/settings icon next to the browser URL to allow Location access, or switch to "🏠 Home (WFH)".`);
+            updateTerminalGpsStatus(true);
+            return;
+          }
+        }
+        btnClockIn.disabled = false;
+        btnClockIn.innerHTML = originalText;
+      } else if (location === 'wfh' && gpsSettings.wfhCaptureGps) {
+        // WFH background capture for audit logs (does not block clock-in)
+        try {
+          const coords = await getCurrentDeviceGPS({ enableHighAccuracy: false, timeout: 3000, maximumAge: 60000 });
+          capturedGps = {
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+            accuracy: coords.accuracy,
+            isWfh: true,
+            timestamp: new Date().toISOString()
+          };
+        } catch (e) {
+          // Ignore WFH background capture error
+        }
+      }
+    }
+
+    attendance.clockIn(dev.id, projId, taskNotes, location, capturedGps);
+    const locLabel = location === 'wfh' ? 'WFH (Home)' : (capturedGps && capturedGps.distanceMeters != null ? `ONSITE (${capturedGps.distanceMeters}m verified)` : 'ONSITE');
+    showToast(`Time IN recorded (${locLabel}) for ${dev.name}!`, 'success');
     renderClockTerminal();
     renderAttendanceBoard();
   });
@@ -658,6 +889,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTimesheetsAndPayroll();
     renderSettings();
     updateHeaderAuthProfile();
+    updateTerminalGpsStatus();
   }
 
   terminalProjectSelect.addEventListener('change', () => {
@@ -674,6 +906,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast(`Updated location to ${terminalLocationSelect.value === 'wfh' ? 'Work From Home' : 'Onsite Office'}`, 'info');
       renderAttendanceBoard();
     }
+    updateTerminalGpsStatus();
   });
 
   terminalTaskNotes.addEventListener('input', () => {
@@ -1479,6 +1712,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const state = store.getState();
     renderOrganizationSettings();
     renderScheduleSettings();
+    renderGpsSettings();
     renderFeatureToggles();
 
     settingsDevTableBody.innerHTML = '';
@@ -1626,6 +1860,15 @@ document.addEventListener('DOMContentLoaded', () => {
       disabledText: 'Disabled',
       activeClass: 'badge-working',
       disabledClass: 'badge-offline'
+    },
+    {
+      id: 'switch-feature-gps',
+      badgeId: 'badge-feature-gps',
+      key: 'gpsGeofenceEnabled',
+      activeText: 'Active (Strict Office Check)',
+      disabledText: 'Disabled (Anywhere)',
+      activeClass: 'badge-working',
+      disabledClass: 'badge-offline'
     }
   ];
 
@@ -1732,6 +1975,169 @@ document.addEventListener('DOMContentLoaded', () => {
     const editDevNoWorkBadge = document.getElementById('edit-dev-nowork-badge');
     if (editDevLeavesGroup) editDevLeavesGroup.style.display = leavesOn ? 'flex' : 'none';
     if (editDevNoWorkBadge) editDevNoWorkBadge.style.display = leavesOn ? 'none' : 'block';
+  }
+
+  // ==========================================
+  // GPS & Geofencing Settings Handlers
+  // ==========================================
+  function renderGpsSettings() {
+    const gps = store.getGpsSettings();
+    const nameEl = document.getElementById('setting-gps-office-name');
+    const latEl = document.getElementById('setting-gps-latitude');
+    const lngEl = document.getElementById('setting-gps-longitude');
+    const radiusSlider = document.getElementById('setting-gps-radius-slider');
+    const radiusNumber = document.getElementById('setting-gps-radius');
+    const strictEl = document.getElementById('setting-gps-strict');
+    const wfhAnywhereEl = document.getElementById('setting-gps-wfh-anywhere');
+
+    if (nameEl) nameEl.value = gps.officeName || 'Diverse Ideas Office (Cagayan de Oro Hub)';
+    if (latEl) latEl.value = (gps.latitude !== undefined ? gps.latitude : 8.485600).toFixed(6);
+    if (lngEl) lngEl.value = (gps.longitude !== undefined ? gps.longitude : 124.656700).toFixed(6);
+    if (radiusSlider) radiusSlider.value = gps.radiusMeters || 250;
+    if (radiusNumber) radiusNumber.value = gps.radiusMeters || 250;
+    if (strictEl) strictEl.checked = gps.strictGeofence !== false;
+    if (wfhAnywhereEl) wfhAnywhereEl.checked = gps.allowWfhAnywhere !== false;
+  }
+
+  // Radius slider and number synchronization
+  const radiusSlider = document.getElementById('setting-gps-radius-slider');
+  const radiusNumber = document.getElementById('setting-gps-radius');
+  if (radiusSlider && radiusNumber) {
+    radiusSlider.addEventListener('input', () => {
+      radiusNumber.value = radiusSlider.value;
+    });
+    radiusNumber.addEventListener('input', () => {
+      radiusSlider.value = radiusNumber.value;
+    });
+  }
+
+  // GPS Presets Dropdown
+  const gpsPresetSelect = document.getElementById('setting-gps-preset');
+  if (gpsPresetSelect) {
+    gpsPresetSelect.addEventListener('change', () => {
+      const val = gpsPresetSelect.value;
+      const latEl = document.getElementById('setting-gps-latitude');
+      const lngEl = document.getElementById('setting-gps-longitude');
+      const nameEl = document.getElementById('setting-gps-office-name');
+
+      if (val === 'cdo') {
+        if (latEl) latEl.value = '8.485600';
+        if (lngEl) lngEl.value = '124.656700';
+        if (nameEl) nameEl.value = 'Diverse Ideas Office (Cagayan de Oro Hub)';
+      } else if (val === 'frankfurt') {
+        if (latEl) latEl.value = '50.110924';
+        if (lngEl) lngEl.value = '8.682127';
+        if (nameEl) nameEl.value = 'Diverse Ideas GMBH (Frankfurt HQ)';
+      } else if (val === 'manila') {
+        if (latEl) latEl.value = '14.554729';
+        if (lngEl) lngEl.value = '121.024445';
+        if (nameEl) nameEl.value = 'Diverse Ideas (BGC Manila Tech Center)';
+      }
+    });
+  }
+
+  // 🎯 "Capture My Current GPS As Office Location" button
+  const btnCaptureOfficeGps = document.getElementById('btn-capture-office-gps');
+  if (btnCaptureOfficeGps) {
+    btnCaptureOfficeGps.addEventListener('click', async () => {
+      const origText = btnCaptureOfficeGps.innerHTML;
+      btnCaptureOfficeGps.disabled = true;
+      btnCaptureOfficeGps.innerHTML = `📡 Detecting Coordinates...`;
+
+      try {
+        const coords = await getCurrentDeviceGPS({ enableHighAccuracy: true, timeout: 10000 });
+        const latEl = document.getElementById('setting-gps-latitude');
+        const lngEl = document.getElementById('setting-gps-longitude');
+        if (latEl) latEl.value = coords.latitude.toFixed(6);
+        if (lngEl) lngEl.value = coords.longitude.toFixed(6);
+        if (gpsPresetSelect) gpsPresetSelect.value = 'custom';
+        showToast(`📍 Locked current GPS: ${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)} (±${coords.accuracy}m). Click "Save GPS Policy" to apply!`, 'success');
+      } catch (err) {
+        alert(`❌ Could not get GPS location:\n\n${err.message}`);
+      } finally {
+        btnCaptureOfficeGps.disabled = false;
+        btnCaptureOfficeGps.innerHTML = origText;
+      }
+    });
+  }
+
+  // Live Geofence Tester widget
+  const btnTestGeofence = document.getElementById('btn-test-geofence');
+  const geofenceTestResult = document.getElementById('geofence-test-result');
+  if (btnTestGeofence) {
+    btnTestGeofence.addEventListener('click', async () => {
+      const origText = btnTestGeofence.innerHTML;
+      btnTestGeofence.disabled = true;
+      btnTestGeofence.innerHTML = `⏳ Testing GPS...`;
+
+      const officeLat = parseFloat(document.getElementById('setting-gps-latitude').value);
+      const officeLng = parseFloat(document.getElementById('setting-gps-longitude').value);
+      const radius = parseFloat(document.getElementById('setting-gps-radius').value) || 250;
+      const officeName = document.getElementById('setting-gps-office-name').value || 'Office';
+
+      try {
+        const coords = await getCurrentDeviceGPS({ enableHighAccuracy: true, timeout: 10000 });
+        const distance = store.calculateDistance(coords.latitude, coords.longitude, officeLat, officeLng);
+        const isWithin = distance <= radius;
+
+        if (geofenceTestResult) {
+          geofenceTestResult.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between; flex-wrap: wrap;">
+              <div>
+                <strong style="color: ${isWithin ? 'var(--status-working)' : '#ef4444'}; font-size: 0.95rem;">
+                  ${isWithin ? '🟢 PASS: Within Office Geofence' : '⛔ OUTSIDE: Beyond Office Geofence'}
+                </strong>
+                <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 3px;">
+                  Your Location: ${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)} (Accuracy: ±${coords.accuracy}m)
+                </div>
+                <div style="font-size: 0.78rem; color: var(--text-secondary);">
+                  Office (${officeName}): ${officeLat.toFixed(6)}, ${officeLng.toFixed(6)} • Allowed Radius: ${radius}m
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <span class="badge ${isWithin ? 'badge-working' : 'badge-offline'}" style="font-size: 0.85rem; padding: 6px 12px; background: ${isWithin ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}; color: ${isWithin ? 'var(--status-working)' : '#ef4444'};">
+                  Distance: ${distance} meters
+                </span>
+              </div>
+            </div>
+          `;
+        }
+      } catch (err) {
+        if (geofenceTestResult) {
+          geofenceTestResult.innerHTML = `<span style="color: #ef4444;">⚠️ Test Failed: ${err.message}</span>`;
+        }
+      } finally {
+        btnTestGeofence.disabled = false;
+        btnTestGeofence.innerHTML = origText;
+      }
+    });
+  }
+
+  // Save GPS Settings Form
+  const formSettingsGps = document.getElementById('form-settings-gps');
+  if (formSettingsGps) {
+    formSettingsGps.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const officeName = document.getElementById('setting-gps-office-name').value.trim();
+      const latitude = parseFloat(document.getElementById('setting-gps-latitude').value);
+      const longitude = parseFloat(document.getElementById('setting-gps-longitude').value);
+      const radiusMeters = parseInt(document.getElementById('setting-gps-radius').value) || 250;
+      const strictGeofence = document.getElementById('setting-gps-strict').checked;
+      const allowWfhAnywhere = document.getElementById('setting-gps-wfh-anywhere').checked;
+
+      store.updateGpsSettings({
+        enabled: true,
+        officeName,
+        latitude,
+        longitude,
+        radiusMeters,
+        strictGeofence,
+        allowWfhAnywhere
+      });
+
+      showToast(`📍 Office GPS Geofence saved (${officeName}, Radius: ${radiusMeters}m)!`, 'success');
+      renderAll();
+    });
   }
 
   // Edit Developer Modal Handler (Admin)

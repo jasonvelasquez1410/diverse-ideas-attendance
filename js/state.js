@@ -30,7 +30,19 @@ const DEFAULT_INITIAL_STATE = {
     coaFilingEnabled: true,           // Certificate of Attendance / Missed Log adjustment (Enabled)
     scheduleNoticeEnabled: true,      // Schedule Adjustment / WFH notice (Enabled)
     forexTickerEnabled: true,         // Live Forex USD ⇄ PHP ticker & conversion (Enabled)
-    holidaysCalendarEnabled: true     // Official Holiday Calendar (Enabled)
+    holidaysCalendarEnabled: true,    // Official Holiday Calendar (Enabled)
+    gpsGeofenceEnabled: true          // GPS Location Verification & Office Geofencing (Enabled)
+  },
+  // GPS Geofence & Office Location Configuration
+  gpsSettings: {
+    enabled: true,                    // Master GPS verification switch
+    officeName: 'Diverse Ideas Office (Cagayan de Oro Hub)',
+    latitude: 8.4856,                 // Office GPS Latitude (Default CDO Hub)
+    longitude: 124.6567,              // Office GPS Longitude (Default CDO Hub)
+    radiusMeters: 250,                // Geofence radius in meters
+    strictGeofence: true,             // If true, strictly prevent Onsite Time-IN if outside radius
+    allowWfhAnywhere: true,           // If true, WFH employees can clock-in from anywhere
+    wfhCaptureGps: true               // Capture GPS coordinates on WFH punch for audit log
   },
   workSchedules: {
     shiftStart: '09:00',
@@ -277,6 +289,12 @@ class Store {
         parsed.features = {
           ...DEFAULT_INITIAL_STATE.features,
           ...(parsed.features || {})
+        };
+
+        // Ensure GPS settings are loaded and merged with defaults
+        parsed.gpsSettings = {
+          ...DEFAULT_INITIAL_STATE.gpsSettings,
+          ...(parsed.gpsSettings || {})
         };
 
         return parsed;
@@ -620,6 +638,64 @@ class Store {
   updateWorkSchedules(updates) {
     this.state.workSchedules = { ...this.getWorkSchedules(), ...updates };
     this.saveState();
+  }
+
+  // GPS Geofencing & Office Location Management
+  getGpsSettings() {
+    return this.state.gpsSettings || {
+      enabled: true,
+      officeName: 'Diverse Ideas Office (Cagayan de Oro Hub)',
+      latitude: 8.4856,
+      longitude: 124.6567,
+      radiusMeters: 250,
+      strictGeofence: true,
+      allowWfhAnywhere: true,
+      wfhCaptureGps: true
+    };
+  }
+
+  updateGpsSettings(updates) {
+    this.state.gpsSettings = { ...this.getGpsSettings(), ...updates };
+    this.saveState();
+  }
+
+  /**
+   * Calculate great-circle distance between two GPS coordinates in meters (Haversine formula)
+   */
+  calculateDistance(lat1, lon1, lat2, lon2) {
+    if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) return null;
+    const R = 6371000; // Radius of Earth in meters
+    const toRad = (deg) => (deg * Math.PI) / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return Math.round(R * c); // Distance in meters
+  }
+
+  /**
+   * Check if given GPS coords are within the office geofence radius
+   */
+  checkGeofence(userLat, userLng) {
+    const gps = this.getGpsSettings();
+    if (!gps.enabled || !this.state.features.gpsGeofenceEnabled) {
+      return { isWithin: true, distanceMeters: 0, allowedRadius: gps.radiusMeters, officeName: gps.officeName, bypassed: true };
+    }
+    const distance = this.calculateDistance(userLat, userLng, gps.latitude, gps.longitude);
+    if (distance === null) {
+      return { isWithin: false, distanceMeters: null, allowedRadius: gps.radiusMeters, officeName: gps.officeName, error: 'No coordinates' };
+    }
+    return {
+      isWithin: distance <= gps.radiusMeters,
+      distanceMeters: distance,
+      allowedRadius: gps.radiusMeters,
+      officeName: gps.officeName,
+      officeLat: gps.latitude,
+      officeLng: gps.longitude
+    };
   }
 
   // Backup, Restore & Reset
