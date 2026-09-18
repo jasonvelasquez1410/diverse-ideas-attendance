@@ -31,6 +31,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // DOM Elements - Terminal / Clock View
   const terminalDevSelect = document.getElementById('terminal-dev-select');
   const cardDevSelect = document.getElementById('card-dev-select');
+  const pillModeOnsite = document.getElementById('pill-mode-onsite');
+  const pillModeWfh = document.getElementById('pill-mode-wfh');
+  const pillModeSaturday = document.getElementById('pill-mode-saturday');
+  const modalClockinMode = document.getElementById('modal-clockin-mode');
+  const btnCloseClockinMode = document.getElementById('btn-close-clockin-mode');
+  const btnCancelClockinMode = document.getElementById('btn-cancel-clockin-mode');
+  const btnChoiceOnsite = document.getElementById('btn-choice-onsite');
+  const btnChoiceWfh = document.getElementById('btn-choice-wfh');
+  const btnChoiceSaturday = document.getElementById('btn-choice-saturday');
+  const clockinModalDevSubtitle = document.getElementById('clockin-modal-dev-subtitle');
   const terminalBreakType = document.getElementById('terminal-break-type');
   const terminalBreakAlert = document.getElementById('terminal-break-alert');
   const terminalBreakAlertIcon = document.getElementById('terminal-break-alert-icon');
@@ -468,10 +478,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function setWorkMode(mode) {
+    if (terminalLocationSelect) {
+      terminalLocationSelect.value = (mode === 'onsite') ? 'onsite' : 'wfh';
+    }
+    if (pillModeOnsite) pillModeOnsite.className = mode === 'onsite' ? 'work-mode-pill-btn active' : 'work-mode-pill-btn';
+    if (pillModeWfh) pillModeWfh.className = mode === 'wfh' ? 'work-mode-pill-btn active-wfh' : 'work-mode-pill-btn';
+    if (pillModeSaturday) pillModeSaturday.className = mode === 'saturday' ? 'work-mode-pill-btn active-saturday' : 'work-mode-pill-btn';
+
+    updateTerminalGpsStatus();
+  }
+
   function setDefaultWorkLocation() {
     const day = new Date().getDay();
-    if (terminalLocationSelect) {
-      terminalLocationSelect.value = (day === 1) ? 'wfh' : 'onsite';
+    if (day === 6 || day === 0) {
+      setWorkMode('saturday');
+    } else if (day === 1) {
+      setWorkMode('wfh');
+    } else {
+      setWorkMode('onsite');
     }
   }
 
@@ -827,12 +852,35 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Work Mode Selection Pill Listeners
+  if (pillModeOnsite) {
+    pillModeOnsite.addEventListener('click', () => {
+      setWorkMode('onsite');
+      showToast('Switched to 🏢 Office (Onsite) mode', 'info');
+    });
+  }
+
+  if (pillModeWfh) {
+    pillModeWfh.addEventListener('click', () => {
+      setWorkMode('wfh');
+      showToast('Switched to 🏠 Home (WFH) mode', 'info');
+    });
+  }
+
+  if (pillModeSaturday) {
+    pillModeSaturday.addEventListener('click', () => {
+      setWorkMode('saturday');
+      showToast('Switched to 🛌 Saturday Rest Day mode', 'info');
+    });
+  }
+
   // Punch Action Listeners (Time IN / Break / Time OUT)
-  btnClockIn.addEventListener('click', async () => {
+  async function executeClockIn(location = 'onsite') {
     const dev = store.getActiveDeveloper();
-    const projId = terminalProjectSelect.value;
-    const taskNotes = terminalTaskNotes.value.trim() || 'Development Sprint';
-    const location = terminalLocationSelect.value || 'onsite';
+    if (!dev) return;
+
+    const projId = terminalProjectSelect ? terminalProjectSelect.value : 'proj-1';
+    const taskNotes = terminalTaskNotes ? terminalTaskNotes.value.trim() || 'Development Sprint' : 'Development Sprint';
 
     const isGpsFeatureOn = store.isFeatureEnabled('gpsGeofenceEnabled');
     const gpsSettings = store.getGpsSettings();
@@ -865,7 +913,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   `You are currently ${result.distanceMeters} meters away from the office (${gpsSettings.officeName}).\n` +
                   `Allowed radius is ${gpsSettings.radiusMeters} meters.\n\n` +
                   `👉 To clock in Onsite, you must be physically at the office.\n` +
-                  `👉 If you are working remotely today, switch Work Mode to "🏠 Home (WFH)".`);
+                  `👉 If you are working remotely today, choose "🏠 Home (WFH)".`);
             updateTerminalGpsStatus(true);
             return;
           }
@@ -875,7 +923,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (gpsSettings.strictGeofence) {
             alert(`⚠️ GPS LOCATION REQUIRED:\n\n${err.message}\n\n` +
                   `To record an Onsite shift, your browser must be allowed to verify your office location.\n` +
-                  `Click the lock/settings icon next to the browser URL to allow Location access, or switch to "🏠 Home (WFH)".`);
+                  `Click the lock/settings icon next to the browser URL to allow Location access, or choose "🏠 Home (WFH)".`);
             updateTerminalGpsStatus(true);
             return;
           }
@@ -904,7 +952,55 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast(`Time IN recorded (${locLabel}) for ${dev.name}!`, 'success');
     renderClockTerminal();
     renderAttendanceBoard();
+  }
+
+  btnClockIn.addEventListener('click', () => {
+    const dev = store.getActiveDeveloper();
+    if (modalClockinMode) {
+      if (clockinModalDevSubtitle) {
+        clockinModalDevSubtitle.textContent = `Recording Shift for ${dev.name} (${dev.role.split(' ')[0]})`;
+      }
+      modalClockinMode.classList.add('active');
+    } else {
+      executeClockIn(terminalLocationSelect ? terminalLocationSelect.value : 'onsite');
+    }
   });
+
+  if (btnChoiceOnsite) {
+    btnChoiceOnsite.addEventListener('click', () => {
+      if (modalClockinMode) modalClockinMode.classList.remove('active');
+      setWorkMode('onsite');
+      executeClockIn('onsite');
+    });
+  }
+
+  if (btnChoiceWfh) {
+    btnChoiceWfh.addEventListener('click', () => {
+      if (modalClockinMode) modalClockinMode.classList.remove('active');
+      setWorkMode('wfh');
+      executeClockIn('wfh');
+    });
+  }
+
+  if (btnChoiceSaturday) {
+    btnChoiceSaturday.addEventListener('click', () => {
+      if (modalClockinMode) modalClockinMode.classList.remove('active');
+      setWorkMode('saturday');
+      executeClockIn('wfh');
+    });
+  }
+
+  if (btnCloseClockinMode) {
+    btnCloseClockinMode.addEventListener('click', () => {
+      if (modalClockinMode) modalClockinMode.classList.remove('active');
+    });
+  }
+
+  if (btnCancelClockinMode) {
+    btnCancelClockinMode.addEventListener('click', () => {
+      if (modalClockinMode) modalClockinMode.classList.remove('active');
+    });
+  }
 
   btnBreak.addEventListener('click', () => {
     const dev = store.getActiveDeveloper();
