@@ -187,13 +187,33 @@
             Time IN (Clock In)
           </button>
           
-          <button class="btn btn-warning btn-lg" id="btn-break" disabled style="min-width: 160px;">
-            ☕ Start Break
-          </button>
+          <div style="display: inline-flex; align-items: center; gap: 6px;">
+            <select id="terminal-break-type" class="form-control" style="width: auto; min-width: 135px; padding: 10px 12px; font-weight: 600; font-size: 0.85rem;" title="Choose Break Type">
+              <option value="lunch">🍱 Lunch (1 hr)</option>
+              <option value="coffee">☕ Break (15m)</option>
+            </select>
+            <button class="btn btn-warning btn-lg" id="btn-break" disabled style="min-width: 150px;">
+              ☕ Start Break
+            </button>
+          </div>
 
           <button class="btn btn-danger btn-lg" id="btn-clock-out" disabled style="min-width: 180px;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="6" y="6" width="12" height="12"></rect></svg>
             Time OUT (Clock Out)
+          </button>
+        </div>
+
+        <!-- Live Break Status & Resume Instructions Banner (Shown during break) -->
+        <div id="terminal-break-alert" class="terminal-break-alert" style="display: none; margin-top: 14px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: var(--radius-md); padding: 12px 18px; align-items: center; justify-content: space-between; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 1.5rem;" id="terminal-break-alert-icon">🍱</span>
+            <div>
+              <div style="font-weight: 700; color: #f59e0b; font-size: 0.92rem;" id="terminal-break-alert-title">Break in Progress</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary);" id="terminal-break-alert-desc">When you finish lunch or coffee, click the green <strong>"▶ End Break (Resume Work)"</strong> button to resume your shift timer.</div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-success btn-sm" id="btn-quick-end-break" style="padding: 6px 14px; font-weight: 700; white-space: nowrap;">
+            ▶ End Break (Resume)
           </button>
         </div>
 
@@ -223,13 +243,19 @@
           </div>
         </div>
 
-        <!-- Project, Location & Work Notes Form -->
+        <!-- Project, Employee, Location & Work Notes Form -->
         <div class="session-context-card" style="margin-top: 28px;">
-          <div class="form-group" style="max-width: 190px;">
+          <div class="form-group" style="min-width: 220px;">
+            <label class="form-label" for="terminal-dev-select">👤 Active Employee</label>
+            <select id="terminal-dev-select" class="form-control" style="font-weight: 700; color: var(--accent-cyan); border-color: rgba(6, 182, 212, 0.4);">
+              <!-- Populated by JS -->
+            </select>
+          </div>
+          <div class="form-group" style="max-width: 180px;">
             <label class="form-label" for="terminal-location-select">Work Mode</label>
             <select id="terminal-location-select" class="form-control">
-              <option value="wfh">🏠 Home (WFH)</option>
               <option value="onsite">🏢 Office (Onsite)</option>
+              <option value="wfh">🏠 Home (WFH)</option>
             </select>
           </div>
           <div class="form-group" style="min-width: 200px;">
@@ -238,7 +264,7 @@
               <!-- Rendered by JS -->
             </select>
           </div>
-          <div class="form-group" style="flex: 2; min-width: 260px;">
+          <div class="form-group" style="flex: 2; min-width: 240px;">
             <label class="form-label" for="terminal-task-notes">Tasks Accomplished / Work Notes</label>
             <input type="text" id="terminal-task-notes" class="form-control" placeholder="e.g. JETZ API sprint & backend fixes..." value="Core feature development">
           </div>
@@ -274,6 +300,15 @@
 
           <div id="terminal-status-badge" class="badge badge-offline" style="align-self: center;">
             <span class="badge-dot"></span> Offline / Not Logged In
+          </div>
+
+          <div style="margin-top: 14px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-card-switch-dev" style="padding: 5px 12px; font-size: 0.76rem; border-radius: var(--radius-full);" title="Switch Employee or Log in with PIN">
+              🔑 Switch / Login via PIN
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-card-logout" style="padding: 5px 12px; font-size: 0.76rem; border-radius: var(--radius-full); color: var(--status-danger);" title="Lock screen & logout">
+              🔒 Logout
+            </button>
           </div>
         </div>
 

@@ -29,6 +29,15 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedAuthDevId = null;
 
   // DOM Elements - Terminal / Clock View
+  const terminalDevSelect = document.getElementById('terminal-dev-select');
+  const terminalBreakType = document.getElementById('terminal-break-type');
+  const terminalBreakAlert = document.getElementById('terminal-break-alert');
+  const terminalBreakAlertIcon = document.getElementById('terminal-break-alert-icon');
+  const terminalBreakAlertTitle = document.getElementById('terminal-break-alert-title');
+  const terminalBreakAlertDesc = document.getElementById('terminal-break-alert-desc');
+  const btnQuickEndBreak = document.getElementById('btn-quick-end-break');
+  const btnCardSwitchDev = document.getElementById('btn-card-switch-dev');
+  const btnCardLogout = document.getElementById('btn-card-logout');
   const terminalDevAvatar = document.getElementById('terminal-dev-avatar');
   const terminalDevName = document.getElementById('terminal-dev-name');
   const terminalDevRole = document.getElementById('terminal-dev-role');
@@ -424,6 +433,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // 4. Clock Terminal View (Confidential to Active Developer)
   // ==========================================
+  function renderEmployeeDropdown() {
+    if (!terminalDevSelect) return;
+    const developers = store.getState().developers;
+    const activeDev = store.getActiveDeveloper();
+    
+    terminalDevSelect.innerHTML = '';
+    developers.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d.id;
+      const cleanName = d.name.includes(',') ? `${d.name.split(',')[1].trim()} ${d.name.split(',')[0].trim()}` : d.name;
+      opt.textContent = `👤 ${cleanName} (${d.role.split(' ')[0]})`;
+      if (activeDev && d.id === activeDev.id) opt.selected = true;
+      terminalDevSelect.appendChild(opt);
+    });
+  }
+
   function renderProjectDropdowns() {
     const projects = store.getProjects();
     terminalProjectSelect.innerHTML = '';
@@ -453,6 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeDev = store.getActiveDeveloper();
     if (!activeDev) return;
 
+    renderEmployeeDropdown();
     renderPaydayWidgets();
 
     if (terminalDevAvatar) {
@@ -475,10 +501,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (btnClockIn) btnClockIn.disabled = true;
       if (btnBreak) {
         btnBreak.disabled = false;
-        btnBreak.textContent = '☕ Start Break';
+        const isLunch = terminalBreakType && terminalBreakType.value === 'lunch';
+        btnBreak.textContent = isLunch ? '🍱 Start Lunch' : '☕ Start Break';
         btnBreak.className = 'btn btn-warning btn-lg';
       }
       if (btnClockOut) btnClockOut.disabled = false;
+      if (terminalBreakType) terminalBreakType.disabled = false;
+      if (terminalBreakAlert) terminalBreakAlert.style.display = 'none';
 
       if (activeDev.activeSession) {
         const inDate = new Date(activeDev.activeSession.startTime);
@@ -509,12 +538,27 @@ document.addEventListener('DOMContentLoaded', () => {
         btnBreak.className = 'btn btn-success btn-lg';
       }
       if (btnClockOut) btnClockOut.disabled = false;
+      if (terminalBreakType) terminalBreakType.disabled = true;
 
       if (activeDev.activeSession) {
         const inDate = new Date(activeDev.activeSession.startTime);
         if (dtrTimeIn) dtrTimeIn.textContent = inDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         if (dtrDateIn) dtrDateIn.textContent = `Logged at ${inDate.toLocaleDateString()} (${(activeDev.activeSession.workLocation || 'onsite').toUpperCase()})`;
-        if (dtrBreakStatus) dtrBreakStatus.textContent = 'Break in progress...';
+        
+        let elapsedBreakMins = 0;
+        if (activeDev.activeSession.currentBreakStart) {
+          elapsedBreakMins = Math.max(0, Math.round((new Date() - new Date(activeDev.activeSession.currentBreakStart)) / 60000));
+        }
+        if (dtrBreakStatus) dtrBreakStatus.textContent = `Break in progress (${elapsedBreakMins}m)`;
+
+        if (terminalBreakAlert) {
+          terminalBreakAlert.style.display = 'flex';
+          const breakStartFormatted = activeDev.activeSession.currentBreakStart 
+            ? new Date(activeDev.activeSession.currentBreakStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+            : 'now';
+          if (terminalBreakAlertTitle) terminalBreakAlertTitle.textContent = `Break in Progress (${elapsedBreakMins}m elapsed)`;
+          if (terminalBreakAlertDesc) terminalBreakAlertDesc.innerHTML = `Started at <strong>${breakStartFormatted}</strong>. Click the green <strong>"▶ End Break (Resume Work)"</strong> button when done to continue shift.`;
+        }
       }
     } else {
       if (terminalStatusBadge) {
@@ -524,10 +568,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (btnClockIn) btnClockIn.disabled = false;
       if (btnBreak) {
         btnBreak.disabled = true;
-        btnBreak.textContent = '☕ Start Break';
+        const isLunch = terminalBreakType && terminalBreakType.value === 'lunch';
+        btnBreak.textContent = isLunch ? '🍱 Start Lunch' : '☕ Start Break';
         btnBreak.className = 'btn btn-warning btn-lg';
       }
       if (btnClockOut) btnClockOut.disabled = true;
+      if (terminalBreakType) terminalBreakType.disabled = false;
+      if (terminalBreakAlert) terminalBreakAlert.style.display = 'none';
 
       if (todayRecords.length > 0) {
         const latest = todayRecords[0];
@@ -861,8 +908,9 @@ document.addEventListener('DOMContentLoaded', () => {
   btnBreak.addEventListener('click', () => {
     const dev = store.getActiveDeveloper();
     if (dev.status === 'working') {
+      const isLunch = terminalBreakType && terminalBreakType.value === 'lunch';
       attendance.startBreak(dev.id);
-      showToast(`Break started at ${new Date().toLocaleTimeString()}`, 'warning');
+      showToast(`${isLunch ? '🍱 Lunch break' : '☕ Coffee break'} started at ${new Date().toLocaleTimeString()}`, 'warning');
     } else if (dev.status === 'break') {
       attendance.resumeWork(dev.id);
       showToast(`Break ended. Resumed shift at ${new Date().toLocaleTimeString()}`, 'success');
@@ -870,6 +918,51 @@ document.addEventListener('DOMContentLoaded', () => {
     renderClockTerminal();
     renderAttendanceBoard();
   });
+
+  if (terminalBreakType) {
+    terminalBreakType.addEventListener('change', () => {
+      const dev = store.getActiveDeveloper();
+      if (dev.status === 'working' && btnBreak) {
+        btnBreak.textContent = terminalBreakType.value === 'lunch' ? '🍱 Start Lunch' : '☕ Start Break';
+      }
+    });
+  }
+
+  if (btnQuickEndBreak) {
+    btnQuickEndBreak.addEventListener('click', () => {
+      const dev = store.getActiveDeveloper();
+      if (dev && dev.status === 'break') {
+        attendance.resumeWork(dev.id);
+        showToast(`Break ended. Resumed shift at ${new Date().toLocaleTimeString()}`, 'success');
+        renderClockTerminal();
+        renderAttendanceBoard();
+      }
+    });
+  }
+
+  if (terminalDevSelect) {
+    terminalDevSelect.addEventListener('change', (e) => {
+      store.setActiveDeveloper(e.target.value);
+      renderClockTerminal();
+      const newDev = store.getActiveDeveloper();
+      showToast(`Viewing terminal for ${newDev.name}`, 'info');
+    });
+  }
+
+  if (btnCardSwitchDev) {
+    btnCardSwitchDev.addEventListener('click', () => {
+      store.logout();
+      checkAuth();
+    });
+  }
+
+  if (btnCardLogout) {
+    btnCardLogout.addEventListener('click', () => {
+      store.logout();
+      showToast('Logged out successfully.', 'info');
+      checkAuth();
+    });
+  }
 
   btnClockOut.addEventListener('click', () => {
     const dev = store.getActiveDeveloper();
@@ -887,6 +980,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Master Render
   function renderAll() {
     renderProjectDropdowns();
+    renderEmployeeDropdown();
     populatePayrollDevFilter();
     renderClockTerminal();
     renderAttendanceBoard();
