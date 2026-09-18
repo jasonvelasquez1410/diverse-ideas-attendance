@@ -897,24 +897,48 @@ document.addEventListener('DOMContentLoaded', () => {
       if (emoji) emoji.textContent = '⚠️';
       if (statusText) statusText.textContent = 'GPS Permission Needed';
       if (badge) {
-        badge.textContent = 'Location Blocked';
+        badge.textContent = 'Tap to Enable';
         badge.className = 'badge-gps-outside';
         badge.removeAttribute('style');
       }
-      if (detailText) detailText.textContent = err.message || 'Please enable browser location access to clock in Onsite.';
+      if (detailText) detailText.textContent = '👉 Tap here or click "📍 GPS Help" to unblock phone location settings, or select 🏠 WFH.';
       if (distancePill) {
         distancePill.textContent = '⚠️ Location Inactive';
         distancePill.className = 'badge-gps-outside';
         distancePill.removeAttribute('style');
       }
+      if (btnOpenLocationHelp) {
+        btnOpenLocationHelp.className = 'btn btn-warning btn-sm';
+        btnOpenLocationHelp.innerHTML = '🔓 Enable GPS';
+      }
     }
+  }
+
+  const terminalGpsBanner = document.getElementById('terminal-gps-banner');
+  if (terminalGpsBanner) {
+    terminalGpsBanner.addEventListener('click', (e) => {
+      // If user clicked the refresh button specifically, let refresh handler execute
+      if (e.target && e.target.closest('#btn-refresh-gps')) return;
+      if (e.target && e.target.closest('#btn-open-location-help')) return;
+      
+      const badge = document.getElementById('terminal-gps-badge');
+      if (badge && (badge.textContent.includes('Tap to Enable') || badge.textContent.includes('Location Blocked') || badge.textContent.includes('Away'))) {
+        openLocationHelpModal();
+      }
+    });
   }
 
   const btnRefreshGps = document.getElementById('btn-refresh-gps');
   if (btnRefreshGps) {
-    btnRefreshGps.addEventListener('click', () => {
-      showToast('🔄 Refreshing device GPS location...', 'info');
-      updateTerminalGpsStatus(true);
+    btnRefreshGps.addEventListener('click', async () => {
+      showToast('🔄 Requesting device GPS permission...', 'info');
+      try {
+        await getCurrentDeviceGPS();
+        updateTerminalGpsStatus(true);
+      } catch (e) {
+        updateTerminalGpsStatus(true);
+        openLocationHelpModal(e.message);
+      }
     });
   }
 
