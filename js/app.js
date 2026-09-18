@@ -2019,9 +2019,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const strictEl = document.getElementById('setting-gps-strict');
     const wfhAnywhereEl = document.getElementById('setting-gps-wfh-anywhere');
 
-    if (nameEl) nameEl.value = gps.officeName || 'Diverse Ideas Office (Cagayan de Oro Hub)';
-    if (latEl) latEl.value = (gps.latitude !== undefined ? gps.latitude : 8.485600).toFixed(6);
-    if (lngEl) lngEl.value = (gps.longitude !== undefined ? gps.longitude : 124.656700).toFixed(6);
+    if (nameEl) nameEl.value = gps.officeName || 'Diverse Ideas Office (Zamuco, Kauswagan, CDO)';
+    if (latEl) latEl.value = (gps.latitude !== undefined ? gps.latitude : 8.497211).toFixed(6);
+    if (lngEl) lngEl.value = (gps.longitude !== undefined ? gps.longitude : 124.625679).toFixed(6);
     if (radiusSlider) radiusSlider.value = gps.radiusMeters || 250;
     if (radiusNumber) radiusNumber.value = gps.radiusMeters || 250;
     if (strictEl) strictEl.checked = gps.strictGeofence !== false;
@@ -2050,9 +2050,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const nameEl = document.getElementById('setting-gps-office-name');
 
       if (val === 'cdo') {
-        if (latEl) latEl.value = '8.485600';
-        if (lngEl) lngEl.value = '124.656700';
-        if (nameEl) nameEl.value = 'Diverse Ideas Office (Cagayan de Oro Hub)';
+        if (latEl) latEl.value = '8.497211';
+        if (lngEl) lngEl.value = '124.625679';
+        if (nameEl) nameEl.value = 'Diverse Ideas Office (Zamuco, Kauswagan, CDO)';
       } else if (val === 'frankfurt') {
         if (latEl) latEl.value = '50.110924';
         if (lngEl) lngEl.value = '8.682127';

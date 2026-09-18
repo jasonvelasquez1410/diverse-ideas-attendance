@@ -36,9 +36,9 @@ const DEFAULT_INITIAL_STATE = {
   // GPS Geofence & Office Location Configuration
   gpsSettings: {
     enabled: true,                    // Master GPS verification switch
-    officeName: 'Diverse Ideas Office (Cagayan de Oro Hub)',
-    latitude: 8.4856,                 // Office GPS Latitude (Default CDO Hub)
-    longitude: 124.6567,              // Office GPS Longitude (Default CDO Hub)
+    officeName: 'Diverse Ideas Office (Zamuco, Kauswagan, CDO)',
+    latitude: 8.497211,               // Office GPS Latitude (Kauswagan, CDO)
+    longitude: 124.625679,            // Office GPS Longitude (Kauswagan, CDO)
     radiusMeters: 250,                // Geofence radius in meters
     strictGeofence: true,             // If true, strictly prevent Onsite Time-IN if outside radius
     allowWfhAnywhere: true,           // If true, WFH employees can clock-in from anywhere
@@ -288,10 +288,14 @@ class Store {
         };
 
         // Ensure GPS settings are loaded and merged with defaults
-        parsed.gpsSettings = {
-          ...DEFAULT_INITIAL_STATE.gpsSettings,
-          ...(parsed.gpsSettings || {})
-        };
+        if (!parsed.gpsSettings || Math.abs(parsed.gpsSettings.latitude - 8.4856) < 0.001) {
+          parsed.gpsSettings = DEFAULT_INITIAL_STATE.gpsSettings;
+        } else {
+          parsed.gpsSettings = {
+            ...DEFAULT_INITIAL_STATE.gpsSettings,
+            ...parsed.gpsSettings
+          };
+        }
 
         return parsed;
       }
@@ -640,9 +644,9 @@ class Store {
   getGpsSettings() {
     return this.state.gpsSettings || {
       enabled: true,
-      officeName: 'Diverse Ideas Office (Cagayan de Oro Hub)',
-      latitude: 8.4856,
-      longitude: 124.6567,
+      officeName: 'Diverse Ideas Office (Zamuco, Kauswagan, CDO)',
+      latitude: 8.497211,
+      longitude: 124.625679,
       radiusMeters: 250,
       strictGeofence: true,
       allowWfhAnywhere: true,
