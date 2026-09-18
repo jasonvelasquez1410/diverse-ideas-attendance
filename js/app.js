@@ -30,14 +30,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // DOM Elements - Terminal / Clock View
   const terminalDevSelect = document.getElementById('terminal-dev-select');
+  const cardDevSelect = document.getElementById('card-dev-select');
   const terminalBreakType = document.getElementById('terminal-break-type');
   const terminalBreakAlert = document.getElementById('terminal-break-alert');
   const terminalBreakAlertIcon = document.getElementById('terminal-break-alert-icon');
   const terminalBreakAlertTitle = document.getElementById('terminal-break-alert-title');
   const terminalBreakAlertDesc = document.getElementById('terminal-break-alert-desc');
   const btnQuickEndBreak = document.getElementById('btn-quick-end-break');
-  const btnCardSwitchDev = document.getElementById('btn-card-switch-dev');
-  const btnCardLogout = document.getElementById('btn-card-logout');
   const terminalDevAvatar = document.getElementById('terminal-dev-avatar');
   const terminalDevName = document.getElementById('terminal-dev-name');
   const terminalDevRole = document.getElementById('terminal-dev-role');
@@ -434,18 +433,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. Clock Terminal View (Confidential to Active Developer)
   // ==========================================
   function renderEmployeeDropdown() {
-    if (!terminalDevSelect) return;
     const developers = store.getState().developers;
     const activeDev = store.getActiveDeveloper();
     
-    terminalDevSelect.innerHTML = '';
-    developers.forEach(d => {
-      const opt = document.createElement('option');
-      opt.value = d.id;
-      const cleanName = d.name.includes(',') ? `${d.name.split(',')[1].trim()} ${d.name.split(',')[0].trim()}` : d.name;
-      opt.textContent = `👤 ${cleanName} (${d.role.split(' ')[0]})`;
-      if (activeDev && d.id === activeDev.id) opt.selected = true;
-      terminalDevSelect.appendChild(opt);
+    [terminalDevSelect, cardDevSelect].forEach(sel => {
+      if (!sel) return;
+      sel.innerHTML = '';
+      developers.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.id;
+        const cleanName = d.name.includes(',') ? `${d.name.split(',')[1].trim()} ${d.name.split(',')[0].trim()}` : d.name;
+        opt.textContent = `👤 ${cleanName} (${d.role.split(' ')[0]})`;
+        if (activeDev && d.id === activeDev.id) opt.selected = true;
+        sel.appendChild(opt);
+      });
     });
   }
 
@@ -943,24 +944,20 @@ document.addEventListener('DOMContentLoaded', () => {
   if (terminalDevSelect) {
     terminalDevSelect.addEventListener('change', (e) => {
       store.setActiveDeveloper(e.target.value);
+      if (cardDevSelect) cardDevSelect.value = e.target.value;
       renderClockTerminal();
       const newDev = store.getActiveDeveloper();
-      showToast(`Viewing terminal for ${newDev.name}`, 'info');
+      showToast(`Viewing attendance for ${newDev.name}`, 'info');
     });
   }
 
-  if (btnCardSwitchDev) {
-    btnCardSwitchDev.addEventListener('click', () => {
-      store.logout();
-      checkAuth();
-    });
-  }
-
-  if (btnCardLogout) {
-    btnCardLogout.addEventListener('click', () => {
-      store.logout();
-      showToast('Logged out successfully.', 'info');
-      checkAuth();
+  if (cardDevSelect) {
+    cardDevSelect.addEventListener('change', (e) => {
+      store.setActiveDeveloper(e.target.value);
+      if (terminalDevSelect) terminalDevSelect.value = e.target.value;
+      renderClockTerminal();
+      const newDev = store.getActiveDeveloper();
+      showToast(`Viewing attendance log for ${newDev.name}`, 'info');
     });
   }
 

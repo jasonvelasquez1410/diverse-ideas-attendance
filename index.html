@@ -297,13 +297,14 @@
             <span class="badge-dot"></span> Offline / Not Logged In
           </div>
 
-          <div style="margin-top: 14px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
-            <button type="button" class="btn btn-secondary btn-sm" id="btn-card-switch-dev" style="padding: 5px 12px; font-size: 0.76rem; border-radius: var(--radius-full);" title="Switch Employee or Log in with PIN">
-              🔑 Switch / Login via PIN
-            </button>
-            <button type="button" class="btn btn-secondary btn-sm" id="btn-card-logout" style="padding: 5px 12px; font-size: 0.76rem; border-radius: var(--radius-full); color: var(--status-danger);" title="Lock screen & logout">
-              🔒 Logout
-            </button>
+          <!-- Direct Employee Selector Dropdown for Admin -->
+          <div style="margin-top: 16px; width: 100%; display: flex; flex-direction: column; gap: 6px; align-items: center;">
+            <label for="card-dev-select" style="font-size: 0.76rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">
+              👤 Select Employee to View DTR:
+            </label>
+            <select id="card-dev-select" class="form-control" style="width: 100%; max-width: 260px; text-align: center; font-weight: 700; font-size: 0.88rem; color: var(--accent-cyan); border-color: rgba(6, 182, 212, 0.4); background: var(--bg-tertiary); cursor: pointer;" title="Select an employee to instantly view their attendance records">
+              <!-- Populated by JS -->
+            </select>
           </div>
         </div>
 
