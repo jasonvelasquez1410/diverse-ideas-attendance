@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCloseLocationHelp = document.getElementById('btn-close-location-help');
   const btnCloseLocationHelpFooter = document.getElementById('btn-close-location-help-footer');
   const btnLocationFallbackWfh = document.getElementById('btn-location-fallback-wfh');
+  const btnLocationForceOnsite = document.getElementById('btn-location-force-onsite');
   const btnLocationRetryGps = document.getElementById('btn-location-retry-gps');
   const btnOpenLocationHelp = document.getElementById('btn-open-location-help');
   const locationHelpErrorText = document.getElementById('location-help-error-text');
@@ -965,7 +966,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Punch Action Listeners (Time IN / Break / Time OUT)
-  async function executeClockIn(location = 'onsite') {
+  async function executeClockIn(location = 'onsite', bypassGps = false) {
     const dev = store.getActiveDeveloper();
     if (!dev) return;
 
@@ -977,7 +978,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let capturedGps = null;
 
-    if (isGpsFeatureOn && gpsSettings.enabled) {
+    if (isGpsFeatureOn && gpsSettings.enabled && !bypassGps) {
       if (location === 'onsite') {
         const originalText = btnClockIn.innerHTML;
         btnClockIn.disabled = true;
@@ -1014,7 +1015,7 @@ document.addEventListener('DOMContentLoaded', () => {
             openLocationHelpModal(
               `⚠️ GPS LOCATION NOT ACQUIRED:\n\n` +
               `${err.message}\n\n` +
-              `👉 To clock in Onsite, allow location access in your phone settings or tap "Switch to WFH & Clock In Now" below.`
+              `👉 You can tap "Clock In Onsite Anyway (GPS Offline)" or "Switch to WFH & Clock In Now" below.`
             );
             updateTerminalGpsStatus(true);
             return;
@@ -1037,10 +1038,18 @@ document.addEventListener('DOMContentLoaded', () => {
           // Ignore WFH background capture error
         }
       }
+    } else if (bypassGps) {
+      capturedGps = {
+        isWithinGeofence: true,
+        bypassed: true,
+        officeName: gpsSettings.officeName,
+        note: 'GPS Offline / Manual Bypass',
+        timestamp: new Date().toISOString()
+      };
     }
 
     attendance.clockIn(dev.id, projId, taskNotes, location, capturedGps);
-    const locLabel = location === 'wfh' ? 'WFH (Home)' : (capturedGps && capturedGps.distanceMeters != null ? `ONSITE (${capturedGps.distanceMeters}m verified)` : 'ONSITE');
+    const locLabel = location === 'wfh' ? 'WFH (Home)' : (capturedGps && capturedGps.bypassed ? 'ONSITE (Offline Mode)' : (capturedGps && capturedGps.distanceMeters != null ? `ONSITE (${capturedGps.distanceMeters}m verified)` : 'ONSITE'));
     showToast(`Time IN recorded (${locLabel}) for ${dev.name}!`, 'success');
     renderClockTerminal();
     renderAttendanceBoard();
@@ -1111,6 +1120,13 @@ document.addEventListener('DOMContentLoaded', () => {
       closeLocationHelpModal();
       setWorkMode('wfh');
       executeClockIn('wfh');
+    });
+  }
+  if (btnLocationForceOnsite) {
+    btnLocationForceOnsite.addEventListener('click', () => {
+      closeLocationHelpModal();
+      setWorkMode('onsite');
+      executeClockIn('onsite', true);
     });
   }
   if (btnLocationRetryGps) {
