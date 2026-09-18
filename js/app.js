@@ -954,6 +954,8 @@ document.addEventListener('DOMContentLoaded', () => {
     attendanceGrid.innerHTML = '';
 
     let onlineCount = 0;
+    let onsiteCount = 0;
+    let wfhCount = 0;
     let todayTotalMinutes = 0;
     let todayTotalGross = 0;
     const todayStr = new Date().toISOString().split('T')[0];
@@ -964,8 +966,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     state.developers.forEach(dev => {
-      if (dev.status === 'working' || dev.status === 'break') {
+      const isWorking = dev.status === 'working' || dev.status === 'break';
+      if (isWorking) {
         onlineCount++;
+        if (dev.activeSession && dev.activeSession.workLocation === 'wfh') {
+          wfhCount++;
+        } else {
+          onsiteCount++;
+        }
       }
 
       const liveStats = attendance.calculateLiveStats(dev);
@@ -987,9 +995,25 @@ document.addEventListener('DOMContentLoaded', () => {
       const currentProj = dev.activeSession ? store.getProjectById(dev.activeSession.projectId).name : 'Idle';
       const currentTask = dev.activeSession ? (dev.activeSession.taskNote || 'Working') : 'Not clocked in';
       const isWfh = (dev.activeSession && dev.activeSession.workLocation === 'wfh');
-      const locationPill = dev.activeSession 
-        ? `<span class="badge" style="background: rgba(99, 102, 241, 0.15); color: var(--accent-cyan); font-size: 0.72rem;">${isWfh ? '🏠 WFH' : '🏢 Onsite'}</span>`
-        : '';
+      
+      let locationBadge = '';
+      let locationRowHtml = '';
+      if (isWorking) {
+        if (isWfh) {
+          locationBadge = `<span class="badge badge-gps-wfh" style="font-size: 0.72rem;">🏠 WFH</span>`;
+          locationRowHtml = `<span style="color: var(--accent-cyan); font-weight: 700;">🏠 Remote (WFH)</span>`;
+        } else {
+          const distStr = dev.activeSession && dev.activeSession.gps && dev.activeSession.gps.distanceMeters != null ? `${dev.activeSession.gps.distanceMeters}m` : 'Verified';
+          locationBadge = `<span class="badge badge-gps-verified" style="font-size: 0.72rem;">🏢 Onsite (${distStr})</span>`;
+          locationRowHtml = `<span style="color: var(--status-working); font-weight: 700;">🏢 Office Onsite (${distStr})</span>`;
+        }
+      } else {
+        locationRowHtml = `<span style="color: var(--text-muted);">⚪ Not Logged In</span>`;
+      }
+
+      const displayName = dev.name.includes(',')
+        ? `${dev.name.split(',')[1].trim()} ${dev.name.split(',')[0].trim()}`
+        : dev.name;
 
       card.innerHTML = `
         <div class="attendance-card-header">
@@ -999,8 +1023,8 @@ document.addEventListener('DOMContentLoaded', () => {
               <div class="online-indicator ${dev.status}"></div>
             </div>
             <div>
-              <div style="font-weight: 700; color: var(--text-primary); font-size: 0.98rem; display: flex; align-items: center; gap: 6px;">
-                ${dev.name} ${locationPill}
+              <div style="font-weight: 700; color: var(--text-primary); font-size: 0.98rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                ${displayName} ${locationBadge}
               </div>
               <div style="font-size: 0.8rem; color: var(--text-secondary);">${dev.role}</div>
             </div>
@@ -1009,6 +1033,10 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="attendance-details-list">
+          <div class="attendance-detail-row">
+            <span class="attendance-detail-label">Location:</span>
+            <span class="attendance-detail-value">${locationRowHtml}</span>
+          </div>
           <div class="attendance-detail-row">
             <span class="attendance-detail-label">Current Project:</span>
             <span class="attendance-detail-value" style="font-family: var(--font-sans); font-size: 0.82rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 150px;">
@@ -1019,13 +1047,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="attendance-detail-label">Active Session:</span>
             <span class="attendance-detail-value" style="color: var(--accent-cyan);">${liveStats.formattedTime}</span>
           </div>
-          <div class="attendance-detail-row">
-            <span class="attendance-detail-label">Status:</span>
-            <span class="attendance-detail-value" style="color: var(--text-secondary); font-size: 0.82rem;">Active Today</span>
-          </div>
         </div>
 
-        <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
+        <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border-color);">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
           <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${currentTask}</span>
         </div>
@@ -1034,7 +1058,7 @@ document.addEventListener('DOMContentLoaded', () => {
       attendanceGrid.appendChild(card);
     });
 
-    statOnlineDevs.textContent = `${onlineCount} / ${state.developers.length}`;
+    statOnlineDevs.innerHTML = `${onlineCount} / ${state.developers.length} <span style="font-size: 0.72rem; font-weight: 400; color: var(--text-muted); display: block; margin-top: 2px;">🏢 ${onsiteCount} Onsite • 🏠 ${wfhCount} WFH</span>`;
     statTodayHours.textContent = `${(todayTotalMinutes / 60).toFixed(1)} hrs`;
     statTodayPayroll.textContent = store.isAdmin() ? `$${todayTotalGross.toFixed(2)}` : '••••••';
   }
