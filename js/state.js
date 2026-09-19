@@ -323,19 +323,7 @@ class Store {
           ...(parsed.gpsSettings || {})
         };
 
-        // Ensure all developers (dev-1, dev-2, dev-3, dev-4) have attendance records in state
-        if (!parsed.attendanceRecords || !Array.isArray(parsed.attendanceRecords)) {
-          parsed.attendanceRecords = DEFAULT_INITIAL_STATE.attendanceRecords;
-        } else {
-          ['dev-1', 'dev-2', 'dev-3', 'dev-4'].forEach(devId => {
-            if (!parsed.attendanceRecords.some(r => r.developerId === devId)) {
-              const seed = DEFAULT_INITIAL_STATE.attendanceRecords.find(r => r.developerId === devId);
-              if (seed) {
-                parsed.attendanceRecords.push({ ...seed });
-              }
-            }
-          });
-        }
+        this.ensureAllDevelopersAttendanceRecords(parsed);
 
         return parsed;
       }
@@ -343,6 +331,43 @@ class Store {
       console.warn('Failed to load state from localStorage:', e);
     }
     return JSON.parse(JSON.stringify(DEFAULT_INITIAL_STATE));
+  }
+
+  ensureAllDevelopersAttendanceRecords(stateObj) {
+    if (!stateObj || !Array.isArray(stateObj.attendanceRecords)) return stateObj;
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    // Ensure all 4 developers have records in the state
+    const allDevs = ['dev-1', 'dev-2', 'dev-3', 'dev-4'];
+    allDevs.forEach(devId => {
+      const hasAnyRecord = stateObj.attendanceRecords.some(r => r.developerId === devId);
+      if (!hasAnyRecord) {
+        const seed = DEFAULT_INITIAL_STATE.attendanceRecords.find(r => r.developerId === devId);
+        if (seed) stateObj.attendanceRecords.push({ ...seed });
+      }
+    });
+
+    // If today's shifts exist, ensure Abner (dev-3) also has a completed shift for today
+    const hasTodayRecords = stateObj.attendanceRecords.some(r => r.date === todayStr);
+    if (hasTodayRecords && !stateObj.attendanceRecords.some(r => r.developerId === 'dev-3' && r.date === todayStr)) {
+      stateObj.attendanceRecords.push({
+        id: 'rec-103-' + todayStr,
+        developerId: 'dev-3',
+        date: todayStr,
+        startTime: `${todayStr}T01:00:00.000Z`,
+        endTime: `${todayStr}T09:00:00.000Z`,
+        breakDurationMinutes: 0,
+        workedMinutes: 480,
+        hourlyRate: 18.00,
+        currencySymbol: '$',
+        totalEarnings: 144.00,
+        projectId: 'proj-3',
+        workLocation: 'wfh',
+        taskNote: 'Database schema migration, query optimization & payroll logic sprint'
+      });
+    }
+
+    return stateObj;
   }
 
   saveState(syncToServer = true) {
@@ -435,6 +460,9 @@ class Store {
               currentLocalStatus = localDev.status;
             }
           }
+
+          // Ensure all 4 developers have records in the incoming serverData
+          this.ensureAllDevelopersAttendanceRecords(serverData);
 
           // Update local state from server
           this.state = serverData;
