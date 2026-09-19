@@ -40,9 +40,9 @@ const DEFAULT_INITIAL_STATE = {
     officeName: 'Diverse Ideas Office (Zamuco, Kauswagan, CDO)',
     latitude: 8.502213,               // Office GPS Latitude (Kauswagan, CDO)
     longitude: 124.643890,            // Office GPS Longitude (Kauswagan, CDO)
-    radiusMeters: 250,                // Geofence radius in meters
-    strictGeofence: true,             // If true, strictly prevent Onsite Time-IN if outside radius
-    allowWfhAnywhere: true,           // If true, WFH employees can clock-in from anywhere
+    radiusMeters: 750,                // Expanded geofence radius to accommodate mobile GPS indoors
+    strictGeofence: false,            // Flexible geofence: logs location for audit without blocking on GPS drift
+    allowWfhAnywhere: true,           // If true, WFH & Saturday employees can clock-in from anywhere
     wfhCaptureGps: true               // Capture GPS coordinates on WFH punch for audit log
   },
   workSchedules: {
@@ -920,19 +920,20 @@ class Store {
   /**
    * Check if given GPS coords are within the office geofence radius
    */
-  checkGeofence(userLat, userLng) {
+  checkGeofence(userLat, userLng, userAccuracy = 0) {
     const gps = this.getGpsSettings();
     if (!gps.enabled || !this.state.features.gpsGeofenceEnabled) {
-      return { isWithin: true, distanceMeters: 0, allowedRadius: gps.radiusMeters, officeName: gps.officeName, bypassed: true };
+      return { isWithin: true, distanceMeters: 0, allowedRadius: gps.radiusMeters || 750, officeName: gps.officeName, bypassed: true };
     }
     const distance = this.calculateDistance(userLat, userLng, gps.latitude, gps.longitude);
     if (distance === null) {
-      return { isWithin: false, distanceMeters: null, allowedRadius: gps.radiusMeters, officeName: gps.officeName, error: 'No coordinates' };
+      return { isWithin: false, distanceMeters: null, allowedRadius: gps.radiusMeters || 750, officeName: gps.officeName, error: 'No coordinates' };
     }
+    const effectiveRadius = Math.max(gps.radiusMeters || 750, (gps.radiusMeters || 750) + Math.min(500, (userAccuracy || 0)));
     return {
-      isWithin: distance <= gps.radiusMeters,
+      isWithin: distance <= effectiveRadius,
       distanceMeters: distance,
-      allowedRadius: gps.radiusMeters,
+      allowedRadius: gps.radiusMeters || 750,
       officeName: gps.officeName,
       officeLat: gps.latitude,
       officeLng: gps.longitude

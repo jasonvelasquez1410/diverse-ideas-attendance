@@ -6,8 +6,8 @@
   <meta name="description" content="DevTrack - Modern In-House Developer Attendance & Hourly Rate Payroll Dashboard for Diverse Ideas GMBH">
   <title>DevTrack | Developer Attendance, Time Off & Payroll</title>
   <link rel="icon" type="image/png" href="assets/favicon.png">
-  <link rel="stylesheet" href="css/style.css?v=20260919e">
-  <link rel="stylesheet" href="css/components.css?v=20260919e">
+  <link rel="stylesheet" href="css/style.css?v=20260919f">
+  <link rel="stylesheet" href="css/components.css?v=20260919f">
 </head>
 <body>
 
@@ -137,6 +137,7 @@
         </div>
 
         <!-- 4 Timelog Timestamp Metric Boxes (Sprout HR Style) -->
+        <!-- 3 Timelog Timestamp Metric Boxes (Time IN, Time OUT, Rendered Hours) -->
         <div class="sprout-timestamp-grid">
           
           <!-- Box 1: Time IN -->
@@ -154,17 +155,7 @@
             <div style="font-size: 0.72rem; color: var(--text-muted);" id="dtr-date-in">Not yet logged</div>
           </div>
 
-          <!-- Box 2: Break -->
-          <div class="timestamp-box" id="box-break">
-            <div class="timestamp-label">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
-              Break Time
-            </div>
-            <div class="timestamp-val highlight-amber" id="dtr-break-time">--:--</div>
-            <div style="font-size: 0.72rem; color: var(--text-muted);" id="dtr-break-status">No active break</div>
-          </div>
-
-          <!-- Box 3: Time OUT -->
+          <!-- Box 2: Time OUT -->
           <div class="timestamp-box" id="box-time-out" style="position: relative;">
             <div class="timestamp-label" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
               <span style="display: inline-flex; align-items: center; gap: 4px;">
@@ -179,7 +170,7 @@
             <div style="font-size: 0.72rem; color: var(--text-muted);" id="dtr-date-out">End of shift</div>
           </div>
 
-          <!-- Box 4: Total Rendered Hours -->
+          <!-- Box 3: Total Rendered Hours -->
           <div class="timestamp-box" id="box-total-hours">
             <div class="timestamp-label">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
@@ -201,7 +192,7 @@
               <span class="pill-icon">🏢</span>
               <div style="text-align: left; line-height: 1.2;">
                 <div style="font-weight: 700; font-size: 0.92rem;">Office (Onsite)</div>
-                <div style="font-size: 0.72rem; color: var(--text-secondary);">Kauswagan CDO (250m GPS)</div>
+                <div style="font-size: 0.72rem; color: var(--text-secondary);">Kauswagan CDO (Office GPS)</div>
               </div>
             </button>
 
@@ -223,34 +214,16 @@
           </div>
         </div>
 
-        <!-- Clock Action Buttons (Sprout Style) -->
+        <!-- Clock Action Buttons (Time IN & Time OUT) -->
         <div class="clock-actions-row">
-          <button class="btn btn-success btn-lg" id="btn-clock-in" style="min-width: 180px;">
+          <button class="btn btn-success btn-lg" id="btn-clock-in" style="min-width: 220px; font-size: 1.05rem;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
             Time IN (Clock In)
           </button>
           
-          <button class="btn btn-warning btn-lg" id="btn-break" disabled style="min-width: 180px;">
-            🍱 Start Lunch
-          </button>
-
-          <button class="btn btn-danger btn-lg" id="btn-clock-out" disabled style="min-width: 180px;">
+          <button class="btn btn-danger btn-lg" id="btn-clock-out" disabled style="min-width: 220px; font-size: 1.05rem;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="6" y="6" width="12" height="12"></rect></svg>
             Time OUT (Clock Out)
-          </button>
-        </div>
-
-        <!-- Live Lunch Status & Resume Instructions Banner (Shown during Lunch) -->
-        <div id="terminal-break-alert" class="terminal-break-alert" style="display: none; margin-top: 14px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: var(--radius-md); padding: 12px 18px; align-items: center; justify-content: space-between; gap: 12px;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 1.5rem;" id="terminal-break-alert-icon">🍱</span>
-            <div>
-              <div style="font-weight: 700; color: #f59e0b; font-size: 0.92rem;" id="terminal-break-alert-title">Lunch in Progress</div>
-              <div style="font-size: 0.8rem; color: var(--text-secondary);" id="terminal-break-alert-desc">Shift timer is paused for meal time. Click the green <strong>"▶ End Lunch (Resume Work)"</strong> button when done eating to continue shift.</div>
-            </div>
-          </div>
-          <button type="button" class="btn btn-success btn-sm" id="btn-quick-end-break" style="padding: 6px 14px; font-weight: 700; white-space: nowrap;">
-            ▶ End Lunch (Resume)
           </button>
         </div>
 
@@ -2876,11 +2849,11 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- Application Scripts -->
-  <script src="js/state.js?v=20260919e"></script>
-  <script src="js/attendance.js?v=20260919e"></script>
-  <script src="js/payroll.js?v=20260919e"></script>
-  <script src="js/export.js?v=20260919e"></script>
-  <script src="js/app.js?v=20260919e"></script>
+  <script src="js/state.js?v=20260919f"></script>
+  <script src="js/attendance.js?v=20260919f"></script>
+  <script src="js/payroll.js?v=20260919f"></script>
+  <script src="js/export.js?v=20260919f"></script>
+  <script src="js/app.js?v=20260919f"></script>
 
 </body>
 </html>
