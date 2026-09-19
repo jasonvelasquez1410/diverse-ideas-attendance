@@ -3502,6 +3502,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 60);
   };
 
+  // Live Database & Server Sync Status Listener
+  const syncStatusIndicator = document.getElementById('sync-status-indicator');
+  const syncStatusDot = document.getElementById('sync-status-dot');
+  const syncStatusText = document.getElementById('sync-status-text');
+
+  window.addEventListener('devtrack:syncStatus', (e) => {
+    if (!syncStatusIndicator || !syncStatusDot || !syncStatusText) return;
+    const { status, isServerConnected } = e.detail || {};
+
+    if (status === 'saving') {
+      syncStatusIndicator.style.background = 'rgba(245, 158, 11, 0.12)';
+      syncStatusIndicator.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+      syncStatusIndicator.style.color = '#d97706';
+      syncStatusDot.style.background = '#f59e0b';
+      syncStatusText.textContent = 'Saving...';
+    } else if (isServerConnected || status === 'synced') {
+      syncStatusIndicator.style.background = 'rgba(16, 185, 129, 0.12)';
+      syncStatusIndicator.style.borderColor = 'rgba(16, 185, 129, 0.25)';
+      syncStatusIndicator.style.color = '#10b981';
+      syncStatusDot.style.background = '#10b981';
+      syncStatusText.textContent = 'Saved & Synced';
+    } else {
+      syncStatusIndicator.style.background = 'rgba(99, 102, 241, 0.12)';
+      syncStatusIndicator.style.borderColor = 'rgba(99, 102, 241, 0.25)';
+      syncStatusIndicator.style.color = '#6366f1';
+      syncStatusDot.style.background = '#6366f1';
+      syncStatusText.textContent = 'Saved (Local)';
+    }
+  });
+
   initHeaderClock();
   initSettingsSubtabs();
   checkAuth();

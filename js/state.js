@@ -1,6 +1,7 @@
 /**
  * DevTrack - State Management Store with PIN Protection & Confidential Rates
- * Handles persistence, team rosters, PIN authentication, and role permissions.
+ * Handles persistence, team rosters, PIN authentication, role permissions,
+ * and live bidirectional server synchronization across office network / cloud.
  */
 
 const STORAGE_KEY = 'devtrack_app_state_v2';
@@ -8,7 +9,7 @@ const SESSION_AUTH_KEY = 'devtrack_active_session_auth';
 
 // Default initial state
 const DEFAULT_INITIAL_STATE = {
-  adminPin: '0104', // Admin Master PIN (Tefanny)
+  adminPin: '9999', // Admin Master PIN (Tefanny - 9999 / 0104 fallback)
   activeDeveloperId: 'dev-1',
   currency: 'USD',
   currencySymbol: '$',
@@ -37,8 +38,8 @@ const DEFAULT_INITIAL_STATE = {
   gpsSettings: {
     enabled: true,                    // Master GPS verification switch
     officeName: 'Diverse Ideas Office (Zamuco, Kauswagan, CDO)',
-    latitude: 8.497211,               // Office GPS Latitude (Kauswagan, CDO)
-    longitude: 124.625679,            // Office GPS Longitude (Kauswagan, CDO)
+    latitude: 8.502213,               // Office GPS Latitude (Kauswagan, CDO)
+    longitude: 124.643890,            // Office GPS Longitude (Kauswagan, CDO)
     radiusMeters: 250,                // Geofence radius in meters
     strictGeofence: true,             // If true, strictly prevent Onsite Time-IN if outside radius
     allowWfhAnywhere: true,           // If true, WFH employees can clock-in from anywhere
@@ -116,7 +117,7 @@ const DEFAULT_INITIAL_STATE = {
       leaveCredits: { vacation: 14, sick: 10, emergency: 5 }
     }
   ],
-    projects: [
+  projects: [
     { id: 'proj-1', name: 'Diverse Ideas Core Portal', code: 'DICP', description: 'Internal staff management & attendance suite', status: 'Active' },
     { id: 'proj-2', name: 'JETZ Enterprise System', code: 'JETZ', description: 'Enterprise resource planning & client platform', status: 'Active' },
     { id: 'proj-3', name: 'Accounting & Payroll Module', code: 'ACCT', description: 'Multi-currency dual USD/PHP wage calculation system', status: 'Active' },
@@ -128,7 +129,7 @@ const DEFAULT_INITIAL_STATE = {
     {
       id: 'req-201',
       developerId: 'dev-1',
-      type: 'Leave', // 'Leave' | 'COA' | 'Overtime'
+      type: 'Leave',
       subType: 'Vacation Leave',
       startDate: '2026-09-18',
       endDate: '2026-09-19',
@@ -239,6 +240,25 @@ class Store {
     this.listeners = [];
     this.state = this.loadState();
     this.auth = this.loadAuth();
+    this.isServerConnected = false;
+    this.lastServerSyncTimestamp = 0;
+    this.serverSyncTimeout = null;
+
+    // Cross-tab synchronization
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', (event) => {
+        if (event.key === STORAGE_KEY && event.newValue) {
+          try {
+            const externalState = JSON.parse(event.newValue);
+            this.state = externalState;
+            this.notify();
+          } catch (err) {}
+        }
+      });
+    }
+
+    // Start background sync with server
+    this.initServerSync();
   }
 
   loadState() {
@@ -248,54 +268,45 @@ class Store {
         const parsed = JSON.parse(serialized);
         if (!parsed.usdToPhpRate) parsed.usdToPhpRate = 58.50;
         
-        // Merge complete 2026 Philippine & CDO Holidays if needed
-        if (!parsed.holidays || parsed.holidays.length < 18) {
+        // Ensure holidays array exists
+        if (!parsed.holidays || !Array.isArray(parsed.holidays) || parsed.holidays.length === 0) {
           parsed.holidays = DEFAULT_INITIAL_STATE.holidays;
         }
 
         // Ensure project objects have status and description
-        if (parsed.projects) {
+        if (parsed.projects && Array.isArray(parsed.projects)) {
           parsed.projects.forEach(p => {
             if (!p.status) p.status = 'Active';
             if (!p.description) p.description = '';
           });
         }
 
-        // Automatic migration: if old placeholder demo names exist, replace with real team roster
-        if (!parsed.developers || parsed.developers.some(d => d.name.includes('Alex Rivera') || d.name.includes('Chloe Gomez') || !d.name.includes('BAYSON'))) {
+        // Safe migration: ONLY replace if old placeholder names ('Alex Rivera'/'Chloe Gomez') exist AND no real developers
+        if (parsed.developers && parsed.developers.some(d => d.name && (d.name.includes('Alex Rivera') || d.name.includes('Chloe Gomez')))) {
           parsed.developers = DEFAULT_INITIAL_STATE.developers;
-          parsed.adminPin = '0104';
         }
 
-        // Apply updated 09:00 AM – 05:00 PM and 35h-45h/wk policy (Tefanny work policy)
-        if (!parsed.workSchedules || parsed.workSchedules.shiftStart === '08:00' || !parsed.workSchedules.minWeeklyHours) {
-          parsed.workSchedules = {
-            ...DEFAULT_INITIAL_STATE.workSchedules,
-            ...(parsed.workSchedules || {}),
-            shiftStart: '09:00',
-            shiftEnd: '17:00',
-            wfhDays: ['Monday'],
-            minWeeklyHours: 35,
-            maxWeeklyHours: 45,
-            saturdayPolicy: 'Optional / Rest Day (No Forcing)'
-          };
+        // Ensure default admin PIN exists if not set
+        if (!parsed.adminPin) {
+          parsed.adminPin = '9999';
         }
 
-        // Ensure feature switches are loaded and defaults applied
+        // Ensure workSchedules
+        if (!parsed.workSchedules) {
+          parsed.workSchedules = { ...DEFAULT_INITIAL_STATE.workSchedules };
+        }
+
+        // Ensure feature switches
         parsed.features = {
           ...DEFAULT_INITIAL_STATE.features,
           ...(parsed.features || {})
         };
 
-        // Ensure GPS settings are loaded and merged with defaults
-        if (!parsed.gpsSettings || Math.abs(parsed.gpsSettings.latitude - 8.4856) < 0.001) {
-          parsed.gpsSettings = DEFAULT_INITIAL_STATE.gpsSettings;
-        } else {
-          parsed.gpsSettings = {
-            ...DEFAULT_INITIAL_STATE.gpsSettings,
-            ...parsed.gpsSettings
-          };
-        }
+        // Ensure GPS settings
+        parsed.gpsSettings = {
+          ...DEFAULT_INITIAL_STATE.gpsSettings,
+          ...(parsed.gpsSettings || {})
+        };
 
         return parsed;
       }
@@ -305,13 +316,17 @@ class Store {
     return JSON.parse(JSON.stringify(DEFAULT_INITIAL_STATE));
   }
 
-  saveState() {
+  saveState(syncToServer = true) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
     } catch (e) {
-      console.error('Failed to persist state:', e);
+      console.error('Failed to persist state to localStorage:', e);
     }
     this.notify();
+
+    if (syncToServer) {
+      this.debouncedSaveToServer();
+    }
   }
 
   loadAuth() {
@@ -330,11 +345,140 @@ class Store {
     this.notify();
   }
 
+  // ==========================================
+  // Bidirectional Server Synchronization Engine
+  // ==========================================
+
+  async initServerSync() {
+    if (typeof window === 'undefined' || !window.fetch) return;
+
+    // Initial server fetch
+    await this.fetchServerState(true);
+
+    // Periodic background sync every 6 seconds
+    setInterval(() => {
+      this.fetchServerState(false);
+    }, 6000);
+  }
+
+  dispatchSyncStatus(status, detail = {}) {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('devtrack:syncStatus', {
+        detail: { status, isServerConnected: this.isServerConnected, ...detail }
+      }));
+    }
+  }
+
+  async fetchServerState(isInitial = false) {
+    try {
+      const response = await fetch('/api/state', {
+        method: 'GET',
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server returned HTTP ${response.status}`);
+      }
+
+      const serverData = await response.json();
+      this.isServerConnected = true;
+
+      if (serverData && serverData.exists === false) {
+        // Server database is empty or new -> Push local state to seed server database
+        await this.postStateToServer(this.state);
+        this.dispatchSyncStatus('synced', { message: 'Database initialized on local server' });
+        return;
+      }
+
+      if (serverData && Array.isArray(serverData.developers) && Array.isArray(serverData.attendanceRecords)) {
+        const serverTimestamp = serverData._serverTimestamp || 0;
+
+        // If server data is present and newer or initial load
+        if (isInitial || serverTimestamp > this.lastServerSyncTimestamp) {
+          // Preserve local active clock-in session for currently logged-in developer
+          const activeAuthDevId = (this.auth && this.auth.devId) ? this.auth.devId : null;
+          let currentLocalSession = null;
+          let currentLocalStatus = null;
+          if (activeAuthDevId) {
+            const localDev = this.getDeveloperById(activeAuthDevId);
+            if (localDev && localDev.activeSession) {
+              currentLocalSession = localDev.activeSession;
+              currentLocalStatus = localDev.status;
+            }
+          }
+
+          // Update local state from server
+          this.state = serverData;
+          this.lastServerSyncTimestamp = serverTimestamp;
+
+          // Restore local active session if active
+          if (activeAuthDevId && currentLocalSession) {
+            const mergedDev = this.getDeveloperById(activeAuthDevId);
+            if (mergedDev) {
+              mergedDev.activeSession = currentLocalSession;
+              mergedDev.status = currentLocalStatus;
+            }
+          }
+
+          // Persist to localStorage without triggering loop
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+          } catch (e) {}
+
+          this.notify();
+          this.dispatchSyncStatus('synced', { message: 'Synchronized with server' });
+        }
+      }
+    } catch (err) {
+      this.isServerConnected = false;
+      this.dispatchSyncStatus('local', { error: err.message });
+    }
+  }
+
+  debouncedSaveToServer() {
+    if (this.serverSyncTimeout) {
+      clearTimeout(this.serverSyncTimeout);
+    }
+    this.dispatchSyncStatus('saving');
+
+    this.serverSyncTimeout = setTimeout(async () => {
+      await this.postStateToServer(this.state);
+    }, 400);
+  }
+
+  async postStateToServer(stateData) {
+    try {
+      const response = await fetch('/api/state', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
+        },
+        body: JSON.stringify(stateData)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        this.isServerConnected = true;
+        this.lastServerSyncTimestamp = result.timestamp || Date.now();
+        this.dispatchSyncStatus('synced', { timestamp: this.lastServerSyncTimestamp });
+      } else {
+        throw new Error(`Save failed with HTTP ${response.status}`);
+      }
+    } catch (err) {
+      this.isServerConnected = false;
+      this.dispatchSyncStatus('local', { error: err.message });
+    }
+  }
+
+  // ==========================================
   // Authentication & Verification
+  // ==========================================
+
   loginDeveloper(devId, pin) {
     const trimmedPin = String(pin).trim();
-    // Master Key: If Admin Master PIN (9999) is entered, ALWAYS route to Admin Mode!
-    if (trimmedPin === String(this.state.adminPin).trim() || trimmedPin === '9999') {
+    // Master Key: If Admin Master PIN (9999 or 0104) is entered, ALWAYS route to Admin Mode!
+    if (trimmedPin === String(this.state.adminPin).trim() || trimmedPin === '9999' || trimmedPin === '0104') {
       return this.loginAdmin(trimmedPin);
     }
 
@@ -360,7 +504,7 @@ class Store {
 
   loginAdmin(pin) {
     const trimmedPin = String(pin).trim();
-    if (trimmedPin === String(this.state.adminPin).trim() || trimmedPin === '9999') {
+    if (trimmedPin === String(this.state.adminPin).trim() || trimmedPin === '9999' || trimmedPin === '0104') {
       this.saveAuth({
         isAuthenticated: true,
         role: 'admin',
@@ -468,7 +612,8 @@ class Store {
       initials,
       email: devData.email || '',
       status: 'offline',
-      activeSession: null
+      activeSession: null,
+      leaveCredits: devData.leaveCredits || { vacation: 12, sick: 10, emergency: 5 }
     };
 
     this.state.developers.push(newDev);
@@ -536,20 +681,23 @@ class Store {
 
   // Attendance Records
   addAttendanceRecord(record) {
+    if (!this.state.attendanceRecords) this.state.attendanceRecords = [];
     this.state.attendanceRecords.unshift({
-      id: 'rec-' + Date.now(),
+      id: record.id || ('rec-' + Date.now()),
       ...record
     });
     this.saveState();
   }
 
   deleteAttendanceRecord(id) {
+    if (!this.state.attendanceRecords) return;
     this.state.attendanceRecords = this.state.attendanceRecords.filter(r => r.id !== id);
     this.saveState();
   }
 
   // Leave & Request Management (Sprout HR Style)
   getRequests(devId = null) {
+    if (!this.state.requests) return [];
     if (devId && devId !== 'all') {
       return this.state.requests.filter(r => r.developerId === devId);
     }
@@ -560,7 +708,7 @@ class Store {
     const newReq = {
       id: 'req-' + Date.now(),
       developerId: reqData.developerId,
-      type: reqData.type, // 'Leave' | 'COA' | 'Overtime'
+      type: reqData.type,
       subType: reqData.subType || reqData.type,
       startDate: reqData.startDate,
       endDate: reqData.endDate || reqData.startDate,
@@ -570,12 +718,14 @@ class Store {
       status: 'Pending',
       dateFiled: new Date().toISOString().split('T')[0]
     };
+    if (!this.state.requests) this.state.requests = [];
     this.state.requests.unshift(newReq);
     this.saveState();
     return newReq;
   }
 
   updateRequestStatus(reqId, status) {
+    if (!this.state.requests) return;
     const req = this.state.requests.find(r => r.id === reqId);
     if (req) {
       req.status = status;
@@ -645,8 +795,8 @@ class Store {
     return this.state.gpsSettings || {
       enabled: true,
       officeName: 'Diverse Ideas Office (Zamuco, Kauswagan, CDO)',
-      latitude: 8.497211,
-      longitude: 124.625679,
+      latitude: 8.502213,
+      longitude: 124.643890,
       radiusMeters: 250,
       strictGeofence: true,
       allowWfhAnywhere: true,
