@@ -17,22 +17,30 @@ class AttendanceEngine {
     }, 1000);
   }
 
-  clockIn(devId, projectId, taskNote, workLocation = 'onsite', gpsData = null) {
+  clockIn(devId, projectId, taskNote, workLocation = 'onsite', gpsData = null, customStartTime = null) {
     const dev = this.store.getDeveloperById(devId);
     if (!dev) return false;
 
-    const now = new Date();
+    const startISO = customStartTime ? new Date(customStartTime).toISOString() : new Date().toISOString();
     dev.status = 'working';
     dev.activeSession = {
-      startTime: now.toISOString(),
+      startTime: startISO,
       breaks: [],
       currentBreakStart: null,
       projectId: projectId || 'proj-1',
       taskNote: taskNote || 'Active development sprint',
-      workLocation: workLocation || (now.getDay() === 1 ? 'wfh' : 'onsite'), // Monday defaults to WFH
+      workLocation: workLocation || (new Date(startISO).getDay() === 1 ? 'wfh' : 'onsite'), // Monday defaults to WFH
       gps: gpsData || null
     };
 
+    this.store.saveState();
+    return true;
+  }
+
+  adjustActiveStartTime(devId, newStartTimeISO) {
+    const dev = this.store.getDeveloperById(devId);
+    if (!dev || !dev.activeSession) return false;
+    dev.activeSession.startTime = new Date(newStartTimeISO).toISOString();
     this.store.saveState();
     return true;
   }

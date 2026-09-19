@@ -680,6 +680,10 @@ class Store {
   }
 
   // Attendance Records
+  getAttendanceRecordById(id) {
+    return (this.state.attendanceRecords || []).find(r => r.id === id);
+  }
+
   addAttendanceRecord(record) {
     if (!this.state.attendanceRecords) this.state.attendanceRecords = [];
     this.state.attendanceRecords.unshift({
@@ -687,6 +691,36 @@ class Store {
       ...record
     });
     this.saveState();
+  }
+
+  updateAttendanceRecord(id, updates) {
+    if (!this.state.attendanceRecords) return null;
+    const rec = this.state.attendanceRecords.find(r => r.id === id);
+    if (!rec) return null;
+
+    Object.assign(rec, updates);
+
+    // If startTime and endTime are updated, recalculate workedMinutes and totalEarnings
+    if (updates.startTime && updates.endTime) {
+      const startMs = new Date(updates.startTime).getTime();
+      const endMs = new Date(updates.endTime).getTime();
+      const elapsedMs = Math.max(0, endMs - startMs);
+      const breakMs = (parseInt(rec.breakDurationMinutes) || 0) * 60000;
+      const netWorkedMs = Math.max(0, elapsedMs - breakMs);
+      rec.workedMinutes = Math.round(netWorkedMs / 60000);
+      
+      const dev = this.getDeveloperById(rec.developerId);
+      const rate = dev ? (parseFloat(dev.hourlyRate) || 0) : (parseFloat(rec.hourlyRate) || 0);
+      rec.hourlyRate = rate;
+      rec.totalEarnings = parseFloat(((netWorkedMs / 3600000) * rate).toFixed(2));
+    } else if (updates.workedMinutes !== undefined) {
+      const dev = this.getDeveloperById(rec.developerId);
+      const rate = dev ? (parseFloat(dev.hourlyRate) || 0) : (parseFloat(rec.hourlyRate) || 0);
+      rec.totalEarnings = parseFloat(((rec.workedMinutes / 60) * rate).toFixed(2));
+    }
+
+    this.saveState();
+    return rec;
   }
 
   deleteAttendanceRecord(id) {

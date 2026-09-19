@@ -680,7 +680,10 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Task: ${r.taskNote || 'Work session'}</div>
         </div>
-        <div style="text-align: right;">
+        <div style="text-align: right; display: flex; align-items: center; gap: 8px;">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="openEditRecordModal('${r.id}')" title="Edit this shift entry" style="padding: 4px 10px; font-size: 0.75rem;">
+            ✏️ Edit
+          </button>
           <span class="badge badge-working" style="padding: 6px 12px; font-size: 0.8rem;">
             🟢 Shift Completed
           </span>
@@ -1606,8 +1609,11 @@ document.addEventListener('DOMContentLoaded', () => {
           <td class="font-mono">${payDisplay}</td>
           <td>
             <div style="display: flex; gap: 6px;">
+              <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.72rem; color: var(--accent-cyan);" onclick="openEditRecordModal('${rec.id}')" title="Edit timesheet record">
+                ✏️ Edit
+              </button>
               ${store.isAdmin() ? `
-              <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.72rem; color: var(--accent-cyan);" onclick="generateSinglePayslip('${rec.developerId}', '${rec.id}')" title="Generate and print payslip for this entry">
+              <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.72rem; color: var(--status-working);" onclick="generateSinglePayslip('${rec.developerId}', '${rec.id}')" title="Generate and print payslip for this entry">
                 📄 Slip
               </button>
               ` : ''}
@@ -2633,13 +2639,268 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAll();
   });
 
+  // ==========================================
+  // Edit / Adjust Time IN Modal (For Today or Active Shift)
+  // ==========================================
+  const btnEditActiveTimein = document.getElementById('btn-edit-active-timein');
+  const modalEditTimein = document.getElementById('modal-edit-timein');
+  const formEditTimein = document.getElementById('form-edit-timein');
+  const btnCloseEditTimein = document.getElementById('btn-close-edit-timein');
+  const btnCancelEditTimein = document.getElementById('btn-cancel-edit-timein');
+  const editTimeinDevSelect = document.getElementById('edit-timein-dev-select');
+  const editTimeinDevSubtitle = document.getElementById('edit-timein-dev-subtitle');
+  const editTimeinDate = document.getElementById('edit-timein-date');
+  const editTimeinTime = document.getElementById('edit-timein-time');
+  const editTimeinLocation = document.getElementById('edit-timein-location');
+  const editTimeinProject = document.getElementById('edit-timein-project');
+  const editTimeinNotes = document.getElementById('edit-timein-notes');
+  const groupEditTimeinDev = document.getElementById('group-edit-timein-dev');
+
+  if (btnEditActiveTimein) {
+    btnEditActiveTimein.addEventListener('click', () => {
+      const activeDev = store.getActiveDeveloper();
+      if (!activeDev) return;
+
+      // Populate dev select
+      if (editTimeinDevSelect) {
+        editTimeinDevSelect.innerHTML = '';
+        const devList = store.isAdmin() ? store.getState().developers : [activeDev];
+        devList.forEach(d => {
+          const opt = document.createElement('option');
+          opt.value = d.id;
+          opt.textContent = `${d.name} (${d.role})`;
+          if (d.id === activeDev.id) opt.selected = true;
+          editTimeinDevSelect.appendChild(opt);
+        });
+      }
+
+      if (groupEditTimeinDev) {
+        groupEditTimeinDev.style.display = store.isAdmin() ? 'block' : 'none';
+      }
+
+      if (editTimeinDevSubtitle) {
+        editTimeinDevSubtitle.textContent = `Adjusting start time for ${activeDev.name}`;
+      }
+
+      // Populate projects
+      if (editTimeinProject) {
+        editTimeinProject.innerHTML = '';
+        store.getProjects().forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.id;
+          opt.textContent = p.name;
+          editTimeinProject.appendChild(opt);
+        });
+      }
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      if (editTimeinDate) editTimeinDate.value = todayStr;
+
+      // Default time: if active session exists, use its time, otherwise 09:00
+      if (activeDev.activeSession && activeDev.activeSession.startTime) {
+        const d = new Date(activeDev.activeSession.startTime);
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        if (editTimeinTime) editTimeinTime.value = `${hh}:${mm}`;
+        if (editTimeinLocation && activeDev.activeSession.workLocation) {
+          editTimeinLocation.value = activeDev.activeSession.workLocation;
+        }
+        if (editTimeinProject && activeDev.activeSession.projectId) {
+          editTimeinProject.value = activeDev.activeSession.projectId;
+        }
+        if (editTimeinNotes && activeDev.activeSession.taskNote) {
+          editTimeinNotes.value = activeDev.activeSession.taskNote;
+        }
+      } else {
+        if (editTimeinTime) editTimeinTime.value = '09:00';
+      }
+
+      if (modalEditTimein) modalEditTimein.classList.add('active');
+    });
+  }
+
+  [btnCloseEditTimein, btnCancelEditTimein].forEach(b => {
+    if (b) b.addEventListener('click', () => modalEditTimein.classList.remove('active'));
+  });
+
+  if (formEditTimein) {
+    formEditTimein.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const devId = editTimeinDevSelect ? editTimeinDevSelect.value : store.getActiveDeveloper().id;
+      const dev = store.getDeveloperById(devId);
+      if (!dev) return;
+
+      const dateVal = editTimeinDate ? editTimeinDate.value : new Date().toISOString().split('T')[0];
+      const timeVal = editTimeinTime ? editTimeinTime.value : '09:00';
+      const locVal = editTimeinLocation ? editTimeinLocation.value : 'onsite';
+      const projId = editTimeinProject ? editTimeinProject.value : 'proj-1';
+      const notesVal = editTimeinNotes ? editTimeinNotes.value.trim() || 'Manual Time IN adjustment' : 'Manual Time IN adjustment';
+
+      // Construct complete ISO string
+      const [hh, mm] = timeVal.split(':');
+      const startDateTime = new Date(`${dateVal}T${hh || '09'}:${mm || '00'}:00`);
+      const startISO = startDateTime.toISOString();
+
+      if (dev.status === 'working' || dev.status === 'break') {
+        // Developer is currently clocked in -> adjust active session start time
+        attendance.adjustActiveStartTime(dev.id, startISO);
+        attendance.updateSessionContext(dev.id, projId, notesVal, locVal);
+        showToast(`✅ Updated today's Time IN to ${timeVal} for ${dev.name}!`, 'success');
+      } else {
+        // Developer is offline -> start clock-in with this custom start time
+        attendance.clockIn(dev.id, projId, notesVal, locVal, null, startISO);
+        showToast(`✅ Clocked IN starting at ${timeVal} (${locVal.toUpperCase()}) for ${dev.name}!`, 'success');
+      }
+
+      if (modalEditTimein) modalEditTimein.classList.remove('active');
+      renderAll();
+    });
+  }
+
+  // ==========================================
+  // Edit Completed Attendance Record Modal
+  // ==========================================
+  const modalEditRecord = document.getElementById('modal-edit-record');
+  const formEditRecord = document.getElementById('form-edit-record');
+  const btnCloseEditRecord = document.getElementById('btn-close-edit-record');
+  const btnCancelEditRecord = document.getElementById('btn-cancel-edit-record');
+  const editRecordId = document.getElementById('edit-record-id');
+  const editRecordDevId = document.getElementById('edit-record-dev-id');
+  const editRecordDevName = document.getElementById('edit-record-dev-name');
+  const editRecordDate = document.getElementById('edit-record-date');
+  const editRecordStartTime = document.getElementById('edit-record-start-time');
+  const editRecordEndTime = document.getElementById('edit-record-end-time');
+  const editRecordBreak = document.getElementById('edit-record-break');
+  const editRecordLocation = document.getElementById('edit-record-location');
+  const editRecordProject = document.getElementById('edit-record-project');
+  const editRecordNotes = document.getElementById('edit-record-notes');
+
+  window.openEditRecordModal = function(recordId) {
+    const rec = store.getAttendanceRecordById(recordId);
+    if (!rec) {
+      alert('Record not found.');
+      return;
+    }
+
+    const dev = store.getDeveloperById(rec.developerId) || { name: 'Unknown Dev' };
+
+    if (editRecordId) editRecordId.value = rec.id;
+    if (editRecordDevId) editRecordDevId.value = rec.developerId;
+    if (editRecordDevName) editRecordDevName.value = dev.name;
+    if (editRecordDate) editRecordDate.value = rec.date;
+
+    // Time IN (Start)
+    if (rec.startTime) {
+      const s = new Date(rec.startTime);
+      const sh = String(s.getHours()).padStart(2, '0');
+      const sm = String(s.getMinutes()).padStart(2, '0');
+      if (editRecordStartTime) editRecordStartTime.value = `${sh}:${sm}`;
+    } else {
+      if (editRecordStartTime) editRecordStartTime.value = '09:00';
+    }
+
+    // Time OUT (End)
+    if (rec.endTime) {
+      const e = new Date(rec.endTime);
+      const eh = String(e.getHours()).padStart(2, '0');
+      const em = String(e.getMinutes()).padStart(2, '0');
+      if (editRecordEndTime) editRecordEndTime.value = `${eh}:${em}`;
+    } else {
+      if (editRecordEndTime) editRecordEndTime.value = '17:00';
+    }
+
+    if (editRecordBreak) editRecordBreak.value = rec.breakDurationMinutes || 60;
+    if (editRecordLocation) editRecordLocation.value = rec.workLocation || 'onsite';
+
+    // Populate projects
+    if (editRecordProject) {
+      editRecordProject.innerHTML = '';
+      store.getProjects().forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.name;
+        if (p.id === rec.projectId) opt.selected = true;
+        editRecordProject.appendChild(opt);
+      });
+    }
+
+    if (editRecordNotes) editRecordNotes.value = rec.taskNote || '';
+
+    if (modalEditRecord) modalEditRecord.classList.add('active');
+  };
+
+  [btnCloseEditRecord, btnCancelEditRecord].forEach(b => {
+    if (b) b.addEventListener('click', () => modalEditRecord.classList.remove('active'));
+  });
+
+  if (formEditRecord) {
+    formEditRecord.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const recId = editRecordId.value;
+      const recDate = editRecordDate.value;
+      const startTimeVal = editRecordStartTime.value || '09:00';
+      const endTimeVal = editRecordEndTime.value || '17:00';
+      const breakMins = parseInt(editRecordBreak.value) || 0;
+      const location = editRecordLocation.value || 'onsite';
+      const projId = editRecordProject.value || 'proj-1';
+      const notes = editRecordNotes.value.trim();
+
+      const [sh, sm] = startTimeVal.split(':');
+      const [eh, em] = endTimeVal.split(':');
+
+      const startDateTime = new Date(`${recDate}T${sh || '09'}:${sm || '00'}:00`);
+      const endDateTime = new Date(`${recDate}T${eh || '17'}:${em || '00'}:00`);
+
+      const updated = store.updateAttendanceRecord(recId, {
+        date: recDate,
+        startTime: startDateTime.toISOString(),
+        endTime: endDateTime.toISOString(),
+        breakDurationMinutes: breakMins,
+        workLocation: location,
+        projectId: projId,
+        taskNote: notes
+      });
+
+      if (updated) {
+        showToast('✅ Timesheet record updated successfully!', 'success');
+        modalEditRecord.classList.remove('active');
+        renderAll();
+      }
+    });
+  }
+
+  // ==========================================
   // Manual Entry Modal
+  // ==========================================
   const modalManualEntry = document.getElementById('modal-manual-entry');
   const formManualEntry = document.getElementById('form-manual-entry');
   const manualDevSelect = document.getElementById('manual-dev-select');
   const manualProjectSelect = document.getElementById('manual-project-select');
   const btnCloseManualEntry = document.getElementById('btn-close-manual-entry');
   const btnCancelManualEntry = document.getElementById('btn-cancel-manual-entry');
+  const manualStartTimeInput = document.getElementById('manual-start-time-input');
+  const manualEndTimeInput = document.getElementById('manual-end-time-input');
+  const manualHoursInput = document.getElementById('manual-hours-input');
+  const manualBreakInput = document.getElementById('manual-break-input');
+
+  function calculateManualHours() {
+    if (!manualStartTimeInput || !manualEndTimeInput || !manualHoursInput) return;
+    const s = manualStartTimeInput.value;
+    const e = manualEndTimeInput.value;
+    const b = parseInt(manualBreakInput ? manualBreakInput.value : 60) || 0;
+    if (s && e) {
+      const [sh, sm] = s.split(':').map(Number);
+      const [eh, em] = e.split(':').map(Number);
+      let diffMins = (eh * 60 + em) - (sh * 60 + sm);
+      if (diffMins < 0) diffMins += 24 * 60;
+      const netMins = Math.max(0, diffMins - b);
+      manualHoursInput.value = (netMins / 60).toFixed(2);
+    }
+  }
+
+  if (manualStartTimeInput) manualStartTimeInput.addEventListener('change', calculateManualHours);
+  if (manualEndTimeInput) manualEndTimeInput.addEventListener('change', calculateManualHours);
+  if (manualBreakInput) manualBreakInput.addEventListener('input', calculateManualHours);
 
   btnOpenManualEntry.addEventListener('click', () => {
     manualDevSelect.innerHTML = '';
@@ -2649,7 +2910,7 @@ document.addEventListener('DOMContentLoaded', () => {
     devList.forEach(d => {
       const opt = document.createElement('option');
       opt.value = d.id;
-      opt.textContent = d.name;
+      opt.textContent = `${d.name} (${d.role})`;
       manualDevSelect.appendChild(opt);
     });
 
@@ -2662,6 +2923,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('manual-date-input').value = new Date().toISOString().split('T')[0];
+    if (manualStartTimeInput) manualStartTimeInput.value = '09:00';
+    if (manualEndTimeInput) manualEndTimeInput.value = '17:00';
+    calculateManualHours();
     modalManualEntry.classList.add('active');
   });
 
@@ -2674,9 +2938,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const projId = manualProjectSelect.value;
     const location = document.getElementById('manual-location-select').value || 'onsite';
     const date = document.getElementById('manual-date-input').value;
+    const startTimeVal = manualStartTimeInput ? manualStartTimeInput.value : '09:00';
+    const endTimeVal = manualEndTimeInput ? manualEndTimeInput.value : '17:00';
     const hours = parseFloat(document.getElementById('manual-hours-input').value) || 0;
     const breakMins = parseInt(document.getElementById('manual-break-input').value) || 0;
     const notes = document.getElementById('manual-notes-input').value.trim() || 'Manual timesheet entry';
+
+    const [sh, sm] = startTimeVal.split(':');
+    const [eh, em] = endTimeVal.split(':');
+
+    const startDateTime = new Date(`${date}T${sh || '09'}:${sm || '00'}:00`);
+    const endDateTime = new Date(`${date}T${eh || '17'}:${em || '00'}:00`);
 
     const workedMinutes = Math.round(hours * 60);
     const totalEarnings = parseFloat(((hours) * dev.hourlyRate).toFixed(2));
@@ -2684,8 +2956,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const rec = {
       developerId: devId,
       date,
-      startTime: `${date}T09:00:00.000Z`,
-      endTime: `${date}T17:00:00.000Z`,
+      startTime: startDateTime.toISOString(),
+      endTime: endDateTime.toISOString(),
       breakDurationMinutes: breakMins,
       workedMinutes,
       hourlyRate: dev.hourlyRate,
@@ -2697,10 +2969,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     store.addAttendanceRecord(rec);
-    showToast(`Saved timesheet record for ${dev.name}`, 'success');
+    showToast(`✅ Saved timesheet record for ${dev.name}`, 'success');
     modalManualEntry.classList.remove('active');
     formManualEntry.reset();
-    renderTimesheetsAndPayroll();
+    renderAll();
   });
 
   // Project Modals (Add & Edit - Admin Only)

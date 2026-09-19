@@ -140,10 +140,15 @@
         <div class="sprout-timestamp-grid">
           
           <!-- Box 1: Time IN -->
-          <div class="timestamp-box" id="box-time-in">
-            <div class="timestamp-label">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
-              Time IN
+          <div class="timestamp-box" id="box-time-in" style="position: relative;">
+            <div class="timestamp-label" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <span style="display: inline-flex; align-items: center; gap: 4px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+                Time IN
+              </span>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-edit-active-timein" style="padding: 2px 8px; font-size: 0.7rem; border-radius: var(--radius-full); line-height: 1; border-color: rgba(16, 185, 129, 0.4); color: var(--status-working);" title="Manually edit or adjust Time IN for today">
+                ✏️ Edit
+              </button>
             </div>
             <div class="timestamp-val highlight-green" id="dtr-time-in">--:--:--</div>
             <div style="font-size: 0.72rem; color: var(--text-muted);" id="dtr-date-in">Not yet logged</div>
@@ -2039,6 +2044,139 @@
     </div>
   </div>
 
+  <!-- Modal: Adjust / Edit Time IN for Today -->
+  <div class="modal-overlay" id="modal-edit-timein">
+    <div class="modal-dialog" style="max-width: 480px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 1.3rem;">🕒</span>
+          <div>
+            <h3 class="modal-title">Edit / Adjust Time IN for Today</h3>
+            <div style="font-size: 0.78rem; color: var(--text-secondary);" id="edit-timein-dev-subtitle">Adjust start time for active shift or clock in manually</div>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btn-close-edit-timein">&times;</button>
+      </div>
+      <form id="form-edit-timein">
+        <div class="modal-body">
+          <div class="form-group" id="group-edit-timein-dev">
+            <label class="form-label" for="edit-timein-dev-select">Developer</label>
+            <select id="edit-timein-dev-select" class="form-control" required></select>
+          </div>
+
+          <div style="display: flex; gap: 14px;">
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="edit-timein-date">Date</label>
+              <input type="date" id="edit-timein-date" class="form-control" required>
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="edit-timein-time">Time IN (Start Time)</label>
+              <input type="time" id="edit-timein-time" class="form-control" step="60" required value="09:00">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-timein-location">Work Mode</label>
+            <select id="edit-timein-location" class="form-control">
+              <option value="onsite">🏢 Office (Onsite)</option>
+              <option value="wfh">🏠 Home (WFH)</option>
+              <option value="saturday">🛌 Saturday Rest Day</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-timein-project">Project</label>
+            <select id="edit-timein-project" class="form-control" required></select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-timein-notes">Task Note / Reason for Manual Time</label>
+            <input type="text" id="edit-timein-notes" class="form-control" placeholder="e.g. Started 9:00 AM / Missed punch due to brownout" value="Active development sprint">
+          </div>
+
+          <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: var(--radius-md); padding: 10px 14px; font-size: 0.8rem; color: var(--text-secondary);">
+            💡 <strong>Note:</strong> If you are currently working, saving will update your live clock-in start time to this time and instantly recalculate all rendered hours for today.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-edit-timein">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-edit-timein">Save Time IN</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Edit Completed Attendance Record -->
+  <div class="modal-overlay" id="modal-edit-record">
+    <div class="modal-dialog" style="max-width: 520px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 1.3rem;">✏️</span>
+          <div>
+            <h3 class="modal-title">Edit Timesheet Record</h3>
+            <div style="font-size: 0.78rem; color: var(--text-secondary);" id="edit-record-subtitle">Update punches, break duration and details</div>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btn-close-edit-record">&times;</button>
+      </div>
+      <form id="form-edit-record">
+        <input type="hidden" id="edit-record-id">
+        <input type="hidden" id="edit-record-dev-id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="edit-record-dev-name">Developer</label>
+            <input type="text" id="edit-record-dev-name" class="form-control" readonly style="opacity: 0.85;">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-record-date">Date</label>
+            <input type="date" id="edit-record-date" class="form-control" required>
+          </div>
+
+          <div style="display: flex; gap: 14px;">
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="edit-record-start-time">Time IN (Start)</label>
+              <input type="time" id="edit-record-start-time" class="form-control" step="60" required>
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="edit-record-end-time">Time OUT (End)</label>
+              <input type="time" id="edit-record-end-time" class="form-control" step="60" required>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 14px;">
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="edit-record-break">Break Duration (Mins)</label>
+              <input type="number" id="edit-record-break" class="form-control" min="0" value="60" required>
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="edit-record-location">Work Mode</label>
+              <select id="edit-record-location" class="form-control">
+                <option value="onsite">🏢 Office (Onsite)</option>
+                <option value="wfh">🏠 Home (WFH)</option>
+                <option value="saturday">🛌 Saturday Rest Day</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-record-project">Project</label>
+            <select id="edit-record-project" class="form-control" required></select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-record-notes">Task Note / Description</label>
+            <input type="text" id="edit-record-notes" class="form-control" placeholder="Task description">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-edit-record">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Modal: Manual Timesheet Entry -->
   <div class="modal-overlay" id="modal-manual-entry">
     <div class="modal-dialog">
@@ -2059,8 +2197,9 @@
           <div class="form-group">
             <label class="form-label" for="manual-location-select">Work Mode</label>
             <select id="manual-location-select" class="form-control">
-              <option value="wfh">🏠 Home (WFH)</option>
               <option value="onsite">🏢 Office (Onsite)</option>
+              <option value="wfh">🏠 Home (WFH)</option>
+              <option value="saturday">🛌 Saturday Rest Day</option>
             </select>
           </div>
           <div style="display: flex; gap: 16px;">
@@ -2071,6 +2210,16 @@
             <div class="form-group" style="flex: 1;">
               <label class="form-label" for="manual-hours-input">Hours Worked</label>
               <input type="number" id="manual-hours-input" class="form-control" step="0.25" min="0.25" placeholder="8.0" required>
+            </div>
+          </div>
+          <div style="display: flex; gap: 16px;">
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="manual-start-time-input">Time IN (Start Time)</label>
+              <input type="time" id="manual-start-time-input" class="form-control" value="09:00">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="manual-end-time-input">Time OUT (End Time)</label>
+              <input type="time" id="manual-end-time-input" class="form-control" value="17:00">
             </div>
           </div>
           <div class="form-group">
