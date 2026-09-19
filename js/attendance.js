@@ -141,6 +141,45 @@ class AttendanceEngine {
     }
   }
 
+  reopenShift(devId, recordId = null) {
+    const dev = this.store.getDeveloperById(devId);
+    if (!dev) return false;
+
+    const records = this.store.getState().attendanceRecords || [];
+    let record = null;
+
+    if (recordId) {
+      record = records.find(r => r.id === recordId);
+    } else {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const todayRecords = records.filter(r => r.developerId === devId && r.date === todayStr);
+      record = todayRecords[todayRecords.length - 1];
+    }
+
+    if (!record) return false;
+
+    // Restore active session with previous Start Time
+    dev.status = 'working';
+    dev.activeSession = {
+      startTime: record.startTime,
+      breaks: record.breakDurationMinutes > 0 ? [{
+        start: record.startTime,
+        end: new Date(new Date(record.startTime).getTime() + (record.breakDurationMinutes * 60000)).toISOString(),
+        durationMs: record.breakDurationMinutes * 60000
+      }] : [],
+      currentBreakStart: null,
+      projectId: record.projectId || 'proj-1',
+      taskNote: record.taskNote || 'Resumed active session',
+      workLocation: record.workLocation || 'onsite',
+      gps: record.gps || null
+    };
+
+    // Remove the finalized attendance record so shift is ongoing
+    this.store.deleteAttendanceRecord(record.id);
+    this.store.saveState();
+    return true;
+  }
+
   // Calculate live current active stats for a developer
   calculateLiveStats(dev) {
     if (!dev || !dev.activeSession) {

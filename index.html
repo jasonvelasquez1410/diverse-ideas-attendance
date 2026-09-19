@@ -165,10 +165,15 @@
           </div>
 
           <!-- Box 3: Time OUT -->
-          <div class="timestamp-box" id="box-time-out">
-            <div class="timestamp-label">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
-              Time OUT
+          <div class="timestamp-box" id="box-time-out" style="position: relative;">
+            <div class="timestamp-label" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <span style="display: inline-flex; align-items: center; gap: 4px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+                Time OUT
+              </span>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-edit-active-timeout" style="padding: 2px 8px; font-size: 0.7rem; border-radius: var(--radius-full); line-height: 1; border-color: rgba(239, 68, 68, 0.4); color: #ef4444;" title="Manually edit or adjust Time OUT for today / reopen accidental timeout">
+                ✏️ Edit
+              </button>
             </div>
             <div class="timestamp-val" id="dtr-time-out">--:--:--</div>
             <div style="font-size: 0.72rem; color: var(--text-muted);" id="dtr-date-out">End of shift</div>
@@ -2106,6 +2111,85 @@
     </div>
   </div>
 
+  <!-- Modal: Adjust / Edit Time OUT for Today -->
+  <div class="modal-overlay" id="modal-edit-timeout">
+    <div class="modal-dialog" style="max-width: 500px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 1.3rem;">🚪</span>
+          <div>
+            <h3 class="modal-title">Edit / Adjust Time OUT for Today</h3>
+            <div style="font-size: 0.78rem; color: var(--text-secondary);" id="edit-timeout-dev-subtitle">Adjust today's punch-out time or reopen accidental timeout</div>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btn-close-edit-timeout">&times;</button>
+      </div>
+      <form id="form-edit-timeout">
+        <div class="modal-body">
+          <div class="form-group" id="group-edit-timeout-dev">
+            <label class="form-label" for="edit-timeout-dev-select">Developer</label>
+            <select id="edit-timeout-dev-select" class="form-control" required></select>
+          </div>
+
+          <div style="display: flex; gap: 14px;">
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="edit-timeout-date">Date</label>
+              <input type="date" id="edit-timeout-date" class="form-control" required>
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="edit-timeout-start-time">Time IN (Start Time)</label>
+              <input type="time" id="edit-timeout-start-time" class="form-control" step="60" required value="09:00">
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 14px;">
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="edit-timeout-time">Time OUT (Punch-Out Time)</label>
+              <input type="time" id="edit-timeout-time" class="form-control" step="60" required value="17:00">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="edit-timeout-break">Break (Minutes)</label>
+              <input type="number" id="edit-timeout-break" class="form-control" min="0" value="0">
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 14px;">
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="edit-timeout-location">Work Mode</label>
+              <select id="edit-timeout-location" class="form-control">
+                <option value="onsite">🏢 Office (Onsite)</option>
+                <option value="wfh">🏠 Home (WFH)</option>
+                <option value="saturday">🛌 Saturday Rest Day</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="edit-timeout-project">Project</label>
+              <select id="edit-timeout-project" class="form-control" required></select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-timeout-notes">Task Note / Reason</label>
+            <input type="text" id="edit-timeout-notes" class="form-control" placeholder="e.g. Corrected accidental punch-out" value="Active development sprint">
+          </div>
+
+          <div id="edit-timeout-reopen-notice" style="background: rgba(16, 185, 129, 0.09); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-md); padding: 10px 14px; font-size: 0.8rem; color: var(--text-secondary); margin-top: 6px;">
+            💡 <strong>Accidental Punch-Out?</strong> If you timed out accidentally and are still working, click <strong>"🔄 Reopen Shift"</strong> below to resume your active shift seamlessly without losing your morning clock-in!
+          </div>
+        </div>
+        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-edit-timeout">Cancel</button>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn btn-warning" id="btn-reopen-shift-timeout" style="background: rgba(245, 158, 11, 0.2); border-color: rgba(245, 158, 11, 0.5); color: #f59e0b;">
+              🔄 Reopen Shift (Undo Timeout)
+            </button>
+            <button type="submit" class="btn btn-primary" id="btn-submit-edit-timeout">Save Time OUT</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Modal: Edit Completed Attendance Record -->
   <div class="modal-overlay" id="modal-edit-record">
     <div class="modal-dialog" style="max-width: 520px;">
@@ -2169,9 +2253,14 @@
             <input type="text" id="edit-record-notes" class="form-control" placeholder="Task description">
           </div>
         </div>
-        <div class="modal-footer">
+        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
           <button type="button" class="btn btn-secondary" id="btn-cancel-edit-record">Cancel</button>
-          <button type="submit" class="btn btn-primary">Update Record</button>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn btn-warning" id="btn-reopen-shift-record" style="display: none; background: rgba(245, 158, 11, 0.2); border-color: rgba(245, 158, 11, 0.5); color: #f59e0b;">
+              🔄 Reopen Shift (Undo Timeout)
+            </button>
+            <button type="submit" class="btn btn-primary">Update Record</button>
+          </div>
         </div>
       </form>
     </div>

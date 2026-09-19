@@ -2758,12 +2758,253 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
+  // Edit / Adjust Time OUT Modal (For Today / Accidental Timeout)
+  // ==========================================
+  const btnEditActiveTimeout = document.getElementById('btn-edit-active-timeout');
+  const modalEditTimeout = document.getElementById('modal-edit-timeout');
+  const formEditTimeout = document.getElementById('form-edit-timeout');
+  const btnCloseEditTimeout = document.getElementById('btn-close-edit-timeout');
+  const btnCancelEditTimeout = document.getElementById('btn-cancel-edit-timeout');
+  const btnReopenShiftTimeout = document.getElementById('btn-reopen-shift-timeout');
+  const editTimeoutDevSelect = document.getElementById('edit-timeout-dev-select');
+  const editTimeoutDevSubtitle = document.getElementById('edit-timeout-dev-subtitle');
+  const editTimeoutDate = document.getElementById('edit-timeout-date');
+  const editTimeoutStartTime = document.getElementById('edit-timeout-start-time');
+  const editTimeoutTime = document.getElementById('edit-timeout-time');
+  const editTimeoutBreak = document.getElementById('edit-timeout-break');
+  const editTimeoutLocation = document.getElementById('edit-timeout-location');
+  const editTimeoutProject = document.getElementById('edit-timeout-project');
+  const editTimeoutNotes = document.getElementById('edit-timeout-notes');
+  const groupEditTimeoutDev = document.getElementById('group-edit-timeout-dev');
+  let currentEditingTodayRecId = null;
+
+  function populateEditTimeoutModal(devId = null) {
+    const activeDev = devId ? store.getDeveloperById(devId) : store.getActiveDeveloper();
+    if (!activeDev) return;
+
+    if (editTimeoutDevSelect) {
+      editTimeoutDevSelect.innerHTML = '';
+      const devList = store.isAdmin() ? store.getState().developers : [activeDev];
+      devList.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.id;
+        opt.textContent = `${d.name} (${d.role})`;
+        if (d.id === activeDev.id) opt.selected = true;
+        editTimeoutDevSelect.appendChild(opt);
+      });
+    }
+
+    if (groupEditTimeoutDev) {
+      groupEditTimeoutDev.style.display = store.isAdmin() ? 'block' : 'none';
+    }
+
+    if (editTimeoutDevSubtitle) {
+      editTimeoutDevSubtitle.textContent = `Adjusting punch-out time for ${activeDev.name}`;
+    }
+
+    // Populate projects
+    if (editTimeoutProject) {
+      editTimeoutProject.innerHTML = '';
+      store.getProjects().forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.name;
+        editTimeoutProject.appendChild(opt);
+      });
+    }
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (editTimeoutDate) editTimeoutDate.value = todayStr;
+
+    // Find today's completed records for this dev
+    const todayRecords = (store.getState().attendanceRecords || []).filter(r => r.developerId === activeDev.id && r.date === todayStr);
+    const latestRec = todayRecords.length > 0 ? todayRecords[todayRecords.length - 1] : null;
+
+    if (latestRec) {
+      currentEditingTodayRecId = latestRec.id;
+      if (editTimeoutStartTime && latestRec.startTime) {
+        const s = new Date(latestRec.startTime);
+        editTimeoutStartTime.value = `${String(s.getHours()).padStart(2, '0')}:${String(s.getMinutes()).padStart(2, '0')}`;
+      }
+      if (editTimeoutTime && latestRec.endTime) {
+        const e = new Date(latestRec.endTime);
+        editTimeoutTime.value = `${String(e.getHours()).padStart(2, '0')}:${String(e.getMinutes()).padStart(2, '0')}`;
+      }
+      if (editTimeoutBreak) editTimeoutBreak.value = latestRec.breakDurationMinutes || 0;
+      if (editTimeoutLocation) editTimeoutLocation.value = latestRec.workLocation || 'onsite';
+      if (editTimeoutProject) editTimeoutProject.value = latestRec.projectId || 'proj-1';
+      if (editTimeoutNotes) editTimeoutNotes.value = latestRec.taskNote || 'Accidental timeout adjustment';
+      if (btnReopenShiftTimeout) btnReopenShiftTimeout.style.display = 'inline-block';
+    } else if (activeDev.activeSession) {
+      currentEditingTodayRecId = null;
+      if (editTimeoutStartTime && activeDev.activeSession.startTime) {
+        const s = new Date(activeDev.activeSession.startTime);
+        editTimeoutStartTime.value = `${String(s.getHours()).padStart(2, '0')}:${String(s.getMinutes()).padStart(2, '0')}`;
+      }
+      const now = new Date();
+      if (editTimeoutTime) editTimeoutTime.value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const totalBreakMins = Math.round((activeDev.activeSession.breaks || []).reduce((acc, b) => acc + (b.durationMs || 0), 0) / 60000);
+      if (editTimeoutBreak) editTimeoutBreak.value = totalBreakMins || 0;
+      if (editTimeoutLocation) editTimeoutLocation.value = activeDev.activeSession.workLocation || 'onsite';
+      if (editTimeoutProject) editTimeoutProject.value = activeDev.activeSession.projectId || 'proj-1';
+      if (editTimeoutNotes) editTimeoutNotes.value = activeDev.activeSession.taskNote || 'Work session';
+      if (btnReopenShiftTimeout) btnReopenShiftTimeout.style.display = 'none';
+    } else {
+      currentEditingTodayRecId = null;
+      if (editTimeoutStartTime) editTimeoutStartTime.value = '09:00';
+      const now = new Date();
+      if (editTimeoutTime) editTimeoutTime.value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      if (editTimeoutBreak) editTimeoutBreak.value = 0;
+      if (editTimeoutLocation) editTimeoutLocation.value = 'onsite';
+      if (btnReopenShiftTimeout) btnReopenShiftTimeout.style.display = 'none';
+    }
+  }
+
+  if (btnEditActiveTimeout) {
+    btnEditActiveTimeout.addEventListener('click', () => {
+      populateEditTimeoutModal();
+      if (modalEditTimeout) modalEditTimeout.classList.add('active');
+    });
+  }
+
+  if (editTimeoutDevSelect) {
+    editTimeoutDevSelect.addEventListener('change', () => {
+      populateEditTimeoutModal(editTimeoutDevSelect.value);
+    });
+  }
+
+  [btnCloseEditTimeout, btnCancelEditTimeout].forEach(b => {
+    if (b) b.addEventListener('click', () => modalEditTimeout.classList.remove('active'));
+  });
+
+  if (btnReopenShiftTimeout) {
+    btnReopenShiftTimeout.addEventListener('click', () => {
+      const devId = editTimeoutDevSelect ? editTimeoutDevSelect.value : store.getActiveDeveloper().id;
+      const dev = store.getDeveloperById(devId);
+      if (!dev) return;
+
+      if (confirm(`Undo accidental Time OUT and resume active shift for ${dev.name}?`)) {
+        const success = attendance.reopenShift(dev.id, currentEditingTodayRecId);
+        if (success) {
+          showToast(`✅ Shift reopened for ${dev.name}! Active clock-in resumed.`, 'success');
+          if (modalEditTimeout) modalEditTimeout.classList.remove('active');
+          renderAll();
+        } else {
+          showToast('Could not find completed shift record to reopen.', 'warning');
+        }
+      }
+    });
+  }
+
+  if (formEditTimeout) {
+    formEditTimeout.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const devId = editTimeoutDevSelect ? editTimeoutDevSelect.value : store.getActiveDeveloper().id;
+      const dev = store.getDeveloperById(devId);
+      if (!dev) return;
+
+      const dateVal = editTimeoutDate ? editTimeoutDate.value : new Date().toISOString().split('T')[0];
+      const startTimeVal = editTimeoutStartTime ? editTimeoutStartTime.value : '09:00';
+      const endTimeVal = editTimeoutTime ? editTimeoutTime.value : '17:00';
+      const breakMins = parseInt(editTimeoutBreak ? editTimeoutBreak.value : 0) || 0;
+      const locVal = editTimeoutLocation ? editTimeoutLocation.value : 'onsite';
+      const projId = editTimeoutProject ? editTimeoutProject.value : 'proj-1';
+      const notesVal = editTimeoutNotes ? editTimeoutNotes.value.trim() || 'Manual Time OUT adjustment' : 'Manual Time OUT adjustment';
+
+      const [sh, sm] = startTimeVal.split(':');
+      const [eh, em] = endTimeVal.split(':');
+      const startDateTime = new Date(`${dateVal}T${sh || '09'}:${sm || '00'}:00`);
+      const endDateTime = new Date(`${dateVal}T${eh || '17'}:${em || '00'}:00`);
+
+      if (currentEditingTodayRecId) {
+        // Update the existing completed shift record for today
+        const updated = store.updateAttendanceRecord(currentEditingTodayRecId, {
+          date: dateVal,
+          startTime: startDateTime.toISOString(),
+          endTime: endDateTime.toISOString(),
+          breakDurationMinutes: breakMins,
+          workLocation: locVal,
+          projectId: projId,
+          taskNote: notesVal
+        });
+        if (updated) {
+          showToast(`✅ Updated today's Time OUT to ${endTimeVal} for ${dev.name}! (${(updated.workedMinutes / 60).toFixed(2)} hrs logged)`, 'success');
+        }
+      } else if (dev.status === 'working' || dev.status === 'break') {
+        // Clock out active dev with custom end time
+        const startMs = startDateTime.getTime();
+        const endMs = endDateTime.getTime();
+        const elapsedMs = Math.max(0, endMs - startMs);
+        const breakMs = breakMins * 60000;
+        const netWorkedMs = Math.max(0, elapsedMs - breakMs);
+        const workedMinutes = Math.round(netWorkedMs / 60000);
+        const hourlyRate = parseFloat(dev.hourlyRate) || 0;
+        const totalEarnings = parseFloat(((netWorkedMs / 3600000) * hourlyRate).toFixed(2));
+
+        const record = {
+          developerId: dev.id,
+          date: dateVal,
+          startTime: startDateTime.toISOString(),
+          endTime: endDateTime.toISOString(),
+          breakDurationMinutes: breakMins,
+          workedMinutes,
+          hourlyRate,
+          currencySymbol: dev.currencySymbol || '$',
+          totalEarnings,
+          projectId: projId,
+          workLocation: locVal,
+          taskNote: notesVal,
+          gps: dev.activeSession ? dev.activeSession.gps : null
+        };
+
+        store.addAttendanceRecord(record);
+        dev.status = 'offline';
+        dev.activeSession = null;
+        store.saveState();
+        showToast(`✅ Shift finalized with Time OUT at ${endTimeVal} for ${dev.name}!`, 'success');
+      } else {
+        // Create manual completed shift record for today
+        const startMs = startDateTime.getTime();
+        const endMs = endDateTime.getTime();
+        const elapsedMs = Math.max(0, endMs - startMs);
+        const breakMs = breakMins * 60000;
+        const netWorkedMs = Math.max(0, elapsedMs - breakMs);
+        const workedMinutes = Math.round(netWorkedMs / 60000);
+        const hourlyRate = parseFloat(dev.hourlyRate) || 0;
+        const totalEarnings = parseFloat(((netWorkedMs / 3600000) * hourlyRate).toFixed(2));
+
+        const record = {
+          developerId: dev.id,
+          date: dateVal,
+          startTime: startDateTime.toISOString(),
+          endTime: endDateTime.toISOString(),
+          breakDurationMinutes: breakMins,
+          workedMinutes,
+          hourlyRate,
+          currencySymbol: dev.currencySymbol || '$',
+          totalEarnings,
+          projectId: projId,
+          workLocation: locVal,
+          taskNote: notesVal
+        };
+
+        store.addAttendanceRecord(record);
+        showToast(`✅ Saved Time OUT record for ${dev.name}!`, 'success');
+      }
+
+      if (modalEditTimeout) modalEditTimeout.classList.remove('active');
+      renderAll();
+    });
+  }
+
+  // ==========================================
   // Edit Completed Attendance Record Modal
   // ==========================================
   const modalEditRecord = document.getElementById('modal-edit-record');
   const formEditRecord = document.getElementById('form-edit-record');
   const btnCloseEditRecord = document.getElementById('btn-close-edit-record');
   const btnCancelEditRecord = document.getElementById('btn-cancel-edit-record');
+  const btnReopenShiftRecord = document.getElementById('btn-reopen-shift-record');
   const editRecordId = document.getElementById('edit-record-id');
   const editRecordDevId = document.getElementById('edit-record-dev-id');
   const editRecordDevName = document.getElementById('edit-record-dev-name');
@@ -2826,12 +3067,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (editRecordNotes) editRecordNotes.value = rec.taskNote || '';
 
+    // If record is from today and dev is offline, allow reopening shift
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (btnReopenShiftRecord) {
+      btnReopenShiftRecord.style.display = (rec.date === todayStr && dev.status === 'offline') ? 'inline-block' : 'none';
+    }
+
     if (modalEditRecord) modalEditRecord.classList.add('active');
   };
 
   [btnCloseEditRecord, btnCancelEditRecord].forEach(b => {
     if (b) b.addEventListener('click', () => modalEditRecord.classList.remove('active'));
   });
+
+  if (btnReopenShiftRecord) {
+    btnReopenShiftRecord.addEventListener('click', () => {
+      const recId = editRecordId.value;
+      const rec = store.getAttendanceRecordById(recId);
+      if (!rec) return;
+      const dev = store.getDeveloperById(rec.developerId);
+      if (confirm(`Undo timeout and resume active shift for ${dev ? dev.name : 'developer'}?`)) {
+        const success = attendance.reopenShift(rec.developerId, rec.id);
+        if (success) {
+          showToast(`✅ Shift reopened! ${dev ? dev.name : 'Developer'} is now active.`, 'success');
+          modalEditRecord.classList.remove('active');
+          renderAll();
+        }
+      }
+    });
+  }
 
   if (formEditRecord) {
     formEditRecord.addEventListener('submit', (e) => {
