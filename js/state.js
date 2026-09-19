@@ -190,29 +190,29 @@ const DEFAULT_INITIAL_STATE = {
     {
       id: 'rec-101',
       developerId: 'dev-1',
-      date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-      startTime: new Date(Date.now() - 86400000 - 8 * 3600000).toISOString(),
-      endTime: new Date(Date.now() - 86400000).toISOString(),
-      breakDurationMinutes: 60,
-      workedMinutes: 420,
-      hourlyRate: 35.00,
+      date: new Date().toISOString().split('T')[0],
+      startTime: `${new Date().toISOString().split('T')[0]}T01:00:00.000Z`,
+      endTime: `${new Date().toISOString().split('T')[0]}T09:00:00.000Z`,
+      breakDurationMinutes: 0,
+      workedMinutes: 480,
+      hourlyRate: 5.00,
       currencySymbol: '$',
-      totalEarnings: 245.00,
-      projectId: 'proj-2',
-      workLocation: 'onsite',
-      taskNote: 'API endpoints implementation and testing'
+      totalEarnings: 40.00,
+      projectId: 'proj-1',
+      workLocation: 'wfh',
+      taskNote: 'Core feature development & sprint backlog'
     },
     {
       id: 'rec-102',
       developerId: 'dev-2',
-      date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-      startTime: new Date(Date.now() - 86400000 - 8.5 * 3600000).toISOString(),
-      endTime: new Date(Date.now() - 86400000).toISOString(),
-      breakDurationMinutes: 45,
-      workedMinutes: 465,
-      hourlyRate: 28.00,
+      date: new Date().toISOString().split('T')[0],
+      startTime: `${new Date().toISOString().split('T')[0]}T00:58:00.000Z`,
+      endTime: `${new Date().toISOString().split('T')[0]}T09:03:00.000Z`,
+      breakDurationMinutes: 0,
+      workedMinutes: 485,
+      hourlyRate: 5.00,
       currencySymbol: '$',
-      totalEarnings: 217.00,
+      totalEarnings: 40.42,
       projectId: 'proj-1',
       workLocation: 'onsite',
       taskNote: 'Modern responsive glassmorphic dashboard design'
@@ -220,31 +220,31 @@ const DEFAULT_INITIAL_STATE = {
     {
       id: 'rec-103',
       developerId: 'dev-3',
-      date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-      startTime: new Date(Date.now() - 86400000 - 8 * 3600000).toISOString(),
-      endTime: new Date(Date.now() - 86400000).toISOString(),
-      breakDurationMinutes: 30,
-      workedMinutes: 450,
+      date: new Date().toISOString().split('T')[0],
+      startTime: `${new Date().toISOString().split('T')[0]}T01:00:00.000Z`,
+      endTime: `${new Date().toISOString().split('T')[0]}T09:00:00.000Z`,
+      breakDurationMinutes: 0,
+      workedMinutes: 480,
       hourlyRate: 18.00,
       currencySymbol: '$',
-      totalEarnings: 135.00,
+      totalEarnings: 144.00,
       projectId: 'proj-3',
       workLocation: 'wfh',
-      taskNote: 'Database schema migration and ledger query optimizations'
+      taskNote: 'Database schema migration, query optimization & payroll logic sprint'
     },
     {
       id: 'rec-104',
       developerId: 'dev-4',
-      date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-      startTime: new Date(Date.now() - 86400000 - 8.5 * 3600000).toISOString(),
-      endTime: new Date(Date.now() - 86400000).toISOString(),
-      breakDurationMinutes: 60,
-      workedMinutes: 450,
+      date: new Date().toISOString().split('T')[0],
+      startTime: `${new Date().toISOString().split('T')[0]}T00:53:00.000Z`,
+      endTime: `${new Date().toISOString().split('T')[0]}T09:00:00.000Z`,
+      breakDurationMinutes: 0,
+      workedMinutes: 487,
       hourlyRate: 12.00,
       currencySymbol: '$',
-      totalEarnings: 90.00,
+      totalEarnings: 97.56,
       projectId: 'proj-1',
-      workLocation: 'onsite',
+      workLocation: 'wfh',
       taskNote: 'Core system architecture, attendance synchronization & DTR portal engine'
     }
   ]
@@ -323,14 +323,18 @@ class Store {
           ...(parsed.gpsSettings || {})
         };
 
-        // Ensure dev-4 (Jason Jeff Velasquez, PIN 9654) attendance records exist in initial state
+        // Ensure all developers (dev-1, dev-2, dev-3, dev-4) have attendance records in state
         if (!parsed.attendanceRecords || !Array.isArray(parsed.attendanceRecords)) {
           parsed.attendanceRecords = DEFAULT_INITIAL_STATE.attendanceRecords;
-        } else if (!parsed.attendanceRecords.some(r => r.developerId === 'dev-4')) {
-          const dev4Seed = DEFAULT_INITIAL_STATE.attendanceRecords.find(r => r.developerId === 'dev-4');
-          if (dev4Seed) {
-            parsed.attendanceRecords.push(dev4Seed);
-          }
+        } else {
+          ['dev-1', 'dev-2', 'dev-3', 'dev-4'].forEach(devId => {
+            if (!parsed.attendanceRecords.some(r => r.developerId === devId)) {
+              const seed = DEFAULT_INITIAL_STATE.attendanceRecords.find(r => r.developerId === devId);
+              if (seed) {
+                parsed.attendanceRecords.push({ ...seed });
+              }
+            }
+          });
         }
 
         return parsed;
