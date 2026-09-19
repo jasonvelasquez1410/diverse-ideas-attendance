@@ -364,12 +364,27 @@
       "endTime": "2026-09-17T12:48:52.774Z",
       "breakDurationMinutes": 30,
       "workedMinutes": 450,
-      "hourlyRate": 30,
+      "hourlyRate": 18,
       "currencySymbol": "$",
-      "totalEarnings": 225,
+      "totalEarnings": 135,
       "projectId": "proj-3",
       "workLocation": "wfh",
       "taskNote": "Database schema migration and ledger query optimizations"
+    },
+    {
+      "id": "rec-104",
+      "developerId": "dev-4",
+      "date": "2026-09-17",
+      "startTime": "2026-09-17T04:30:00.000Z",
+      "endTime": "2026-09-17T12:30:00.000Z",
+      "breakDurationMinutes": 60,
+      "workedMinutes": 420,
+      "hourlyRate": 12,
+      "currencySymbol": "$",
+      "totalEarnings": 84,
+      "projectId": "proj-1",
+      "workLocation": "onsite",
+      "taskNote": "Core system architecture, attendance synchronization & DTR portal engine"
     }
   ],
   "gpsSettings": {

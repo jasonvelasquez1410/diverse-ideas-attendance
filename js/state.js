@@ -225,12 +225,27 @@ const DEFAULT_INITIAL_STATE = {
       endTime: new Date(Date.now() - 86400000).toISOString(),
       breakDurationMinutes: 30,
       workedMinutes: 450,
-      hourlyRate: 30.00,
+      hourlyRate: 18.00,
       currencySymbol: '$',
-      totalEarnings: 225.00,
+      totalEarnings: 135.00,
       projectId: 'proj-3',
       workLocation: 'wfh',
       taskNote: 'Database schema migration and ledger query optimizations'
+    },
+    {
+      id: 'rec-104',
+      developerId: 'dev-4',
+      date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
+      startTime: new Date(Date.now() - 86400000 - 8.5 * 3600000).toISOString(),
+      endTime: new Date(Date.now() - 86400000).toISOString(),
+      breakDurationMinutes: 60,
+      workedMinutes: 450,
+      hourlyRate: 12.00,
+      currencySymbol: '$',
+      totalEarnings: 90.00,
+      projectId: 'proj-1',
+      workLocation: 'onsite',
+      taskNote: 'Core system architecture, attendance synchronization & DTR portal engine'
     }
   ]
 };
@@ -307,6 +322,16 @@ class Store {
           ...DEFAULT_INITIAL_STATE.gpsSettings,
           ...(parsed.gpsSettings || {})
         };
+
+        // Ensure dev-4 (Jason Jeff Velasquez, PIN 9654) attendance records exist in initial state
+        if (!parsed.attendanceRecords || !Array.isArray(parsed.attendanceRecords)) {
+          parsed.attendanceRecords = DEFAULT_INITIAL_STATE.attendanceRecords;
+        } else if (!parsed.attendanceRecords.some(r => r.developerId === 'dev-4')) {
+          const dev4Seed = DEFAULT_INITIAL_STATE.attendanceRecords.find(r => r.developerId === 'dev-4');
+          if (dev4Seed) {
+            parsed.attendanceRecords.push(dev4Seed);
+          }
+        }
 
         return parsed;
       }
