@@ -168,32 +168,36 @@ body {
 
 .header-container {
   width: 100%;
-  max-width: var(--container-max);
+  max-width: 100%;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
+  box-sizing: border-box;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   text-decoration: none;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .brand-icon {
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--radius-md);
   background: linear-gradient(135deg, var(--accent-primary), var(--accent-cyan));
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  box-shadow: 0 0 15px var(--accent-primary-glow);
+  box-shadow: 0 0 12px var(--accent-primary-glow);
+  flex-shrink: 0;
 }
 
 .brand-info {
@@ -203,12 +207,13 @@ body {
 
 .brand-title {
   font-family: var(--font-heading);
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   background: linear-gradient(135deg, #ffffff 40%, var(--accent-cyan) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  white-space: nowrap;
 }
 
 [data-theme="light"] .brand-title {
@@ -218,36 +223,45 @@ body {
 }
 
 .brand-subtitle {
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   font-weight: 500;
   color: var(--text-secondary);
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 /* Navigation Tabs */
 .nav-tabs {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   background: var(--bg-tertiary);
-  padding: 4px;
+  padding: 3px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-color);
   flex-wrap: nowrap;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.nav-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .nav-tab {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px 10px;
+  gap: 4px;
+  padding: 5px 8px;
   border-radius: var(--radius-md);
   border: none;
   background: transparent;
   color: var(--text-secondary);
   font-family: var(--font-sans);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -257,8 +271,8 @@ body {
 
 .nav-tab svg {
   flex-shrink: 0;
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
 }
 
 .nav-tab:hover {
@@ -277,25 +291,89 @@ body {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
   flex-shrink: 0;
+  margin-left: auto;
+}
+
+#sync-status-indicator {
+  padding: 4px 8px;
+  font-size: 0.72rem;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  flex-shrink: 0;
+}
+
+#sync-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+#btn-header-auth-switch {
+  padding: 4px 8px;
+  font-size: 0.78rem;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+#header-user-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ec4899;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: white;
+  margin-right: 5px;
+  flex-shrink: 0;
+}
+
+#header-user-name {
+  max-width: 90px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+}
+
+#header-user-role-badge {
+  margin-left: 4px;
+  font-size: 0.65rem;
+  padding: 2px 5px;
+  background: rgba(236, 72, 153, 0.2);
+  color: #f472b6;
 }
 
 #btn-logout {
   display: inline-flex !important;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  border-radius: var(--radius-full);
+  gap: 5px;
+  padding: 5px 12px !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  border-radius: var(--radius-full) !important;
   background: #dc2626 !important;
   border: 1px solid #b91c1c !important;
   color: white !important;
   cursor: pointer;
   transition: all var(--transition-fast);
-  flex-shrink: 0;
+  flex-shrink: 0 !important;
   box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+  white-space: nowrap;
 }
 
 #btn-logout:hover {
@@ -303,6 +381,13 @@ body {
   border-color: #991b1b !important;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.5);
+}
+
+#btn-header-change-pin, #btn-header-guide {
+  padding: 5px 8px !important;
+  font-size: 0.78rem !important;
+  border-radius: var(--radius-full) !important;
+  flex-shrink: 0 !important;
 }
 
 .live-clock-pill {
@@ -445,28 +530,68 @@ body {
    Responsive Breakpoints & Mobile Optimization (iOS, Tablet, Desktop)
    ========================================================================== */
 
-/* ==========================================================================
-   Responsive Breakpoints & Mobile/iOS/Tablet Optimization
-   ========================================================================== */
-
 /* Laptops & Desktops (> 1024px) */
 @media (min-width: 1025px) {
   .app-main {
-    padding: 28px 24px 60px;
+    padding: 24px 20px 60px;
   }
 }
 
-/* Responsive Header Layout Optimization */
-@media (max-width: 1200px) {
-  .live-clock-pill {
-    display: none !important;
+/* Wide Laptops / Standard Viewports (<= 1440px) */
+@media (max-width: 1440px) {
+  #sync-status-text {
+    display: none;
+  }
+  #sync-status-indicator {
+    padding: 5px 8px;
+  }
+  #header-user-name {
+    max-width: 80px;
+  }
+}
+
+/* Medium Laptops & Tablets Landscape (<= 1280px) */
+@media (max-width: 1280px) {
+  .brand-subtitle {
+    display: none;
   }
   .guide-btn-text, .change-pin-text {
     display: none;
   }
+  #header-user-role-badge {
+    display: none;
+  }
+  .nav-tab {
+    padding: 5px 6px;
+    font-size: 0.74rem;
+    gap: 3px;
+  }
+  .header-container {
+    padding: 0 12px;
+    gap: 6px;
+  }
 }
 
-/* Tablets & Small Laptops (769px to 1024px) */
+/* Small Laptops & Transition Viewports (<= 1120px) */
+@media (max-width: 1120px) {
+  .nav-tabs {
+    flex-shrink: 1;
+    overflow-x: auto;
+  }
+  .nav-tab span {
+    font-size: 0.72rem;
+  }
+  #btn-header-auth-switch {
+    padding: 4px 6px;
+    font-size: 0.75rem;
+  }
+  #btn-logout {
+    padding: 5px 10px !important;
+    font-size: 0.75rem !important;
+  }
+}
+
+/* Tablets & Small Screens (769px to 1024px) */
 @media (max-width: 1024px) {
   .app-header {
     height: auto;
