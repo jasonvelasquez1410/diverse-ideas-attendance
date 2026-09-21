@@ -501,6 +501,21 @@ class Store {
     return JSON.parse(JSON.stringify(DEFAULT_INITIAL_STATE));
   }
 
+  sanitizeDeveloperStatuses(stateObj) {
+    if (!stateObj || !Array.isArray(stateObj.developers)) return;
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    stateObj.developers.forEach(dev => {
+      // If the developer has a completed attendance record for today (with an endTime),
+      // their shift has completed for today, so set activeSession to null and status to 'offline'.
+      const todayRecord = (stateObj.attendanceRecords || []).find(r => r.developerId === dev.id && r.date === todayStr && r.endTime);
+      if (todayRecord) {
+        dev.status = 'offline';
+        dev.activeSession = null;
+      }
+    });
+  }
+
   ensureAllDevelopersAttendanceRecords(stateObj) {
     if (!stateObj) return stateObj;
     if (!Array.isArray(stateObj.attendanceRecords)) {
@@ -526,6 +541,9 @@ class Store {
 
     // Final clean sort and deduplication
     stateObj.attendanceRecords = this.sanitizeAndDeduplicateAttendanceRecords(stateObj.attendanceRecords);
+
+    // Reset lingering working status / active sessions for all developers whose shift is already logged out
+    this.sanitizeDeveloperStatuses(stateObj);
 
     return stateObj;
   }
