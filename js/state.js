@@ -38,8 +38,8 @@ const DEFAULT_INITIAL_STATE = {
   gpsSettings: {
     enabled: true,                    // Master GPS verification switch
     officeName: 'Diverse Ideas Office (Zamuco, Kauswagan, CDO)',
-    latitude: 8.502213,               // Office GPS Latitude (Kauswagan, CDO)
-    longitude: 124.643890,            // Office GPS Longitude (Kauswagan, CDO)
+    latitude: 8.497211,               // Office GPS Latitude (Kauswagan, CDO)
+    longitude: 124.625679,            // Office GPS Longitude (Kauswagan, CDO)
     radiusMeters: 750,                // Expanded geofence radius to accommodate mobile GPS indoors
     strictGeofence: false,            // Flexible geofence: logs location for audit without blocking on GPS drift
     allowWfhAnywhere: true,           // If true, WFH & Saturday employees can clock-in from anywhere
@@ -886,10 +886,10 @@ class Store {
     return this.state.gpsSettings || {
       enabled: true,
       officeName: 'Diverse Ideas Office (Zamuco, Kauswagan, CDO)',
-      latitude: 8.502213,
-      longitude: 124.643890,
-      radiusMeters: 250,
-      strictGeofence: true,
+      latitude: 8.497211,
+      longitude: 124.625679,
+      radiusMeters: 750,
+      strictGeofence: false,
       allowWfhAnywhere: true,
       wfhCaptureGps: true
     };

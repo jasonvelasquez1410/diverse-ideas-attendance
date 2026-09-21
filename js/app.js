@@ -47,6 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnLocationFallbackWfh = document.getElementById('btn-location-fallback-wfh');
   const btnLocationRetryGpsMain = document.getElementById('btn-location-retry-gps-main');
   const btnLocationRetryGps = document.getElementById('btn-location-retry-gps');
+  const btnLocationForceOnsite = document.getElementById('btn-location-force-onsite');
+  const btnOpenInChromeIntent = document.getElementById('btn-open-in-chrome-intent');
   const btnOpenLocationHelp = document.getElementById('btn-open-location-help');
   const locationHelpErrorText = document.getElementById('location-help-error-text');
   const terminalBreakType = document.getElementById('terminal-break-type');
@@ -641,83 +643,203 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
+  // ==========================================
   // GPS Geolocation & Geofencing Controller
   // ==========================================
   let cachedDeviceGps = null;
+  let lastGpsTimestamp = 0;
 
-  function getCurrentDeviceGPS(customOptions) {
+  /**
+   * Adaptive Mobile & Desktop Geolocation Acquisition
+   * Resolves mobile indoor GPS delays, Chromium Android watch hang, and insecure HTTP contexts
+   */
+  function getCurrentDeviceGPS(customOptions = {}) {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
-        const err = new Error('Geolocation is not supported by your browser.');
+        const isHttp = !window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1';
+        const err = new Error(isHttp 
+          ? '🔒 Mobile browsers require a secure HTTPS connection to access GPS. Please access via https:// or use WFH mode.' 
+          : 'Geolocation is not supported by your mobile browser.');
         err.code = 0;
         return reject(err);
       }
 
-      if (customOptions) {
-        return navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            const gps = {
-              latitude: pos.coords.latitude,
-              longitude: pos.coords.longitude,
-              accuracy: Math.round(pos.coords.accuracy || 0),
-              timestamp: pos.timestamp
-            };
-            cachedDeviceGps = gps;
-            resolve(gps);
-          },
-          (err) => reject(err),
-          customOptions
-        );
+      // If fresh cached location exists (< 2 mins) and not force-fresh, return immediately
+      const now = Date.now();
+      if (!customOptions.forceFresh && cachedDeviceGps && (now - lastGpsTimestamp < 120000)) {
+        return resolve(cachedDeviceGps);
       }
 
-      // Dual-stage approach for Mobile & Desktop:
-      // Stage 1: Attempt High Accuracy GPS fix (7s timeout)
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const gps = {
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-            accuracy: Math.round(pos.coords.accuracy || 0),
-            timestamp: pos.timestamp
-          };
-          cachedDeviceGps = gps;
-          resolve(gps);
-        },
-        (errStage1) => {
-          // If permission is explicitly denied (code 1), don't retry - let user know how to enable
-          if (errStage1.code === 1) {
-            const err = new Error('Location permission is blocked or denied on this mobile device. Please allow location access in your browser settings.');
-            err.code = 1;
-            return reject(err);
-          }
+      const formatGps = (pos) => ({
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude,
+        accuracy: Math.round(pos.coords.accuracy || 0),
+        timestamp: pos.timestamp || Date.now()
+      });
 
-          // Stage 2 Fallback: Use Cellular/Wi-Fi assisted positioning (fast, works indoors & on mobile)
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              const gps = {
-                latitude: pos.coords.latitude,
-                longitude: pos.coords.longitude,
-                accuracy: Math.round(pos.coords.accuracy || 0),
-                timestamp: pos.timestamp
-              };
-              cachedDeviceGps = gps;
-              resolve(gps);
-            },
-            (errStage2) => {
-              let errorMsg = 'Could not acquire GPS position.';
-              if (errStage2.code === 1) errorMsg = 'Location permission was denied. Please tap the lock/tune icon next to the URL to allow location.';
-              else if (errStage2.code === 2) errorMsg = 'Location unavailable. Ensure device GPS / Location Services is turned ON in phone settings.';
-              else if (errStage2.code === 3) errorMsg = 'GPS satellite acquisition timed out. Please try again or switch to WFH.';
-              const finalErr = new Error(errorMsg);
-              finalErr.code = errStage2.code;
-              reject(finalErr);
-            },
-            { enableHighAccuracy: false, timeout: 8000, maximumAge: 120000 }
-          );
+      let isResolved = false;
+      let watchId = null;
+      let safetyTimer = null;
+
+      const finishSuccess = (pos) => {
+        if (isResolved) return;
+        isResolved = true;
+        if (watchId !== null) {
+          try { navigator.geolocation.clearWatch(watchId); } catch (e) {}
+          watchId = null;
+        }
+        if (safetyTimer) clearTimeout(safetyTimer);
+        const gps = formatGps(pos);
+        cachedDeviceGps = gps;
+        lastGpsTimestamp = Date.now();
+        resolve(gps);
+      };
+
+      const finishError = (err) => {
+        if (isResolved) return;
+        isResolved = true;
+        if (watchId !== null) {
+          try { navigator.geolocation.clearWatch(watchId); } catch (e) {}
+          watchId = null;
+        }
+        if (safetyTimer) clearTimeout(safetyTimer);
+
+        let errorMsg = 'Could not acquire GPS position on this mobile device.';
+        if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+          errorMsg = '🔒 Secure HTTPS Connection Required: Mobile browsers block GPS over insecure HTTP connections. Please access via https:// or use WFH mode.';
+        } else if (err.code === 1) {
+          errorMsg = 'Location permission is blocked or denied. Please tap the lock/tune icon next to the URL or allow location in phone settings.';
+        } else if (err.code === 2) {
+          errorMsg = 'Location unavailable. Ensure device GPS / Location Services is turned ON in your phone notification shade.';
+        } else if (err.code === 3) {
+          errorMsg = 'GPS satellite acquisition timed out indoors. Please tap "Retry GPS", use "Punch Onsite (Manual Confirm)", or switch to WFH.';
+        }
+        const finalErr = new Error(errorMsg);
+        finalErr.code = err.code || 2;
+        reject(finalErr);
+      };
+
+      const timeoutMs = customOptions.timeout || 12000;
+
+      safetyTimer = setTimeout(() => {
+        if (!isResolved) {
+          if (cachedDeviceGps && (now - lastGpsTimestamp < 600000)) {
+            finishSuccess({ coords: cachedDeviceGps, timestamp: cachedDeviceGps.timestamp });
+          } else {
+            finishError({ code: 3, message: 'GPS satellite acquisition timed out.' });
+          }
+        }
+      }, timeoutMs);
+
+      // Adaptive options: high accuracy when requested, otherwise fast network/Wi-Fi positioning (ideal for indoor mobile)
+      const options = {
+        enableHighAccuracy: customOptions.enableHighAccuracy !== undefined ? customOptions.enableHighAccuracy : false,
+        timeout: Math.min(timeoutMs, 10000),
+        maximumAge: customOptions.maximumAge !== undefined ? customOptions.maximumAge : 180000
+      };
+
+      // WatchPosition parallel race to resolve Android Chrome hang bug
+      try {
+        watchId = navigator.geolocation.watchPosition(
+          (pos) => finishSuccess(pos),
+          (err) => {
+            if (err && err.code === 1) finishError(err);
+          },
+          options
+        );
+      } catch (e) {}
+
+      // Direct getCurrentPosition
+      navigator.geolocation.getCurrentPosition(
+        (pos) => finishSuccess(pos),
+        (err) => {
+          if (err && err.code === 1) {
+            finishError(err);
+          } else if (options.enableHighAccuracy) {
+            // Stage 2 fallback: Try low accuracy (fast Wi-Fi / Cell tower)
+            navigator.geolocation.getCurrentPosition(
+              (p2) => finishSuccess(p2),
+              (e2) => finishError(e2),
+              { enableHighAccuracy: false, timeout: 6000, maximumAge: 300000 }
+            );
+          } else {
+            // Stage 2 fallback: Try high accuracy (GPS hardware)
+            navigator.geolocation.getCurrentPosition(
+              (p2) => finishSuccess(p2),
+              (e2) => finishError(e2),
+              { enableHighAccuracy: true, timeout: 6000, maximumAge: 60000 }
+            );
+          }
         },
-        { enableHighAccuracy: true, timeout: 7000, maximumAge: 30000 }
+        options
       );
     });
+  }
+
+  function updateLocationDiagnostics() {
+    const diagSecureCtx = document.getElementById('diag-secure-ctx');
+    const diagBrowserType = document.getElementById('diag-browser-type');
+    const diagApiStatus = document.getElementById('diag-api-status');
+    const diagAccuracy = document.getElementById('diag-accuracy');
+    const diagStatusPill = document.getElementById('diag-status-pill');
+    const btnOpenInChromeIntent = document.getElementById('btn-open-in-chrome-intent');
+    const inAppBrowserCard = document.getElementById('in-app-browser-card');
+
+    const isSecure = window.isSecureContext || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    if (diagSecureCtx) {
+      diagSecureCtx.textContent = isSecure ? 'HTTPS (Secure ✅)' : 'Insecure HTTP ⚠️';
+      diagSecureCtx.style.color = isSecure ? '#16a34a' : '#ef4444';
+    }
+
+    const ua = navigator.userAgent || '';
+    const isInApp = /FBAN|FBAV|Messenger|Viber|Slack|Line|Instagram|Telegram|TikTok/i.test(ua);
+    const isAndroid = /Android/i.test(ua);
+    const isIOS = /iPhone|iPad|iPod/i.test(ua);
+
+    let browserName = 'Chrome / Desktop';
+    if (isInApp) {
+      browserName = 'In-App Webview ⚠️';
+    } else if (isAndroid) {
+      browserName = 'Android Chrome 📱';
+    } else if (isIOS) {
+      browserName = 'iOS Safari 🍎';
+    }
+
+    if (diagBrowserType) {
+      diagBrowserType.textContent = browserName;
+      diagBrowserType.style.color = isInApp ? '#d97706' : 'var(--text-primary)';
+    }
+
+    if (btnOpenInChromeIntent && isAndroid && isInApp) {
+      btnOpenInChromeIntent.style.display = 'block';
+    }
+
+    if (diagApiStatus) {
+      diagApiStatus.textContent = navigator.geolocation ? 'Supported ✅' : 'Blocked / Unavailable ❌';
+      diagApiStatus.style.color = navigator.geolocation ? '#16a34a' : '#ef4444';
+    }
+
+    if (diagAccuracy) {
+      if (cachedDeviceGps) {
+        diagAccuracy.textContent = `±${cachedDeviceGps.accuracy}m`;
+        diagAccuracy.style.color = '#16a34a';
+      } else {
+        diagAccuracy.textContent = 'Not locked yet';
+        diagAccuracy.style.color = 'var(--text-secondary)';
+      }
+    }
+
+    if (diagStatusPill) {
+      if (cachedDeviceGps) {
+        const gpsSettings = store.getGpsSettings();
+        const res = store.checkGeofence(cachedDeviceGps.latitude, cachedDeviceGps.longitude, cachedDeviceGps.accuracy);
+        diagStatusPill.textContent = res.isWithin ? '🟢 Geofence Verified' : `⛔ ${res.distanceMeters}m Away`;
+        diagStatusPill.className = res.isWithin ? 'badge-gps-verified' : 'badge-gps-outside';
+      } else {
+        diagStatusPill.textContent = 'Standby';
+        diagStatusPill.className = 'badge-gps-wfh';
+      }
+    }
   }
 
   function openLocationHelpModal(errorMsg) {
@@ -725,6 +847,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (locationHelpErrorText && errorMsg) {
       locationHelpErrorText.textContent = errorMsg;
     }
+    updateLocationDiagnostics();
     modalLocationHelp.classList.add('active');
   }
 
@@ -924,7 +1047,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let capturedGps = null;
 
     if (isGpsFeatureOn && gpsSettings.enabled) {
-      if (location === 'onsite') {
+      if (location === 'onsite' && !bypassGps) {
         const originalText = btnClockIn.innerHTML;
         btnClockIn.disabled = true;
         btnClockIn.innerHTML = `📍 Verifying Office GPS...`;
@@ -947,8 +1070,8 @@ document.addEventListener('DOMContentLoaded', () => {
             btnClockIn.innerHTML = originalText;
             openLocationHelpModal(
               `⛔ OUTSIDE OFFICE GEOFENCE:\n\n` +
-              `You are currently ${result.distanceMeters}m away from the office (${gpsSettings.officeName}). Allowed radius is ${gpsSettings.radiusMeters}m.\n\n` +
-              `👉 If you are working from home today, tap "Working Remote? Switch to WFH" below.`
+              `Your phone reports ~${result.distanceMeters}m away from the office (${gpsSettings.officeName}). Configured radius is ${gpsSettings.radiusMeters}m (Accuracy: ±${coords.accuracy}m).\n\n` +
+              `👉 If you are physically at the office, tap "At the Office? Punch Onsite (Manual Confirm)" below, or switch to WFH if remote.`
             );
             updateTerminalGpsStatus(true);
             return;
@@ -960,7 +1083,7 @@ document.addEventListener('DOMContentLoaded', () => {
             openLocationHelpModal(
               `⚠️ GPS LOCATION REQUIRED FOR ONSITE:\n\n` +
               `${err.message}\n\n` +
-              `👉 Tap "Prompt / Enable GPS on this Phone" below to allow browser location, or switch to WFH if remote.`
+              `👉 If you are physically at the office, tap "At the Office? Punch Onsite (Manual Confirm)" below to punch immediately.`
             );
             updateTerminalGpsStatus(true);
             return;
@@ -968,6 +1091,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         btnClockIn.disabled = false;
         btnClockIn.innerHTML = originalText;
+      } else if (location === 'onsite' && bypassGps) {
+        // User confirmed onsite presence manually
+        capturedGps = {
+          latitude: cachedDeviceGps ? cachedDeviceGps.latitude : null,
+          longitude: cachedDeviceGps ? cachedDeviceGps.longitude : null,
+          accuracy: cachedDeviceGps ? cachedDeviceGps.accuracy : null,
+          manualOnsiteConfirmed: true,
+          officeName: gpsSettings.officeName,
+          timestamp: new Date().toISOString()
+        };
       } else if (location === 'wfh' && gpsSettings.wfhCaptureGps) {
         // WFH background capture for audit logs (does not block clock-in)
         try {
@@ -986,7 +1119,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     attendance.clockIn(dev.id, projId, taskNotes, location, capturedGps);
-    const locLabel = location === 'wfh' ? 'WFH (Home)' : (capturedGps && capturedGps.distanceMeters != null ? `ONSITE (${capturedGps.distanceMeters}m verified)` : 'ONSITE');
+    const locLabel = location === 'wfh' ? 'WFH (Home)' : (capturedGps && capturedGps.distanceMeters != null ? `ONSITE (${capturedGps.distanceMeters}m verified)` : (bypassGps ? 'ONSITE (Manual Confirm)' : 'ONSITE'));
     showToast(`Time IN recorded (${locLabel}) for ${dev.name}!`, 'success');
     renderClockTerminal();
     renderAttendanceBoard();
@@ -1060,25 +1193,44 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  if (btnLocationForceOnsite) {
+    btnLocationForceOnsite.addEventListener('click', () => {
+      closeLocationHelpModal();
+      setWorkMode('onsite');
+      executeClockIn('onsite', true);
+    });
+  }
+
+  if (btnOpenInChromeIntent) {
+    btnOpenInChromeIntent.addEventListener('click', () => {
+      const rawUrl = window.location.href.replace(/^https?:\/\//, '');
+      const scheme = window.location.protocol.replace(':', '');
+      const intentUrl = `intent://${rawUrl}#Intent;scheme=${scheme};package=com.android.chrome;end`;
+      window.location.href = intentUrl;
+    });
+  }
+
   async function handleGpsPromptRequest() {
     showToast('🔄 Requesting device GPS permission...', 'info');
     try {
-      const coords = await getCurrentDeviceGPS();
+      const coords = await getCurrentDeviceGPS({ forceFresh: true });
       const gpsSettings = store.getGpsSettings();
-      const result = store.checkGeofence(coords.latitude, coords.longitude);
+      const result = store.checkGeofence(coords.latitude, coords.longitude, coords.accuracy);
       
       updateTerminalGpsStatus(true);
+      updateLocationDiagnostics();
       
       if (result.isWithin) {
         closeLocationHelpModal();
         showToast(`🟢 Office GPS Verified! (${result.distanceMeters}m from ${gpsSettings.officeName}). You can now punch Onsite!`, 'success');
       } else {
         if (locationHelpErrorText) {
-          locationHelpErrorText.textContent = `⚠️ GPS acquired, but you are ${result.distanceMeters}m away from the office (${gpsSettings.officeName}). Allowed limit is ${gpsSettings.radiusMeters}m.`;
+          locationHelpErrorText.textContent = `⚠️ GPS acquired (±${coords.accuracy}m), but you are ~${result.distanceMeters}m away from the office (${gpsSettings.officeName}). Allowed limit is ${gpsSettings.radiusMeters}m.`;
         }
       }
     } catch (err) {
       updateTerminalGpsStatus(true);
+      updateLocationDiagnostics();
       if (locationHelpErrorText) {
         locationHelpErrorText.textContent = err.message || 'Could not acquire GPS. Please ensure Location is enabled in phone settings.';
       }
@@ -1246,7 +1398,9 @@ document.addEventListener('DOMContentLoaded', () => {
           locationBadge = `<span class="badge badge-gps-wfh" style="font-size: 0.72rem;">🏠 WFH</span>`;
           locationRowHtml = `<span style="color: var(--accent-cyan); font-weight: 700;">🏠 Remote (WFH)</span>`;
         } else {
-          const distStr = dev.activeSession && dev.activeSession.gps && dev.activeSession.gps.distanceMeters != null ? `${dev.activeSession.gps.distanceMeters}m` : 'Verified';
+          const distStr = dev.activeSession && dev.activeSession.gps && dev.activeSession.gps.distanceMeters != null 
+            ? `${dev.activeSession.gps.distanceMeters}m` 
+            : (dev.activeSession && dev.activeSession.gps && dev.activeSession.gps.manualOnsiteConfirmed ? 'Self-Audit' : 'Verified');
           locationBadge = `<span class="badge badge-gps-verified" style="font-size: 0.72rem;">🏢 Onsite (${distStr})</span>`;
           locationRowHtml = `<span style="color: var(--status-working); font-weight: 700;">🏢 Office Onsite (${distStr})</span>`;
         }
@@ -2268,9 +2422,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (nameEl) nameEl.value = gps.officeName || 'Diverse Ideas Office (Zamuco, Kauswagan, CDO)';
     if (latEl) latEl.value = (gps.latitude !== undefined ? gps.latitude : 8.497211).toFixed(6);
     if (lngEl) lngEl.value = (gps.longitude !== undefined ? gps.longitude : 124.625679).toFixed(6);
-    if (radiusSlider) radiusSlider.value = gps.radiusMeters || 250;
-    if (radiusNumber) radiusNumber.value = gps.radiusMeters || 250;
-    if (strictEl) strictEl.checked = gps.strictGeofence !== false;
+    if (radiusSlider) radiusSlider.value = gps.radiusMeters || 750;
+    if (radiusNumber) radiusNumber.value = gps.radiusMeters || 750;
+    if (strictEl) strictEl.checked = gps.strictGeofence === true;
     if (wfhAnywhereEl) wfhAnywhereEl.checked = gps.allowWfhAnywhere !== false;
   }
 

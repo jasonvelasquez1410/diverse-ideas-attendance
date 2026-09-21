@@ -2724,8 +2724,8 @@
             📍
           </div>
           <div>
-            <h3 class="modal-title" style="margin: 0; font-size: 1.15rem;" id="location-help-title">Location Access Needed</h3>
-            <p style="margin: 2px 0 0 0; font-size: 0.82rem; color: var(--text-secondary);" id="location-help-subtitle">Office Geofence Verification</p>
+            <h3 class="modal-title" style="margin: 0; font-size: 1.15rem;" id="location-help-title">Mobile GPS & Location Access</h3>
+            <p style="margin: 2px 0 0 0; font-size: 0.82rem; color: var(--text-secondary);" id="location-help-subtitle">Office Attendance Verification</p>
           </div>
         </div>
         <button class="modal-close-btn" id="btn-close-location-help">&times;</button>
@@ -2733,24 +2733,41 @@
 
       <div class="modal-body" style="padding: 22px;">
         <!-- Error Notice Banner -->
-        <div id="location-help-error-box" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 18px; display: flex; gap: 12px; align-items: flex-start;">
+        <div id="location-help-error-box" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 16px; display: flex; gap: 12px; align-items: flex-start;">
           <span style="font-size: 1.2rem;">⚠️</span>
           <div style="font-size: 0.85rem; color: var(--text-primary); line-height: 1.45;" id="location-help-error-text">
-            Your phone browser could not access your device GPS or the satellite request timed out indoors.
+            Your phone browser is having difficulty locking onto GPS coordinates indoors.
           </div>
         </div>
 
-        <!-- Required GPS Action & WFH Alternative -->
-        <div style="background: rgba(99, 102, 241, 0.08); border: 1.5px dashed rgba(99, 102, 241, 0.35); border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px; text-align: center;">
+        <!-- Live Phone Diagnostics Box -->
+        <div id="location-diagnostics-box" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 16px; font-size: 0.82rem;">
+          <div style="font-weight: 700; color: var(--accent-primary); margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
+            <span>📡 Phone Connection Diagnostics</span>
+            <span id="diag-status-pill" class="badge-gps-wfh" style="font-size: 0.72rem;">Checking...</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; color: var(--text-secondary); font-size: 0.78rem;">
+            <div>Security: <strong id="diag-secure-ctx" style="color: var(--text-primary);">--</strong></div>
+            <div>Browser: <strong id="diag-browser-type" style="color: var(--text-primary);">--</strong></div>
+            <div>Location API: <strong id="diag-api-status" style="color: var(--text-primary);">--</strong></div>
+            <div>Accuracy: <strong id="diag-accuracy" style="color: var(--text-primary);">--</strong></div>
+          </div>
+        </div>
+
+        <!-- Action Choices Card -->
+        <div style="background: rgba(99, 102, 241, 0.08); border: 1.5px dashed rgba(99, 102, 241, 0.35); border-radius: var(--radius-md); padding: 16px; margin-bottom: 18px; text-align: center;">
           <div style="font-size: 0.88rem; font-weight: 700; color: var(--accent-primary); margin-bottom: 6px;">
-            🏢 Office Onsite Attendance
+            🏢 Physical Attendance Options
           </div>
           <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0 0 12px 0;">
-            Physical office presence within <strong>250m</strong> is required for Onsite shifts. Please enable location on your phone or switch to WFH if working remotely:
+            Choose an action below to complete your Time In shift:
           </p>
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <button type="button" class="btn btn-success" id="btn-location-retry-gps-main" style="width: 100%; font-weight: 700; padding: 12px; font-size: 0.95rem; justify-content: center;">
-              📍 Prompt / Enable GPS on this Phone
+              🔄 Prompt / Retry Mobile GPS Check
+            </button>
+            <button type="button" class="btn btn-warning" id="btn-location-force-onsite" style="width: 100%; font-weight: 700; padding: 10px; font-size: 0.88rem; justify-content: center; background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; color: #d97706;">
+              🏢 At the Office? Punch Onsite (Manual Confirm)
             </button>
             <button type="button" class="btn btn-primary" id="btn-location-fallback-wfh" style="width: 100%; font-weight: 700; padding: 10px; font-size: 0.88rem; justify-content: center;">
               🏠 Working Remote? Switch to WFH
@@ -2760,15 +2777,22 @@
 
         <!-- Mobile Step-by-Step Instructions -->
         <h4 style="font-size: 0.9rem; font-weight: 700; margin: 0 0 10px 0; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
-          📱 How to Enable Location on your Phone:
+          📱 Troubleshooting Tips for Mobile:
         </h4>
 
         <!-- Platform Instructions Cards -->
         <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.82rem;">
           <!-- In-App Browser Warning (Messenger / Slack / Viber) -->
-          <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-sm); padding: 10px 12px; color: var(--text-primary);">
-            <strong>⚠️ Opened from Messenger, Viber, or Slack?</strong><br>
-            In-app webviews hide the address bar and block GPS. Tap the <strong>3 dots (⋮ or ⋯)</strong> at the top right &rarr; choose <strong>"Open in Chrome"</strong> or <strong>"Open in Safari"</strong>.
+          <div id="in-app-browser-card" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-sm); padding: 10px 12px; color: var(--text-primary);">
+            <div style="font-weight: 700; color: #d97706; margin-bottom: 4px;">
+              ⚠️ Opened from Messenger, Viber, or Slack?
+            </div>
+            <div style="line-height: 1.45; margin-bottom: 8px;">
+              In-app webviews block GPS permissions. Tap the <strong>3 dots (⋮ or ⋯)</strong> at the top right &rarr; choose <strong>"Open in Chrome"</strong> or <strong>"Open in Safari"</strong>.
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-open-in-chrome-intent" style="font-size: 0.76rem; width: 100%; justify-content: center; display: none;">
+              🚀 Open Link Directly in Chrome App
+            </button>
           </div>
 
           <!-- Android / Chrome -->
@@ -2777,8 +2801,8 @@
               🤖 Android (Google Chrome)
             </div>
             <ol style="margin: 4px 0 0 16px; padding: 0; color: var(--text-secondary); line-height: 1.5;">
-              <li>Tap the <strong>3 dots (⋮)</strong> at top right &rarr; <strong>Settings</strong> &rarr; <strong>Site settings</strong> &rarr; <strong>Location</strong> &rarr; <strong>Allow</strong>.</li>
-              <li>Or pull down your phone's notification shade and make sure the <strong>Location / GPS</strong> tile is turned ON.</li>
+              <li>Tap the <strong>tune/lock icon (⚙️/🔒)</strong> on the left side of the address bar &rarr; <strong>Permissions</strong> &rarr; <strong>Location</strong> &rarr; <strong>Allow</strong>.</li>
+              <li>Pull down your phone's notification shade and ensure <strong>Location / GPS</strong> is turned ON.</li>
             </ol>
           </div>
 
