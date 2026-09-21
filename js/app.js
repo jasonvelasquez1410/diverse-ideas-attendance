@@ -242,8 +242,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const pin = authPinInput.value.trim();
     if (!pin) return;
 
-    // MASTER OVERRIDE: Entering Master PIN 9999 ALWAYS logs in as Administrator regardless of button selected!
-    if (pin === '9999' || pin === String(store.getState().adminPin).trim()) {
+    // MASTER OVERRIDE: Entering Master PIN 1410 ALWAYS logs in as Administrator regardless of button selected!
+    if (pin === '1410' || pin === String(store.getState().adminPin).trim()) {
       const result = store.loginAdmin(pin);
       if (result.success) {
         selectedAuthDevId = 'admin';
@@ -257,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // If Administrator profile was selected but incorrect PIN entered:
     if (selectedAuthDevId === 'admin') {
-      authErrorMsg.textContent = '❌ Incorrect Admin Master PIN (9999).';
+      authErrorMsg.textContent = '❌ Incorrect Admin Master PIN (1410).';
       authPinInput.value = '';
       authPinInput.focus();
       return;
@@ -279,20 +279,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  btnAdminLoginModal.addEventListener('click', () => {
-    const pin = prompt('Enter Admin Master PIN (9999):');
-    if (pin !== null) {
-      const result = store.loginAdmin(pin.trim());
-      if (result.success) {
-        authLockScreen.style.display = 'none';
-        showToast('Unlocked Admin Mode (Full Payroll & Rates Access)', 'success');
-        updateHeaderAuthProfile();
-        renderAll();
-      } else {
-        alert('❌ Access Denied: Incorrect Admin PIN.');
+  if (btnAdminLoginModal) {
+    btnAdminLoginModal.addEventListener('click', () => {
+      const pin = prompt('Enter Admin Master PIN (1410):');
+      if (pin !== null) {
+        const result = store.loginAdmin(pin.trim());
+        if (result.success) {
+          authLockScreen.style.display = 'none';
+          showToast('Unlocked Admin Mode (Full Payroll & Rates Access)', 'success');
+          updateHeaderAuthProfile();
+          renderAll();
+        } else {
+          alert('❌ Access Denied: Incorrect Admin PIN.');
+        }
       }
-    }
-  });
+    });
+  }
 
   function updateHeaderAuthProfile() {
     const auth = store.getAuth();
@@ -306,11 +308,11 @@ document.addEventListener('DOMContentLoaded', () => {
       headerUserRoleBadge.textContent = 'ADMIN';
       headerUserRoleBadge.style.background = 'rgba(236, 72, 153, 0.2)';
       headerUserRoleBadge.style.color = '#f472b6';
-      // Manager Guide is ONLY visible for Admin (Master PIN 9999)
+      // Manager Guide is ONLY visible for Admin (Master PIN 1410)
       if (btnHeaderGuide) {
         btnHeaderGuide.style.display = 'inline-flex';
       }
-      // Payslip generation is strictly exclusive to Admin (Master PIN 9999)
+      // Payslip generation is strictly exclusive to Admin (Master PIN 1410)
       if (btnCardPayslip) {
         btnCardPayslip.style.display = 'inline-flex';
       }
@@ -1628,7 +1630,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Hide dev selector for regular developers
     payrollDevFilter.style.display = store.isAdmin() ? 'block' : 'none';
 
-    // Payslip quick bar and export buttons strictly exclusive to Admin (PIN 9999)
+    // Payslip quick bar and export buttons strictly exclusive to Admin (PIN 1410)
     const quickPayslipBar = document.getElementById('quick-payslip-bar');
     if (quickPayslipBar) {
       quickPayslipBar.style.display = store.isAdmin() ? 'flex' : 'none';
@@ -1843,11 +1845,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================================
-  // 8. Official Payslip Generator & Print Controller (Admin Exclusive PIN 9999)
+  // 8. Official Payslip Generator & Print Controller (Admin Exclusive PIN 1410)
   // ==========================================
   window.openPayslipModal = function(targetDevId = null, targetRecordId = null) {
     if (!store.isAdmin()) {
-      showToast('🔒 Access Restricted: Payslip generation is confidential and strictly exclusive to Administrator (Master PIN 9999).', 'warning');
+      showToast('🔒 Access Restricted: Payslip generation is confidential and strictly exclusive to Administrator (Master PIN 1410).', 'warning');
       return;
     }
 
@@ -1986,7 +1988,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.generateSinglePayslip = function(devId, recordId) {
     if (!store.isAdmin()) {
-      showToast('🔒 Access Restricted: Payslip generation is confidential and strictly exclusive to Administrator (Master PIN 9999).', 'warning');
+      showToast('🔒 Access Restricted: Payslip generation is confidential and strictly exclusive to Administrator (Master PIN 1410).', 'warning');
       return;
     }
     window.openPayslipModal(devId, recordId);
@@ -1994,7 +1996,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnPrintReport.addEventListener('click', () => {
     if (!store.isAdmin()) {
-      showToast('🔒 Access Restricted: Payslip generation is confidential and strictly exclusive to Administrator (Master PIN 9999).', 'warning');
+      showToast('🔒 Access Restricted: Payslip generation is confidential and strictly exclusive to Administrator (Master PIN 1410).', 'warning');
       return;
     }
     window.openPayslipModal();
@@ -2078,7 +2080,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const newPin = document.getElementById('setting-new-admin-pin').value.trim();
       const confirmPin = document.getElementById('setting-confirm-admin-pin').value.trim();
 
-      const actualAdminPin = String(store.getState().adminPin || '9999').trim();
+      const actualAdminPin = String(store.getState().adminPin || '1410').trim();
       if (currentPin !== actualAdminPin) {
         alert('❌ Current Admin PIN is incorrect.');
         document.getElementById('setting-current-admin-pin').focus();
@@ -3343,7 +3345,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnOpenAddProject) {
     btnOpenAddProject.addEventListener('click', () => {
       if (!store.isAdmin()) {
-        const pin = prompt('Enter Admin Master PIN (9999) to create projects:');
+        const pin = prompt('Enter Admin Master PIN (1410) to create projects:');
         if (pin !== store.getState().adminPin) {
           alert('❌ Access Denied. Admin PIN required.');
           return;
@@ -3384,7 +3386,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.openEditProjectModal = function(projId) {
     if (!store.isAdmin()) {
-      const pin = prompt('Enter Admin Master PIN (9999) to edit projects:');
+      const pin = prompt('Enter Admin Master PIN (1410) to edit projects:');
       if (pin !== store.getState().adminPin) {
         alert('❌ Access Denied. Admin PIN required.');
         return;
@@ -3431,7 +3433,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.deleteProjectConfirm = function(projId) {
     if (!store.isAdmin()) {
-      const pin = prompt('Enter Admin Master PIN (9999) to delete projects:');
+      const pin = prompt('Enter Admin Master PIN (1410) to delete projects:');
       if (pin !== store.getState().adminPin) {
         alert('❌ Access Denied. Admin PIN required.');
         return;
@@ -3599,7 +3601,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.deleteHolidayConfirm = function(date, name) {
     if (!store.isAdmin()) {
-      const pin = prompt('Enter Admin Master PIN (9999) to delete holidays:');
+      const pin = prompt('Enter Admin Master PIN (1410) to delete holidays:');
       if (pin !== store.getState().adminPin) {
         alert('❌ Access Denied. Admin PIN required.');
         return;
@@ -3643,7 +3645,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnOpenAddHoliday) {
     btnOpenAddHoliday.addEventListener('click', () => {
       if (!store.isAdmin()) {
-        const pin = prompt('Enter Admin Master PIN (9999) to add holidays:');
+        const pin = prompt('Enter Admin Master PIN (1410) to add holidays:');
         if (pin !== store.getState().adminPin) {
           alert('❌ Access Denied. Admin PIN required.');
           return;
@@ -3917,7 +3919,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function openManagerGuideModal() {
     if (!store.isAdmin()) {
-      showToast('🔒 Access Restricted: Manager Guide is confidential to Management (Admin PIN 9999 required).', 'warning');
+      showToast('🔒 Access Restricted: Manager Guide is confidential to Management (Admin PIN 1410 required).', 'warning');
       return;
     }
     if (modalManagerGuide) {
@@ -4080,7 +4082,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (auth.role === 'admin') {
-        const actualAdminPin = String(store.getState().adminPin || '9999').trim();
+        const actualAdminPin = String(store.getState().adminPin || '1410').trim();
         if (currentPin !== actualAdminPin) {
           showAlert('❌ Current Admin PIN is incorrect.');
           inputCurrentPin.focus();
@@ -4101,7 +4103,7 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        const adminPin = String(store.getState().adminPin || '9999').trim();
+        const adminPin = String(store.getState().adminPin || '1410').trim();
         if (newPin === adminPin) {
           showAlert('❌ This PIN is reserved for the Administrator. Please choose a different 4-digit code.');
           inputNewPin.focus();

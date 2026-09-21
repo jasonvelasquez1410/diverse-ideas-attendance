@@ -95,7 +95,7 @@ class ExportUtility {
   printPayrollReport() {
     if (!this.store.isAdmin()) {
       if (window.showToast) {
-        window.showToast('🔒 Access Restricted: Payslip generation is confidential and exclusive to Administrator (Master PIN 9999).', 'warning');
+        window.showToast('🔒 Access Restricted: Payslip generation is confidential and exclusive to Administrator (Master PIN 1410).', 'warning');
       }
       return;
     }

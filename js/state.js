@@ -9,7 +9,7 @@ const SESSION_AUTH_KEY = 'devtrack_active_session_auth';
 
 // Default initial state
 const DEFAULT_INITIAL_STATE = {
-  adminPin: '9999', // Admin Master PIN (Tefanny - 9999 / 0104 fallback)
+  adminPin: '1410', // Admin Master PIN (Tefanny - 1410)
   activeDeveloperId: 'dev-1',
   currency: 'USD',
   currencySymbol: '$',
@@ -462,9 +462,9 @@ class Store {
           parsed.developers = DEFAULT_INITIAL_STATE.developers;
         }
 
-        // Ensure default admin PIN exists if not set
-        if (!parsed.adminPin) {
-          parsed.adminPin = '9999';
+        // Ensure default admin PIN exists or migrate legacy PINs (9999, 0104) to 1410
+        if (!parsed.adminPin || parsed.adminPin === '9999' || parsed.adminPin === '0104') {
+          parsed.adminPin = '1410';
         }
 
         // Ensure workSchedules
@@ -712,13 +712,13 @@ class Store {
 
   loginDeveloper(devId, pin) {
     const trimmedPin = String(pin).trim();
-    // Master Key: If Admin Master PIN (9999 or 0104) is entered, ALWAYS route to Admin Mode!
-    if (trimmedPin === String(this.state.adminPin).trim() || trimmedPin === '9999' || trimmedPin === '0104') {
+    // Master Key: If Admin Master PIN (1410) is entered, ALWAYS route to Admin Mode!
+    if (trimmedPin === String(this.state.adminPin).trim() || trimmedPin === '1410') {
       return this.loginAdmin(trimmedPin);
     }
 
     if (devId === 'admin') {
-      return { success: false, message: 'Please enter Admin Master PIN (9999)' };
+      return { success: false, message: 'Please enter Admin Master PIN (1410)' };
     }
 
     const dev = this.getDeveloperById(devId);
@@ -739,7 +739,7 @@ class Store {
 
   loginAdmin(pin) {
     const trimmedPin = String(pin).trim();
-    if (trimmedPin === String(this.state.adminPin).trim() || trimmedPin === '9999' || trimmedPin === '0104') {
+    if (trimmedPin === String(this.state.adminPin).trim() || trimmedPin === '1410') {
       this.saveAuth({
         isAuthenticated: true,
         role: 'admin',
@@ -747,7 +747,7 @@ class Store {
       });
       return { success: true, role: 'admin', dev: { name: 'Administrator', role: 'System Admin' } };
     }
-    return { success: false, message: 'Incorrect Admin Master PIN (9999)' };
+    return { success: false, message: 'Incorrect Admin Master PIN (1410)' };
   }
 
   logout() {

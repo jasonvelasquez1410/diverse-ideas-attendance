@@ -79,7 +79,7 @@
           <span class="change-pin-text">PIN</span>
         </button>
 
-        <!-- Manager Guide Quick Launch (Admin Master PIN 9999 Only) -->
+        <!-- Manager Guide Quick Launch (Admin Master PIN 1410 Only) -->
         <button class="btn btn-secondary" id="btn-header-guide" title="Manager Onboarding Guide for Operations Manager" style="display: none; background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3); color: var(--accent-primary); font-weight: 700;">
           <span>📖</span>
           <span class="guide-btn-text">Guide</span>
@@ -991,7 +991,7 @@
               </div>
               <div class="form-group">
                 <label class="form-label" for="setting-new-admin-pin">New 4-Digit Admin PIN *</label>
-                <input type="password" id="setting-new-admin-pin" class="form-control" maxlength="4" placeholder="4 digits (e.g. 9999)" required autocomplete="off" inputmode="numeric">
+                <input type="password" id="setting-new-admin-pin" class="form-control" maxlength="4" placeholder="4 digits (e.g. 1410)" required autocomplete="off" inputmode="numeric">
               </div>
             </div>
             <div class="form-group" style="margin-top: 12px;">
@@ -1185,7 +1185,7 @@
                 <h3 class="guide-step-title">Admin Master Access & Confidential Mode</h3>
               </div>
               <div class="guide-step-desc">
-                Log into DevTrack using the <strong>Administrator</strong> profile with master PIN <span class="guide-pin-chip">9999</span>. This gives Operations Manager exclusive access to view developer hourly rates, run team payroll, approve attendance requests, and manage settings.
+                Log into DevTrack using the <strong>Administrator</strong> profile with master PIN <span class="guide-pin-chip">1410</span>. This gives Operations Manager exclusive access to view developer hourly rates, run team payroll, approve attendance requests, and manage settings.
               </div>
               <div class="guide-callout">
                 🔒 <strong>Security Note:</strong> Developer staff cannot view each other's hourly rates or earnings. Rate confidentiality is enforced across all public and team views.
@@ -1651,7 +1651,7 @@
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
             <div style="background: var(--bg-card); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
               <span style="font-size: 0.78rem; color: var(--text-muted); display: block;">👑 Administrator</span>
-              <strong style="color: #ec4899; font-family: var(--font-mono); font-size: 0.95rem;">9999</strong>
+              <strong style="color: #ec4899; font-family: var(--font-mono); font-size: 0.95rem;">1410</strong>
             </div>
             <div style="background: var(--bg-card); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
               <span style="font-size: 0.78rem; color: var(--text-muted); display: block;">Alex Rivera</span>
@@ -1681,7 +1681,7 @@
               <h4 class="guide-step-title">How Operations Manager Logs In</h4>
             </div>
             <p class="guide-step-desc">
-              Open <strong>https://diverse-ideas-attendance.vercel.app</strong>, select <strong>[ADM] Administrator</strong>, and enter PIN <span class="guide-pin-chip">9999</span>. As admin, Operations Manager gets exclusive access to payroll, rates, and team settings.
+              Open <strong>https://diverse-ideas-attendance.vercel.app</strong>, select <strong>[ADM] Administrator</strong>, and enter PIN <span class="guide-pin-chip">1410</span>. As admin, Operations Manager gets exclusive access to payroll, rates, and team settings.
             </p>
           </div>
 
@@ -2851,13 +2851,6 @@
           Unlock Terminal & Timesheet
         </button>
       </form>
-
-      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-size: 0.76rem; color: var(--text-muted);">Manager Access:</span>
-        <button class="btn btn-secondary" id="btn-admin-login-modal" style="padding: 4px 10px; font-size: 0.76rem;">
-          🔑 Admin Master Unlock
-        </button>
-      </div>
     </div>
   </div>
 
@@ -2865,11 +2858,11 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- Application Scripts -->
-  <script src="js/state.js?v=20260919g"></script>
-  <script src="js/attendance.js?v=20260919g"></script>
-  <script src="js/payroll.js?v=20260919g"></script>
-  <script src="js/export.js?v=20260919g"></script>
-  <script src="js/app.js?v=20260919g"></script>
+  <script src="js/state.js?v=20260921h"></script>
+  <script src="js/attendance.js?v=20260921h"></script>
+  <script src="js/payroll.js?v=20260921h"></script>
+  <script src="js/export.js?v=20260921h"></script>
+  <script src="js/app.js?v=20260921h"></script>
 
 </body>
 </html>

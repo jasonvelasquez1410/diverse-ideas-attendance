@@ -34,9 +34,9 @@ DevTrack is an in-house **Time & Attendance, Daily Time Record (DTR), Time Off &
 | `dev-2` | **IBANEZ, Ella** | Junior Software Developer | $5.00 / hr | **`1598`** | Hourly (No Work, No Pay) | Personal DTR & Attendance |
 | `dev-3` | **NALUGON, Abner** | Senior Software Developer | $18.00 / hr | **`5478`** | Hourly (No Work, No Pay) | Personal DTR & Attendance |
 | `dev-4` | **VELASQUEZ, Jason Jeff** | Senior Software Developer | $12.00 / hr | **`9654`** | Hourly (No Work, No Pay) | Personal DTR & Attendance |
-| `admin-1` | **Administrator / Tefanny** | Operations Manager | *Executive* | **`9999`** | *Master Privileges* | **Full Admin Master Access** |
+| `admin-1` | **Administrator / Tefanny** | Operations Manager | *Executive* | **`1410`** | *Master Privileges* | **Full Admin Master Access** |
 
-> 📌 **Note:** All PINs can be changed by developers themselves via the `🔑 PIN` button in the header or managed by Admin in Settings. Rate confidentiality is strictly enforced and locked behind the master PIN `9999`.
+> 📌 **Note:** All PINs can be changed by developers themselves via the `🔑 PIN` button in the header or managed by Admin in Settings. Rate confidentiality is strictly enforced and locked behind the master PIN `1410`.
 
 ---
 
@@ -100,7 +100,7 @@ DevTrack is an in-house **Time & Attendance, Daily Time Record (DTR), Time Off &
 ### 🌐 Option 1: Live Cloud Production Web App (No Local Setup Required)
 Open any browser on laptop, tablet, or mobile:
 👉 **`https://diverse-ideas-attendance.vercel.app`**
-- **Operations Manager / Tefanny:** Unlock with PIN **`9999`**.
+- **Operations Manager / Tefanny:** Unlock with PIN **`1410`**.
 - **Developers:**
   - Cyreh Bayson: **`7532`**
   - Ella Ibañez: **`1598`**
@@ -150,5 +150,5 @@ git push origin main
 1. **Always Validate & Push to Main:** Run `node -c` on JavaScript files before pushing to `origin main`.
 2. **Non-Blocking Mobile Geofencing:** Keep `strictGeofence: false` and flexible radius buffers so employees indoors are never blocked.
 3. **Hourly Compensation Model:** Short pauses are paid; shift duration is based on Time IN to Time OUT.
-4. **Confidentiality:** Individual developer compensation rates and company totals remain locked behind Master PIN `9999`.
+4. **Confidentiality:** Individual developer compensation rates and company totals remain locked behind Master PIN `1410`.
 5. **Responsive Header Integrity:** Keep `.header-actions` and `#btn-logout` pinned with `flex-shrink: 0` so they never overflow past the right viewport edge.
