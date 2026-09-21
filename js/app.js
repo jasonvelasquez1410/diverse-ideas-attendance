@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // DOM Elements - Terminal / Clock View
   const terminalDevSelect = document.getElementById('terminal-dev-select');
   const cardDevSelect = document.getElementById('card-dev-select');
+  const cardDevSelectContainer = document.getElementById('card-dev-select-container');
   const pillModeOnsite = document.getElementById('pill-mode-onsite');
   const pillModeWfh = document.getElementById('pill-mode-wfh');
   const pillModeSaturday = document.getElementById('pill-mode-saturday');
@@ -454,8 +455,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   function renderEmployeeDropdown() {
     const developers = store.getState().developers;
+    const auth = store.getAuth();
+    const isAdmin = store.isAdmin();
+
+    // Lock non-admin users strictly to their own logged-in developer ID
+    if (!isAdmin && auth && auth.devId) {
+      store.setActiveDeveloper(auth.devId);
+    }
     const activeDev = store.getActiveDeveloper();
-    
+
+    // Only show employee selector dropdown in Admin mode
+    if (cardDevSelectContainer) {
+      cardDevSelectContainer.style.display = isAdmin ? 'flex' : 'none';
+    }
+
     [terminalDevSelect, cardDevSelect].forEach(sel => {
       if (!sel) return;
       sel.innerHTML = '';
@@ -467,6 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (activeDev && d.id === activeDev.id) opt.selected = true;
         sel.appendChild(opt);
       });
+      sel.disabled = !isAdmin;
     });
   }
 
@@ -504,6 +518,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderClockTerminal() {
+    const auth = store.getAuth();
+    if (!store.isAdmin() && auth && auth.devId) {
+      store.setActiveDeveloper(auth.devId);
+    }
     const activeDev = store.getActiveDeveloper();
     if (!activeDev) return;
 
@@ -1241,6 +1259,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (terminalDevSelect) {
     terminalDevSelect.addEventListener('change', (e) => {
+      if (!store.isAdmin()) return;
       store.setActiveDeveloper(e.target.value);
       if (cardDevSelect) cardDevSelect.value = e.target.value;
       renderClockTerminal();
@@ -1251,6 +1270,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (cardDevSelect) {
     cardDevSelect.addEventListener('change', (e) => {
+      if (!store.isAdmin()) return;
       store.setActiveDeveloper(e.target.value);
       if (terminalDevSelect) terminalDevSelect.value = e.target.value;
       renderClockTerminal();
