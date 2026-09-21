@@ -125,34 +125,6 @@
       "code": "DICP",
       "description": "Internal staff management & attendance suite",
       "status": "Active"
-    },
-    {
-      "id": "proj-2",
-      "name": "JETZ Enterprise System",
-      "code": "JETZ",
-      "description": "Enterprise resource planning & client platform",
-      "status": "Active"
-    },
-    {
-      "id": "proj-3",
-      "name": "Accounting & Payroll Module",
-      "code": "ACCT",
-      "description": "Multi-currency dual USD/PHP wage calculation system",
-      "status": "Active"
-    },
-    {
-      "id": "proj-4",
-      "name": "Mobile App Optimization",
-      "code": "MOBI",
-      "description": "Cross-platform iOS/Android responsive UI enhancements",
-      "status": "Active"
-    },
-    {
-      "id": "proj-5",
-      "name": "Internal Tooling & Automation",
-      "code": "TOOL",
-      "description": "DevOps pipelines, scripts & database automations",
-      "status": "Active"
     }
   ],
   "requests": [

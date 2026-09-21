@@ -264,7 +264,10 @@
             </select>
           </div>
           <div class="form-group" style="min-width: 200px;">
-            <label class="form-label" for="terminal-project-select">Active Project</label>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <label class="form-label" for="terminal-project-select" style="margin-bottom: 0;">Active Project</label>
+              <a href="javascript:void(0)" onclick="quickAddNewProject(document.getElementById('terminal-project-select'))" style="font-size: 0.72rem; color: var(--accent-primary); font-weight: 600; text-decoration: none;" title="Create new project">➕ + Add Project</a>
+            </div>
             <select id="terminal-project-select" class="form-control">
               <!-- Rendered by JS -->
             </select>
@@ -2055,7 +2058,10 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="edit-timein-project">Project</label>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <label class="form-label" for="edit-timein-project" style="margin-bottom: 0;">Project</label>
+              <a href="javascript:void(0)" onclick="quickAddNewProject(document.getElementById('edit-timein-project'))" style="font-size: 0.74rem; color: var(--accent-primary); font-weight: 600; text-decoration: none;" title="Create new project">➕ + Add Project</a>
+            </div>
             <select id="edit-timein-project" class="form-control" required></select>
           </div>
 
@@ -2128,7 +2134,10 @@
               </select>
             </div>
             <div class="form-group" style="flex: 1;">
-              <label class="form-label" for="edit-timeout-project">Project</label>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <label class="form-label" for="edit-timeout-project" style="margin-bottom: 0;">Project</label>
+                <a href="javascript:void(0)" onclick="quickAddNewProject(document.getElementById('edit-timeout-project'))" style="font-size: 0.74rem; color: var(--accent-primary); font-weight: 600; text-decoration: none;" title="Create new project">➕ + Add Project</a>
+              </div>
               <select id="edit-timeout-project" class="form-control" required></select>
             </div>
           </div>
@@ -2209,7 +2218,10 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="edit-record-project">Project</label>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <label class="form-label" for="edit-record-project" style="margin-bottom: 0;">Project</label>
+              <a href="javascript:void(0)" onclick="quickAddNewProject(document.getElementById('edit-record-project'))" style="font-size: 0.74rem; color: var(--accent-primary); font-weight: 600; text-decoration: none;" title="Create new project">➕ + Add Project</a>
+            </div>
             <select id="edit-record-project" class="form-control" required></select>
           </div>
 
@@ -2245,7 +2257,10 @@
             <select id="manual-dev-select" class="form-control" required></select>
           </div>
           <div class="form-group">
-            <label class="form-label" for="manual-project-select">Project</label>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <label class="form-label" for="manual-project-select" style="margin-bottom: 0;">Project</label>
+              <a href="javascript:void(0)" onclick="quickAddNewProject(document.getElementById('manual-project-select'))" style="font-size: 0.74rem; color: var(--accent-primary); font-weight: 600; text-decoration: none;" title="Create new project">➕ + Add Project</a>
+            </div>
             <select id="manual-project-select" class="form-control" required></select>
           </div>
           <div class="form-group">
@@ -2858,11 +2873,11 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- Application Scripts -->
-  <script src="js/state.js?v=20260921h"></script>
-  <script src="js/attendance.js?v=20260921h"></script>
-  <script src="js/payroll.js?v=20260921h"></script>
-  <script src="js/export.js?v=20260921h"></script>
-  <script src="js/app.js?v=20260921h"></script>
+  <script src="js/state.js?v=20260922a"></script>
+  <script src="js/attendance.js?v=20260922a"></script>
+  <script src="js/payroll.js?v=20260922a"></script>
+  <script src="js/export.js?v=20260922a"></script>
+  <script src="js/app.js?v=20260922a"></script>
 
 </body>
 </html>

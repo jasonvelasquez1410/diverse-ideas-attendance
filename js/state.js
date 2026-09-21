@@ -118,11 +118,7 @@ const DEFAULT_INITIAL_STATE = {
     }
   ],
   projects: [
-    { id: 'proj-1', name: 'Diverse Ideas Core Portal', code: 'DICP', description: 'Internal staff management & attendance suite', status: 'Active' },
-    { id: 'proj-2', name: 'JETZ Enterprise System', code: 'JETZ', description: 'Enterprise resource planning & client platform', status: 'Active' },
-    { id: 'proj-3', name: 'Accounting & Payroll Module', code: 'ACCT', description: 'Multi-currency dual USD/PHP wage calculation system', status: 'Active' },
-    { id: 'proj-4', name: 'Mobile App Optimization', code: 'MOBI', description: 'Cross-platform iOS/Android responsive UI enhancements', status: 'Active' },
-    { id: 'proj-5', name: 'Internal Tooling & Automation', code: 'TOOL', description: 'DevOps pipelines, scripts & database automations', status: 'Active' }
+    { id: 'proj-1', name: 'Diverse Ideas Core Portal', code: 'DICP', description: 'Internal staff management & attendance suite', status: 'Active' }
   ],
   // Sprout HR Requests (Leave, Certificate of Attendance COA, Overtime OT)
   requests: [
@@ -228,7 +224,7 @@ const DEFAULT_INITIAL_STATE = {
       hourlyRate: 18.00,
       currencySymbol: "$",
       totalEarnings: 144.00,
-      projectId: "proj-3",
+      projectId: "proj-1",
       workLocation: "wfh",
       taskNote: "Database schema migration, query optimization & payroll logic sprint"
     },
@@ -288,7 +284,7 @@ const DEFAULT_INITIAL_STATE = {
       hourlyRate: 18.00,
       currencySymbol: "$",
       totalEarnings: 144.30,
-      projectId: "proj-3",
+      projectId: "proj-1",
       workLocation: "wfh",
       taskNote: "Database schema migration, query optimization & payroll logic sprint"
     },
@@ -449,11 +445,27 @@ class Store {
           parsed.holidays = DEFAULT_INITIAL_STATE.holidays;
         }
 
-        // Ensure project objects have status and description
+        // Clean up legacy placeholder projects; leave Diverse Ideas Core Portal and user added projects
+        const legacyPlaceholderProjects = ['JETZ Enterprise System', 'Accounting & Payroll Module', 'Mobile App Optimization', 'Internal Tooling & Automation'];
         if (parsed.projects && Array.isArray(parsed.projects)) {
+          parsed.projects = parsed.projects.filter(p => p && p.name && !legacyPlaceholderProjects.includes(p.name));
+          if (!parsed.projects.some(p => p.id === 'proj-1' || p.name === 'Diverse Ideas Core Portal')) {
+            parsed.projects.unshift({ id: 'proj-1', name: 'Diverse Ideas Core Portal', code: 'DICP', description: 'Internal staff management & attendance suite', status: 'Active' });
+          }
           parsed.projects.forEach(p => {
             if (!p.status) p.status = 'Active';
             if (!p.description) p.description = '';
+          });
+        } else {
+          parsed.projects = [...DEFAULT_INITIAL_STATE.projects];
+        }
+
+        // Remap any attendance records with old placeholder project IDs to proj-1
+        if (parsed.attendanceRecords && Array.isArray(parsed.attendanceRecords)) {
+          parsed.attendanceRecords.forEach(rec => {
+            if (['proj-2', 'proj-3', 'proj-4', 'proj-5'].includes(rec.projectId)) {
+              rec.projectId = 'proj-1';
+            }
           });
         }
 

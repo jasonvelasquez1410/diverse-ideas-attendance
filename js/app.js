@@ -486,22 +486,112 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function renderProjectDropdowns() {
+  // Reusable Project Select Populator with '+ Add New Project' Option
+  function populateProjectSelect(selectEl, selectedProjId = null, includeAddOption = true) {
+    if (!selectEl) return;
     const projects = store.getProjects();
-    terminalProjectSelect.innerHTML = '';
-    payrollProjectFilter.innerHTML = '<option value="all">All Projects</option>';
+    selectEl.innerHTML = '';
 
     projects.forEach(p => {
-      const opt1 = document.createElement('option');
-      opt1.value = p.id;
-      opt1.textContent = `[${p.code}] ${p.name}`;
-      terminalProjectSelect.appendChild(opt1);
-
-      const opt2 = document.createElement('option');
-      opt2.value = p.id;
-      opt2.textContent = `[${p.code}] ${p.name}`;
-      payrollProjectFilter.appendChild(opt2);
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = (p.code && p.code !== 'GEN') ? `[${p.code}] ${p.name}` : p.name;
+      if (selectedProjId && p.id === selectedProjId) {
+        opt.selected = true;
+      }
+      selectEl.appendChild(opt);
     });
+
+    if (includeAddOption) {
+      const addOpt = document.createElement('option');
+      addOpt.value = '__add_new__';
+      addOpt.textContent = '➕ + Add New Project...';
+      addOpt.style.fontWeight = 'bold';
+      addOpt.style.color = '#6366f1';
+      selectEl.appendChild(addOpt);
+    }
+
+    if (selectedProjId && projects.some(p => p.id === selectedProjId)) {
+      selectEl.value = selectedProjId;
+    } else if (projects.length > 0 && !selectedProjId) {
+      selectEl.value = projects[0].id;
+    }
+  }
+
+  function attachProjectAddListener(selectEl) {
+    if (!selectEl || selectEl.dataset.projectListenerAttached) return;
+    selectEl.dataset.projectListenerAttached = 'true';
+    let previousValue = selectEl.value;
+
+    selectEl.addEventListener('focus', () => {
+      if (selectEl.value !== '__add_new__') {
+        previousValue = selectEl.value;
+      }
+    });
+
+    selectEl.addEventListener('change', () => {
+      if (selectEl.value === '__add_new__') {
+        window.quickAddNewProject(selectEl, previousValue);
+      } else {
+        previousValue = selectEl.value;
+      }
+    });
+  }
+
+  window.quickAddNewProject = function(targetSelectEl = null, fallbackVal = null) {
+    const name = prompt('➕ Enter New Project Name (e.g. Mobile App Optimization):');
+    if (!name || !name.trim()) {
+      if (targetSelectEl && fallbackVal) {
+        targetSelectEl.value = fallbackVal;
+      }
+      return null;
+    }
+    const trimmedName = name.trim();
+    const words = trimmedName.split(/\s+/).filter(Boolean);
+    let code = words.length > 1 
+      ? words.map(w => w[0]).join('').toUpperCase().slice(0, 6) 
+      : trimmedName.slice(0, 4).toUpperCase();
+
+    const customCode = prompt(`Enter Project Code / Tag (Default: ${code}):`, code);
+    if (customCode && customCode.trim()) {
+      code = customCode.trim().toUpperCase();
+    }
+
+    const newProj = store.addProject(trimmedName, code, 'Added via project dropdown', 'Active');
+    showToast(`✅ Created project [${code}] ${trimmedName}!`, 'success');
+    renderAll();
+
+    if (targetSelectEl) {
+      populateProjectSelect(targetSelectEl, newProj.id, true);
+      targetSelectEl.value = newProj.id;
+    }
+    return newProj;
+  };
+
+  function renderProjectDropdowns() {
+    const projects = store.getProjects();
+    
+    // 1. Terminal Project Select (Dashboard)
+    if (terminalProjectSelect) {
+      const currentVal = terminalProjectSelect.value;
+      populateProjectSelect(terminalProjectSelect, currentVal, true);
+      attachProjectAddListener(terminalProjectSelect);
+    }
+
+    // 2. Payroll Project Filter
+    if (payrollProjectFilter) {
+      const currentFilter = payrollProjectFilter.value;
+      payrollProjectFilter.innerHTML = '<option value="all">All Projects</option>';
+      projects.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `[${p.code}] ${p.name}`;
+        payrollProjectFilter.appendChild(opt);
+      });
+      if (currentFilter && (currentFilter === 'all' || projects.some(p => p.id === currentFilter))) {
+        payrollProjectFilter.value = currentFilter;
+      }
+    }
   }
 
   function setWorkMode(mode) {
@@ -2776,13 +2866,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Populate projects
       if (editTimeinProject) {
-        editTimeinProject.innerHTML = '';
-        store.getProjects().forEach(p => {
-          const opt = document.createElement('option');
-          opt.value = p.id;
-          opt.textContent = p.name;
-          editTimeinProject.appendChild(opt);
-        });
+        const selectedProj = (activeDev.activeSession && activeDev.activeSession.projectId) || 'proj-1';
+        populateProjectSelect(editTimeinProject, selectedProj, true);
+        attachProjectAddListener(editTimeinProject);
       }
 
       const todayStr = new Date().toISOString().split('T')[0];
@@ -2896,13 +2982,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Populate projects
     if (editTimeoutProject) {
-      editTimeoutProject.innerHTML = '';
-      store.getProjects().forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.id;
-        opt.textContent = p.name;
-        editTimeoutProject.appendChild(opt);
-      });
+      const selectedProj = (latestRec && latestRec.projectId) || 'proj-1';
+      populateProjectSelect(editTimeoutProject, selectedProj, true);
+      attachProjectAddListener(editTimeoutProject);
     }
 
     const todayStr = new Date().toISOString().split('T')[0];
@@ -3147,14 +3229,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Populate projects
     if (editRecordProject) {
-      editRecordProject.innerHTML = '';
-      store.getProjects().forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.id;
-        opt.textContent = p.name;
-        if (p.id === rec.projectId) opt.selected = true;
-        editRecordProject.appendChild(opt);
-      });
+      populateProjectSelect(editRecordProject, rec.projectId, true);
+      attachProjectAddListener(editRecordProject);
     }
 
     if (editRecordNotes) editRecordNotes.value = rec.taskNote || '';
@@ -3270,13 +3346,10 @@ document.addEventListener('DOMContentLoaded', () => {
       manualDevSelect.appendChild(opt);
     });
 
-    manualProjectSelect.innerHTML = '';
-    store.getProjects().forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p.id;
-      opt.textContent = p.name;
-      manualProjectSelect.appendChild(opt);
-    });
+    if (manualProjectSelect) {
+      populateProjectSelect(manualProjectSelect, 'proj-1', true);
+      attachProjectAddListener(manualProjectSelect);
+    }
 
     document.getElementById('manual-date-input').value = new Date().toISOString().split('T')[0];
     if (manualStartTimeInput) manualStartTimeInput.value = '09:00';
