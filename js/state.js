@@ -4,7 +4,7 @@
  * and live bidirectional server synchronization across office network / cloud.
  */
 
-const STORAGE_KEY = 'devtrack_app_state_v2';
+const STORAGE_KEY = 'devtrack_app_state_v3';
 const SESSION_AUTH_KEY = 'devtrack_active_session_auth';
 
 // Default initial state
@@ -188,124 +188,124 @@ const DEFAULT_INITIAL_STATE = {
   ],
   attendanceRecords: [
     {
-      "id": "rec-101-2026-09-21",
-      "developerId": "dev-1",
-      "date": "2026-09-21",
-      "startTime": "2026-09-21T00:48:00.000Z",
-      "endTime": "2026-09-21T09:01:00.000Z",
-      "breakDurationMinutes": 0,
-      "workedMinutes": 493,
-      "hourlyRate": 5.00,
-      "currencySymbol": "$",
-      "totalEarnings": 41.08,
-      "projectId": "proj-1",
-      "workLocation": "wfh",
-      "taskNote": "Core feature development & sprint backlog"
+      id: "rec-101-2026-09-21",
+      developerId: "dev-1",
+      date: "2026-09-21",
+      startTime: "2026-09-21T00:48:00.000Z",
+      endTime: "2026-09-21T09:01:00.000Z",
+      breakDurationMinutes: 0,
+      workedMinutes: 493,
+      hourlyRate: 5.00,
+      currencySymbol: "$",
+      totalEarnings: 41.08,
+      projectId: "proj-1",
+      workLocation: "wfh",
+      taskNote: "Core feature development & sprint backlog"
     },
     {
-      "id": "rec-102-2026-09-21",
-      "developerId": "dev-2",
-      "date": "2026-09-21",
-      "startTime": "2026-09-21T00:58:00.000Z",
-      "endTime": "2026-09-21T09:03:00.000Z",
-      "breakDurationMinutes": 0,
-      "workedMinutes": 485,
-      "hourlyRate": 5.00,
-      "currencySymbol": "$",
-      "totalEarnings": 40.42,
-      "projectId": "proj-1",
-      "workLocation": "onsite",
-      "taskNote": "Modern responsive glassmorphic dashboard design"
+      id: "rec-102-2026-09-21",
+      developerId: "dev-2",
+      date: "2026-09-21",
+      startTime: "2026-09-21T00:40:00.000Z",
+      endTime: "2026-09-21T09:00:00.000Z",
+      breakDurationMinutes: 0,
+      workedMinutes: 500,
+      hourlyRate: 5.00,
+      currencySymbol: "$",
+      totalEarnings: 41.67,
+      projectId: "proj-1",
+      workLocation: "onsite",
+      taskNote: "Modern responsive glassmorphic dashboard design"
     },
     {
-      "id": "rec-103-2026-09-21",
-      "developerId": "dev-3",
-      "date": "2026-09-21",
-      "startTime": "2026-09-21T01:00:00.000Z",
-      "endTime": "2026-09-21T09:00:00.000Z",
-      "breakDurationMinutes": 0,
-      "workedMinutes": 480,
-      "hourlyRate": 18.00,
-      "currencySymbol": "$",
-      "totalEarnings": 144.00,
-      "projectId": "proj-3",
-      "workLocation": "wfh",
-      "taskNote": "Database schema migration, query optimization & payroll logic sprint"
+      id: "rec-103-2026-09-21",
+      developerId: "dev-3",
+      date: "2026-09-21",
+      startTime: "2026-09-21T01:00:00.000Z",
+      endTime: "2026-09-21T09:00:00.000Z",
+      breakDurationMinutes: 0,
+      workedMinutes: 480,
+      hourlyRate: 18.00,
+      currencySymbol: "$",
+      totalEarnings: 144.00,
+      projectId: "proj-3",
+      workLocation: "wfh",
+      taskNote: "Database schema migration, query optimization & payroll logic sprint"
     },
     {
-      "id": "rec-104-2026-09-21",
-      "developerId": "dev-4",
-      "date": "2026-09-21",
-      "startTime": "2026-09-21T00:53:00.000Z",
-      "endTime": "2026-09-21T09:00:00.000Z",
-      "breakDurationMinutes": 0,
-      "workedMinutes": 487,
-      "hourlyRate": 12.00,
-      "currencySymbol": "$",
-      "totalEarnings": 97.56,
-      "projectId": "proj-1",
-      "workLocation": "wfh",
-      "taskNote": "Core system architecture, attendance synchronization & DTR portal engine"
+      id: "rec-104-2026-09-21",
+      developerId: "dev-4",
+      date: "2026-09-21",
+      startTime: "2026-09-21T00:26:00.000Z",
+      endTime: "2026-09-21T09:00:00.000Z",
+      breakDurationMinutes: 0,
+      workedMinutes: 514,
+      hourlyRate: 12.00,
+      currencySymbol: "$",
+      totalEarnings: 102.80,
+      projectId: "proj-1",
+      workLocation: "wfh",
+      taskNote: "Core system architecture, attendance synchronization & DTR portal engine"
     },
     {
-      "id": "rec-101-2026-09-19",
-      "developerId": "dev-1",
-      "date": "2026-09-19",
-      "startTime": "2026-09-19T00:48:00.000Z",
-      "endTime": "2026-09-19T09:00:00.000Z",
-      "breakDurationMinutes": 0,
-      "workedMinutes": 492,
-      "hourlyRate": 5.00,
-      "currencySymbol": "$",
-      "totalEarnings": 41.00,
-      "projectId": "proj-1",
-      "workLocation": "onsite",
-      "taskNote": "Core feature development & sprint backlog"
+      id: "rec-101-2026-09-19",
+      developerId: "dev-1",
+      date: "2026-09-19",
+      startTime: "2026-09-19T00:48:00.000Z",
+      endTime: "2026-09-19T09:00:00.000Z",
+      breakDurationMinutes: 0,
+      workedMinutes: 492,
+      hourlyRate: 5.00,
+      currencySymbol: "$",
+      totalEarnings: 41.00,
+      projectId: "proj-1",
+      workLocation: "onsite",
+      taskNote: "Core feature development & sprint backlog"
     },
     {
-      "id": "rec-102-2026-09-19",
-      "developerId": "dev-2",
-      "date": "2026-09-19",
-      "startTime": "2026-09-19T00:58:00.000Z",
-      "endTime": "2026-09-19T09:03:00.000Z",
-      "breakDurationMinutes": 0,
-      "workedMinutes": 485,
-      "hourlyRate": 5.00,
-      "currencySymbol": "$",
-      "totalEarnings": 40.42,
-      "projectId": "proj-1",
-      "workLocation": "onsite",
-      "taskNote": "Modern responsive glassmorphic dashboard design"
+      id: "rec-102-2026-09-19",
+      developerId: "dev-2",
+      date: "2026-09-19",
+      startTime: "2026-09-19T00:42:00.000Z",
+      endTime: "2026-09-19T09:14:00.000Z",
+      breakDurationMinutes: 0,
+      workedMinutes: 512,
+      hourlyRate: 5.00,
+      currencySymbol: "$",
+      totalEarnings: 42.67,
+      projectId: "proj-1",
+      workLocation: "onsite",
+      taskNote: "Modern responsive glassmorphic dashboard design"
     },
     {
-      "id": "rec-103-2026-09-19",
-      "developerId": "dev-3",
-      "date": "2026-09-19",
-      "startTime": "2026-09-19T01:00:00.000Z",
-      "endTime": "2026-09-19T09:00:00.000Z",
-      "breakDurationMinutes": 0,
-      "workedMinutes": 480,
-      "hourlyRate": 18.00,
-      "currencySymbol": "$",
-      "totalEarnings": 144.00,
-      "projectId": "proj-3",
-      "workLocation": "wfh",
-      "taskNote": "Database schema migration, query optimization & payroll logic sprint"
+      id: "rec-103-2026-09-19",
+      developerId: "dev-3",
+      date: "2026-09-19",
+      startTime: "2026-09-19T00:59:00.000Z",
+      endTime: "2026-09-19T09:00:00.000Z",
+      breakDurationMinutes: 0,
+      workedMinutes: 481,
+      hourlyRate: 18.00,
+      currencySymbol: "$",
+      totalEarnings: 144.30,
+      projectId: "proj-3",
+      workLocation: "wfh",
+      taskNote: "Database schema migration, query optimization & payroll logic sprint"
     },
     {
-      "id": "rec-104-2026-09-19",
-      "developerId": "dev-4",
-      "date": "2026-09-19",
-      "startTime": "2026-09-19T00:53:00.000Z",
-      "endTime": "2026-09-19T09:00:00.000Z",
-      "breakDurationMinutes": 0,
-      "workedMinutes": 487,
-      "hourlyRate": 12.00,
-      "currencySymbol": "$",
-      "totalEarnings": 97.56,
-      "projectId": "proj-1",
-      "workLocation": "wfh",
-      "taskNote": "Core system architecture, attendance synchronization & DTR portal engine"
+      id: "rec-104-2026-09-19",
+      developerId: "dev-4",
+      date: "2026-09-19",
+      startTime: "2026-09-19T00:46:00.000Z",
+      endTime: "2026-09-19T09:00:00.000Z",
+      breakDurationMinutes: 0,
+      workedMinutes: 494,
+      hourlyRate: 12.00,
+      currencySymbol: "$",
+      totalEarnings: 98.80,
+      projectId: "proj-1",
+      workLocation: "wfh",
+      taskNote: "Core system architecture, attendance synchronization & DTR portal engine"
     }
   ]
 };
@@ -322,9 +322,10 @@ class Store {
     // Cross-tab synchronization
     if (typeof window !== 'undefined') {
       window.addEventListener('storage', (event) => {
-        if (event.key === STORAGE_KEY && event.newValue) {
+        if ((event.key === STORAGE_KEY || event.key === 'devtrack_app_state_v2') && event.newValue) {
           try {
             const externalState = JSON.parse(event.newValue);
+            this.ensureAllDevelopersAttendanceRecords(externalState);
             this.state = externalState;
             this.notify();
           } catch (err) {}
@@ -345,48 +346,73 @@ class Store {
       if (!rawRec || !rawRec.developerId) return;
       const rec = { ...rawRec };
 
-      // 1. Fix 2026-09-11 typo date to 2026-09-19
-      if (rec.date === '2026-09-11') {
+      // 1. Fix historical typos in dates: 2026-09-11 or 2026-09-12 -> 2026-09-19
+      if (rec.date === '2026-09-11' || rec.date === '2026-09-12') {
         rec.date = '2026-09-19';
       }
-      if (typeof rec.startTime === 'string' && rec.startTime.startsWith('2026-09-11')) {
-        rec.startTime = rec.startTime.replace('2026-09-11', '2026-09-19');
+      if (typeof rec.startTime === 'string' && (rec.startTime.startsWith('2026-09-11') || rec.startTime.startsWith('2026-09-12'))) {
+        rec.startTime = rec.startTime.replace(/2026-09-(11|12)/, '2026-09-19');
       }
-      if (typeof rec.endTime === 'string' && rec.endTime.startsWith('2026-09-11')) {
-        rec.endTime = rec.endTime.replace('2026-09-11', '2026-09-19');
+      if (typeof rec.endTime === 'string' && (rec.endTime.startsWith('2026-09-11') || rec.endTime.startsWith('2026-09-12'))) {
+        rec.endTime = rec.endTime.replace(/2026-09-(11|12)/, '2026-09-19');
       }
 
-      // 2. Normalize Dev-1 Cyreh timings for Sept 19 if it was previously off (e.g. 01:10 UTC -> 00:48 UTC / 08:48 AM)
-      if (rec.developerId === 'dev-1' && rec.date === '2026-09-19') {
-        if (!rec.startTime || rec.startTime.includes('01:10:00')) {
+      // 2. Explicit target normalization for all 4 team members
+      if (rec.developerId === 'dev-1') {
+        rec.hourlyRate = 5.00;
+        if (rec.date === '2026-09-21') {
+          rec.startTime = '2026-09-21T00:48:00.000Z';
+          rec.endTime = '2026-09-21T09:01:00.000Z';
+          rec.workedMinutes = 493;
+          rec.totalEarnings = 41.08;
+        } else if (rec.date === '2026-09-19') {
           rec.startTime = '2026-09-19T00:48:00.000Z';
           rec.endTime = '2026-09-19T09:00:00.000Z';
           rec.workedMinutes = 492;
           rec.totalEarnings = 41.00;
         }
-      }
-
-      // 3. Ensure accurate hourly rate & calculation for dev-1 ($5) and dev-2 ($5)
-      if (rec.developerId === 'dev-1' || rec.developerId === 'dev-2') {
+      } else if (rec.developerId === 'dev-2') {
         rec.hourlyRate = 5.00;
-        if (rec.workedMinutes) {
-          rec.totalEarnings = parseFloat(((rec.workedMinutes / 60) * 5.00).toFixed(2));
+        if (rec.date === '2026-09-21') {
+          rec.startTime = '2026-09-21T00:40:00.000Z';
+          rec.endTime = '2026-09-21T09:00:00.000Z';
+          rec.workedMinutes = 500;
+          rec.totalEarnings = 41.67;
+        } else if (rec.date === '2026-09-19') {
+          rec.startTime = '2026-09-19T00:42:00.000Z';
+          rec.endTime = '2026-09-19T09:14:00.000Z';
+          rec.workedMinutes = 512;
+          rec.totalEarnings = 42.67;
         }
       } else if (rec.developerId === 'dev-3') {
         rec.hourlyRate = 18.00;
-        if (rec.workedMinutes) {
-          rec.totalEarnings = parseFloat(((rec.workedMinutes / 60) * 18.00).toFixed(2));
+        if (rec.date === '2026-09-21') {
+          rec.startTime = '2026-09-21T01:00:00.000Z';
+          rec.endTime = '2026-09-21T09:00:00.000Z';
+          rec.workedMinutes = 480;
+          rec.totalEarnings = 144.00;
+        } else if (rec.date === '2026-09-19') {
+          rec.startTime = '2026-09-19T00:59:00.000Z';
+          rec.endTime = '2026-09-19T09:00:00.000Z';
+          rec.workedMinutes = 481;
+          rec.totalEarnings = 144.30;
         }
       } else if (rec.developerId === 'dev-4') {
         rec.hourlyRate = 12.00;
-        if (rec.workedMinutes) {
-          rec.totalEarnings = parseFloat(((rec.workedMinutes / 60) * 12.00).toFixed(2));
+        if (rec.date === '2026-09-21') {
+          rec.startTime = '2026-09-21T00:26:00.000Z';
+          rec.endTime = '2026-09-21T09:00:00.000Z';
+          rec.workedMinutes = 514;
+          rec.totalEarnings = 102.80;
+        } else if (rec.date === '2026-09-19') {
+          rec.startTime = '2026-09-19T00:46:00.000Z';
+          rec.endTime = '2026-09-19T09:00:00.000Z';
+          rec.workedMinutes = 494;
+          rec.totalEarnings = 98.80;
         }
       }
 
-      // 4. Duplicate removal: Key by devId + date
-      // If duplicate records exist on the same date (e.g. Cyreh on 2026-09-21 with 05:00 PM and 05:01 PM),
-      // keep the latest / most complete one.
+      // Duplicate removal: Key by devId + date
       const key = `${rec.developerId}_${rec.date}`;
       if (!seenKeyMap.has(key)) {
         seenKeyMap.set(key, rec);
@@ -413,7 +439,7 @@ class Store {
 
   loadState() {
     try {
-      const serialized = localStorage.getItem(STORAGE_KEY);
+      const serialized = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('devtrack_app_state_v2');
       if (serialized) {
         const parsed = JSON.parse(serialized);
         if (!parsed.usdToPhpRate) parsed.usdToPhpRate = 58.50;
@@ -462,6 +488,11 @@ class Store {
 
         this.ensureAllDevelopersAttendanceRecords(parsed);
 
+        // Save into new v3 storage key
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+        } catch (e) {}
+
         return parsed;
       }
     } catch (e) {
@@ -479,14 +510,18 @@ class Store {
     // First sanitize and deduplicate existing records
     stateObj.attendanceRecords = this.sanitizeAndDeduplicateAttendanceRecords(stateObj.attendanceRecords);
 
-    // Ensure all 4 developers have records in the state
+    // Ensure all 4 developers have both 2026-09-21 and 2026-09-19 records
     const allDevs = ['dev-1', 'dev-2', 'dev-3', 'dev-4'];
+    const requiredDates = ['2026-09-21', '2026-09-19'];
+
     allDevs.forEach(devId => {
-      const hasRecord = stateObj.attendanceRecords.some(r => r.developerId === devId);
-      if (!hasRecord) {
-        const seeds = DEFAULT_INITIAL_STATE.attendanceRecords.filter(r => r.developerId === devId);
-        seeds.forEach(s => stateObj.attendanceRecords.push({ ...s }));
-      }
+      requiredDates.forEach(dStr => {
+        const hasDateRecord = stateObj.attendanceRecords.some(r => r.developerId === devId && r.date === dStr);
+        if (!hasDateRecord) {
+          const seed = DEFAULT_INITIAL_STATE.attendanceRecords.find(r => r.developerId === devId && r.date === dStr);
+          if (seed) stateObj.attendanceRecords.push({ ...seed });
+        }
+      });
     });
 
     // Final clean sort and deduplication
