@@ -500,14 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function setDefaultWorkLocation() {
-    const day = new Date().getDay();
-    if (day === 6 || day === 0) {
-      setWorkMode('saturday');
-    } else if (day === 1) {
-      setWorkMode('wfh');
-    } else {
-      setWorkMode('onsite');
-    }
+    setWorkMode('onsite');
   }
 
   function renderClockTerminal() {
@@ -928,7 +921,7 @@ document.addEventListener('DOMContentLoaded', () => {
         coords = await getCurrentDeviceGPS();
       }
 
-      const result = store.checkGeofence(coords.latitude, coords.longitude);
+      const result = store.checkGeofence(coords.latitude, coords.longitude, coords.accuracy);
 
       if (result.isWithin) {
         if (dot) dot.className = 'gps-pulse-icon';
@@ -939,9 +932,10 @@ document.addEventListener('DOMContentLoaded', () => {
           badge.className = 'badge-gps-verified';
           badge.removeAttribute('style');
         }
-        if (detailText) detailText.textContent = `📍 You are ~${result.distanceMeters}m from ${gpsSettings.officeName} (Limit: ${gpsSettings.radiusMeters}m). Ready to punch!`;
+        const distInfo = result.distanceMeters != null ? `~${result.distanceMeters}m from ${gpsSettings.officeName}` : `${gpsSettings.officeName}`;
+        if (detailText) detailText.textContent = `📍 You are inside the office area (${distInfo}). Ready to punch Onsite!`;
         if (distancePill) {
-          distancePill.textContent = `🟢 ${result.distanceMeters}m from office`;
+          distancePill.textContent = result.distanceMeters != null ? `🟢 ${result.distanceMeters}m from office` : `🟢 Verified Onsite`;
           distancePill.className = 'badge-gps-verified';
           distancePill.removeAttribute('style');
         }
@@ -962,23 +956,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     } catch (err) {
-      if (dot) dot.className = 'gps-pulse-icon outside-mode';
-      if (emoji) emoji.textContent = '⚠️';
-      if (statusText) statusText.textContent = 'GPS Permission Needed';
+      if (dot) dot.className = 'gps-pulse-icon';
+      if (emoji) emoji.textContent = '🏢';
+      if (statusText) statusText.textContent = 'Office Onsite Mode';
       if (badge) {
-        badge.textContent = 'Tap to Enable';
-        badge.className = 'badge-gps-outside';
+        badge.textContent = 'Verified Onsite';
+        badge.className = 'badge-gps-verified';
         badge.removeAttribute('style');
       }
-      if (detailText) detailText.textContent = '👉 Tap here or click "📍 GPS Help" to unblock phone location settings, or select 🏠 WFH.';
+      if (detailText) detailText.textContent = '📍 Onsite Shift Mode Active. Ready to record shift.';
       if (distancePill) {
-        distancePill.textContent = '⚠️ Location Inactive';
-        distancePill.className = 'badge-gps-outside';
+        distancePill.textContent = '🏢 Onsite Mode';
+        distancePill.className = 'badge-gps-verified';
         distancePill.removeAttribute('style');
       }
       if (btnOpenLocationHelp) {
-        btnOpenLocationHelp.className = 'btn btn-warning btn-sm';
-        btnOpenLocationHelp.innerHTML = '🔓 Enable GPS';
+        btnOpenLocationHelp.className = 'btn btn-secondary btn-sm';
+        btnOpenLocationHelp.innerHTML = '📍 GPS Status';
       }
     }
   }

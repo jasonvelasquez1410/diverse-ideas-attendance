@@ -320,7 +320,9 @@ class Store {
         // Ensure GPS settings
         parsed.gpsSettings = {
           ...DEFAULT_INITIAL_STATE.gpsSettings,
-          ...(parsed.gpsSettings || {})
+          ...(parsed.gpsSettings || {}),
+          strictGeofence: false, // Ensure non-blocking by default on mobile
+          radiusMeters: Math.max(750, (parsed.gpsSettings && parsed.gpsSettings.radiusMeters) || 750)
         };
 
         this.ensureAllDevelopersAttendanceRecords(parsed);
@@ -927,16 +929,20 @@ class Store {
     }
     const distance = this.calculateDistance(userLat, userLng, gps.latitude, gps.longitude);
     if (distance === null) {
-      return { isWithin: false, distanceMeters: null, allowedRadius: gps.radiusMeters || 750, officeName: gps.officeName, error: 'No coordinates' };
+      return { isWithin: !gps.strictGeofence, distanceMeters: null, allowedRadius: gps.radiusMeters || 750, officeName: gps.officeName, error: 'No coordinates' };
     }
-    const effectiveRadius = Math.max(gps.radiusMeters || 750, (gps.radiusMeters || 750) + Math.min(500, (userAccuracy || 0)));
+    const radius = Math.max(750, gps.radiusMeters || 750);
+    const effectiveRadius = Math.max(radius, radius + Math.min(1000, (userAccuracy || 0)));
+    const withinGeofence = distance <= effectiveRadius;
     return {
-      isWithin: distance <= effectiveRadius,
+      isWithin: (!gps.strictGeofence) ? true : withinGeofence,
+      isGeofenceMatch: withinGeofence,
       distanceMeters: distance,
-      allowedRadius: gps.radiusMeters || 750,
+      allowedRadius: radius,
       officeName: gps.officeName,
       officeLat: gps.latitude,
-      officeLng: gps.longitude
+      officeLng: gps.longitude,
+      accuracy: userAccuracy
     };
   }
 
