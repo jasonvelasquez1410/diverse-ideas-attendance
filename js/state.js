@@ -188,64 +188,124 @@ const DEFAULT_INITIAL_STATE = {
   ],
   attendanceRecords: [
     {
-      id: 'rec-101',
-      developerId: 'dev-1',
-      date: new Date().toISOString().split('T')[0],
-      startTime: `${new Date().toISOString().split('T')[0]}T01:00:00.000Z`,
-      endTime: `${new Date().toISOString().split('T')[0]}T09:00:00.000Z`,
-      breakDurationMinutes: 0,
-      workedMinutes: 480,
-      hourlyRate: 5.00,
-      currencySymbol: '$',
-      totalEarnings: 40.00,
-      projectId: 'proj-1',
-      workLocation: 'wfh',
-      taskNote: 'Core feature development & sprint backlog'
+      "id": "rec-101-2026-09-21",
+      "developerId": "dev-1",
+      "date": "2026-09-21",
+      "startTime": "2026-09-21T00:48:00.000Z",
+      "endTime": "2026-09-21T09:01:00.000Z",
+      "breakDurationMinutes": 0,
+      "workedMinutes": 493,
+      "hourlyRate": 5.00,
+      "currencySymbol": "$",
+      "totalEarnings": 41.08,
+      "projectId": "proj-1",
+      "workLocation": "wfh",
+      "taskNote": "Core feature development & sprint backlog"
     },
     {
-      id: 'rec-102',
-      developerId: 'dev-2',
-      date: new Date().toISOString().split('T')[0],
-      startTime: `${new Date().toISOString().split('T')[0]}T00:58:00.000Z`,
-      endTime: `${new Date().toISOString().split('T')[0]}T09:03:00.000Z`,
-      breakDurationMinutes: 0,
-      workedMinutes: 485,
-      hourlyRate: 5.00,
-      currencySymbol: '$',
-      totalEarnings: 40.42,
-      projectId: 'proj-1',
-      workLocation: 'onsite',
-      taskNote: 'Modern responsive glassmorphic dashboard design'
+      "id": "rec-102-2026-09-21",
+      "developerId": "dev-2",
+      "date": "2026-09-21",
+      "startTime": "2026-09-21T00:58:00.000Z",
+      "endTime": "2026-09-21T09:03:00.000Z",
+      "breakDurationMinutes": 0,
+      "workedMinutes": 485,
+      "hourlyRate": 5.00,
+      "currencySymbol": "$",
+      "totalEarnings": 40.42,
+      "projectId": "proj-1",
+      "workLocation": "onsite",
+      "taskNote": "Modern responsive glassmorphic dashboard design"
     },
     {
-      id: 'rec-103',
-      developerId: 'dev-3',
-      date: new Date().toISOString().split('T')[0],
-      startTime: `${new Date().toISOString().split('T')[0]}T01:00:00.000Z`,
-      endTime: `${new Date().toISOString().split('T')[0]}T09:00:00.000Z`,
-      breakDurationMinutes: 0,
-      workedMinutes: 480,
-      hourlyRate: 18.00,
-      currencySymbol: '$',
-      totalEarnings: 144.00,
-      projectId: 'proj-3',
-      workLocation: 'wfh',
-      taskNote: 'Database schema migration, query optimization & payroll logic sprint'
+      "id": "rec-103-2026-09-21",
+      "developerId": "dev-3",
+      "date": "2026-09-21",
+      "startTime": "2026-09-21T01:00:00.000Z",
+      "endTime": "2026-09-21T09:00:00.000Z",
+      "breakDurationMinutes": 0,
+      "workedMinutes": 480,
+      "hourlyRate": 18.00,
+      "currencySymbol": "$",
+      "totalEarnings": 144.00,
+      "projectId": "proj-3",
+      "workLocation": "wfh",
+      "taskNote": "Database schema migration, query optimization & payroll logic sprint"
     },
     {
-      id: 'rec-104',
-      developerId: 'dev-4',
-      date: new Date().toISOString().split('T')[0],
-      startTime: `${new Date().toISOString().split('T')[0]}T00:53:00.000Z`,
-      endTime: `${new Date().toISOString().split('T')[0]}T09:00:00.000Z`,
-      breakDurationMinutes: 0,
-      workedMinutes: 487,
-      hourlyRate: 12.00,
-      currencySymbol: '$',
-      totalEarnings: 97.56,
-      projectId: 'proj-1',
-      workLocation: 'wfh',
-      taskNote: 'Core system architecture, attendance synchronization & DTR portal engine'
+      "id": "rec-104-2026-09-21",
+      "developerId": "dev-4",
+      "date": "2026-09-21",
+      "startTime": "2026-09-21T00:53:00.000Z",
+      "endTime": "2026-09-21T09:00:00.000Z",
+      "breakDurationMinutes": 0,
+      "workedMinutes": 487,
+      "hourlyRate": 12.00,
+      "currencySymbol": "$",
+      "totalEarnings": 97.56,
+      "projectId": "proj-1",
+      "workLocation": "wfh",
+      "taskNote": "Core system architecture, attendance synchronization & DTR portal engine"
+    },
+    {
+      "id": "rec-101-2026-09-19",
+      "developerId": "dev-1",
+      "date": "2026-09-19",
+      "startTime": "2026-09-19T00:48:00.000Z",
+      "endTime": "2026-09-19T09:00:00.000Z",
+      "breakDurationMinutes": 0,
+      "workedMinutes": 492,
+      "hourlyRate": 5.00,
+      "currencySymbol": "$",
+      "totalEarnings": 41.00,
+      "projectId": "proj-1",
+      "workLocation": "onsite",
+      "taskNote": "Core feature development & sprint backlog"
+    },
+    {
+      "id": "rec-102-2026-09-19",
+      "developerId": "dev-2",
+      "date": "2026-09-19",
+      "startTime": "2026-09-19T00:58:00.000Z",
+      "endTime": "2026-09-19T09:03:00.000Z",
+      "breakDurationMinutes": 0,
+      "workedMinutes": 485,
+      "hourlyRate": 5.00,
+      "currencySymbol": "$",
+      "totalEarnings": 40.42,
+      "projectId": "proj-1",
+      "workLocation": "onsite",
+      "taskNote": "Modern responsive glassmorphic dashboard design"
+    },
+    {
+      "id": "rec-103-2026-09-19",
+      "developerId": "dev-3",
+      "date": "2026-09-19",
+      "startTime": "2026-09-19T01:00:00.000Z",
+      "endTime": "2026-09-19T09:00:00.000Z",
+      "breakDurationMinutes": 0,
+      "workedMinutes": 480,
+      "hourlyRate": 18.00,
+      "currencySymbol": "$",
+      "totalEarnings": 144.00,
+      "projectId": "proj-3",
+      "workLocation": "wfh",
+      "taskNote": "Database schema migration, query optimization & payroll logic sprint"
+    },
+    {
+      "id": "rec-104-2026-09-19",
+      "developerId": "dev-4",
+      "date": "2026-09-19",
+      "startTime": "2026-09-19T00:53:00.000Z",
+      "endTime": "2026-09-19T09:00:00.000Z",
+      "breakDurationMinutes": 0,
+      "workedMinutes": 487,
+      "hourlyRate": 12.00,
+      "currencySymbol": "$",
+      "totalEarnings": 97.56,
+      "projectId": "proj-1",
+      "workLocation": "wfh",
+      "taskNote": "Core system architecture, attendance synchronization & DTR portal engine"
     }
   ]
 };
@@ -274,6 +334,81 @@ class Store {
 
     // Start background sync with server
     this.initServerSync();
+  }
+
+  sanitizeAndDeduplicateAttendanceRecords(records) {
+    if (!Array.isArray(records)) return [];
+
+    const seenKeyMap = new Map();
+
+    records.forEach(rawRec => {
+      if (!rawRec || !rawRec.developerId) return;
+      const rec = { ...rawRec };
+
+      // 1. Fix 2026-09-11 typo date to 2026-09-19
+      if (rec.date === '2026-09-11') {
+        rec.date = '2026-09-19';
+      }
+      if (typeof rec.startTime === 'string' && rec.startTime.startsWith('2026-09-11')) {
+        rec.startTime = rec.startTime.replace('2026-09-11', '2026-09-19');
+      }
+      if (typeof rec.endTime === 'string' && rec.endTime.startsWith('2026-09-11')) {
+        rec.endTime = rec.endTime.replace('2026-09-11', '2026-09-19');
+      }
+
+      // 2. Normalize Dev-1 Cyreh timings for Sept 19 if it was previously off (e.g. 01:10 UTC -> 00:48 UTC / 08:48 AM)
+      if (rec.developerId === 'dev-1' && rec.date === '2026-09-19') {
+        if (!rec.startTime || rec.startTime.includes('01:10:00')) {
+          rec.startTime = '2026-09-19T00:48:00.000Z';
+          rec.endTime = '2026-09-19T09:00:00.000Z';
+          rec.workedMinutes = 492;
+          rec.totalEarnings = 41.00;
+        }
+      }
+
+      // 3. Ensure accurate hourly rate & calculation for dev-1 ($5) and dev-2 ($5)
+      if (rec.developerId === 'dev-1' || rec.developerId === 'dev-2') {
+        rec.hourlyRate = 5.00;
+        if (rec.workedMinutes) {
+          rec.totalEarnings = parseFloat(((rec.workedMinutes / 60) * 5.00).toFixed(2));
+        }
+      } else if (rec.developerId === 'dev-3') {
+        rec.hourlyRate = 18.00;
+        if (rec.workedMinutes) {
+          rec.totalEarnings = parseFloat(((rec.workedMinutes / 60) * 18.00).toFixed(2));
+        }
+      } else if (rec.developerId === 'dev-4') {
+        rec.hourlyRate = 12.00;
+        if (rec.workedMinutes) {
+          rec.totalEarnings = parseFloat(((rec.workedMinutes / 60) * 12.00).toFixed(2));
+        }
+      }
+
+      // 4. Duplicate removal: Key by devId + date
+      // If duplicate records exist on the same date (e.g. Cyreh on 2026-09-21 with 05:00 PM and 05:01 PM),
+      // keep the latest / most complete one.
+      const key = `${rec.developerId}_${rec.date}`;
+      if (!seenKeyMap.has(key)) {
+        seenKeyMap.set(key, rec);
+      } else {
+        const existing = seenKeyMap.get(key);
+        const existingEndMs = existing.endTime ? new Date(existing.endTime).getTime() : 0;
+        const currentEndMs = rec.endTime ? new Date(rec.endTime).getTime() : 0;
+        if (currentEndMs >= existingEndMs || (rec.workedMinutes || 0) >= (existing.workedMinutes || 0)) {
+          seenKeyMap.set(key, rec);
+        }
+      }
+    });
+
+    const result = Array.from(seenKeyMap.values());
+    // Sort descending: newest date and newest time first
+    result.sort((a, b) => {
+      const cmpDate = (b.date || '').localeCompare(a.date || '');
+      if (cmpDate !== 0) return cmpDate;
+      return (b.startTime || '').localeCompare(a.startTime || '');
+    });
+
+    return result;
   }
 
   loadState() {
@@ -336,38 +471,26 @@ class Store {
   }
 
   ensureAllDevelopersAttendanceRecords(stateObj) {
-    if (!stateObj || !Array.isArray(stateObj.attendanceRecords)) return stateObj;
-    const todayStr = new Date().toISOString().split('T')[0];
+    if (!stateObj) return stateObj;
+    if (!Array.isArray(stateObj.attendanceRecords)) {
+      stateObj.attendanceRecords = [];
+    }
+
+    // First sanitize and deduplicate existing records
+    stateObj.attendanceRecords = this.sanitizeAndDeduplicateAttendanceRecords(stateObj.attendanceRecords);
 
     // Ensure all 4 developers have records in the state
     const allDevs = ['dev-1', 'dev-2', 'dev-3', 'dev-4'];
     allDevs.forEach(devId => {
-      const hasAnyRecord = stateObj.attendanceRecords.some(r => r.developerId === devId);
-      if (!hasAnyRecord) {
-        const seed = DEFAULT_INITIAL_STATE.attendanceRecords.find(r => r.developerId === devId);
-        if (seed) stateObj.attendanceRecords.push({ ...seed });
+      const hasRecord = stateObj.attendanceRecords.some(r => r.developerId === devId);
+      if (!hasRecord) {
+        const seeds = DEFAULT_INITIAL_STATE.attendanceRecords.filter(r => r.developerId === devId);
+        seeds.forEach(s => stateObj.attendanceRecords.push({ ...s }));
       }
     });
 
-    // If today's shifts exist, ensure Abner (dev-3) also has a completed shift for today
-    const hasTodayRecords = stateObj.attendanceRecords.some(r => r.date === todayStr);
-    if (hasTodayRecords && !stateObj.attendanceRecords.some(r => r.developerId === 'dev-3' && r.date === todayStr)) {
-      stateObj.attendanceRecords.push({
-        id: 'rec-103-' + todayStr,
-        developerId: 'dev-3',
-        date: todayStr,
-        startTime: `${todayStr}T01:00:00.000Z`,
-        endTime: `${todayStr}T09:00:00.000Z`,
-        breakDurationMinutes: 0,
-        workedMinutes: 480,
-        hourlyRate: 18.00,
-        currencySymbol: '$',
-        totalEarnings: 144.00,
-        projectId: 'proj-3',
-        workLocation: 'wfh',
-        taskNote: 'Database schema migration, query optimization & payroll logic sprint'
-      });
-    }
+    // Final clean sort and deduplication
+    stateObj.attendanceRecords = this.sanitizeAndDeduplicateAttendanceRecords(stateObj.attendanceRecords);
 
     return stateObj;
   }
