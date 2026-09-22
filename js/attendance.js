@@ -63,6 +63,7 @@ class AttendanceEngine {
     const breakStart = new Date(dev.activeSession.currentBreakStart);
     const durationMs = Math.max(0, breakEnd - breakStart);
 
+    if (!Array.isArray(dev.activeSession.breaks)) dev.activeSession.breaks = [];
     dev.activeSession.breaks.push({
       start: dev.activeSession.currentBreakStart,
       end: breakEnd.toISOString(),
@@ -81,6 +82,7 @@ class AttendanceEngine {
 
     const now = new Date();
     const session = dev.activeSession;
+    if (!Array.isArray(session.breaks)) session.breaks = [];
 
     // If currently on break, close the break first
     if (dev.status === 'break' && session.currentBreakStart) {
@@ -97,7 +99,7 @@ class AttendanceEngine {
     const totalElapsedMs = Math.max(0, now - sessionStart);
     
     // Sum total break duration
-    const totalBreakMs = session.breaks.reduce((acc, b) => acc + (b.durationMs || 0), 0);
+    const totalBreakMs = session.breaks.reduce((acc, b) => acc + ((b && b.durationMs) || 0), 0);
     const netWorkedMs = Math.max(0, totalElapsedMs - totalBreakMs);
     const workedMinutes = Math.round(netWorkedMs / 60000);
     const breakDurationMinutes = Math.round(totalBreakMs / 60000);
@@ -197,8 +199,8 @@ class AttendanceEngine {
     const session = dev.activeSession;
     const sessionStart = new Date(session.startTime);
     const totalElapsedMs = Math.max(0, now - sessionStart);
-
-    let totalBreakMs = session.breaks.reduce((acc, b) => acc + (b.durationMs || 0), 0);
+    const breaks = (session && Array.isArray(session.breaks)) ? session.breaks : [];
+    let totalBreakMs = breaks.reduce((acc, b) => acc + ((b && b.durationMs) || 0), 0);
     if (dev.status === 'break' && session.currentBreakStart) {
       totalBreakMs += Math.max(0, now - new Date(session.currentBreakStart));
     }

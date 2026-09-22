@@ -1452,6 +1452,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   function renderAttendanceBoard() {
     const state = store.getState();
+    if (!attendanceGrid) return;
     attendanceGrid.innerHTML = '';
 
     let onlineCount = 0;
@@ -1461,109 +1462,129 @@ document.addEventListener('DOMContentLoaded', () => {
     let todayTotalGross = 0;
     const todayStr = new Date().toISOString().split('T')[0];
 
-    state.attendanceRecords.filter(r => r.date === todayStr).forEach(r => {
+    (state.attendanceRecords || []).filter(r => r && r.date === todayStr).forEach(r => {
       todayTotalMinutes += (r.workedMinutes || 0);
       todayTotalGross += (r.totalEarnings || 0);
     });
 
-    state.developers.forEach(dev => {
-      const isWorking = dev.status === 'working' || dev.status === 'break';
-      if (isWorking) {
-        onlineCount++;
-        if (dev.activeSession && dev.activeSession.workLocation === 'wfh') {
-          wfhCount++;
-        } else {
-          onsiteCount++;
+    const developers = Array.isArray(state.developers) && state.developers.length > 0 
+      ? state.developers 
+      : DEFAULT_INITIAL_STATE.developers;
+
+    developers.forEach(dev => {
+      try {
+        const isWorking = dev.status === 'working' || dev.status === 'break';
+        if (isWorking) {
+          onlineCount++;
+          if (dev.activeSession && dev.activeSession.workLocation === 'wfh') {
+            wfhCount++;
+          } else {
+            onsiteCount++;
+          }
         }
-      }
 
-      const liveStats = attendance.calculateLiveStats(dev);
-      todayTotalMinutes += liveStats.netMinutesWorked;
-      todayTotalGross += liveStats.currentEarnings;
+        const liveStats = attendance.calculateLiveStats(dev) || { formattedTime: '00:00:00', netMinutesWorked: 0, currentEarnings: 0 };
+        todayTotalMinutes += (liveStats.netMinutesWorked || 0);
+        todayTotalGross += (liveStats.currentEarnings || 0);
 
-      const card = document.createElement('div');
-      card.className = 'glass-card glass-card-hover attendance-card';
+        const card = document.createElement('div');
+        card.className = 'glass-card glass-card-hover attendance-card';
 
-      let statusBadgeHtml = '';
-      if (dev.status === 'working') {
-        statusBadgeHtml = `<span class="badge badge-working"><span class="badge-dot"></span> Working</span>`;
-      } else if (dev.status === 'break') {
-        statusBadgeHtml = `<span class="badge badge-break"><span class="badge-dot"></span> Break</span>`;
-      } else {
-        statusBadgeHtml = `<span class="badge badge-offline"><span class="badge-dot"></span> Offline</span>`;
-      }
-
-      const currentProj = dev.activeSession ? store.getProjectById(dev.activeSession.projectId).name : 'Idle';
-      const currentTask = dev.activeSession ? (dev.activeSession.taskNote || 'Working') : 'Not clocked in';
-      const isWfh = (dev.activeSession && dev.activeSession.workLocation === 'wfh');
-      
-      let locationBadge = '';
-      let locationRowHtml = '';
-      if (isWorking) {
-        if (isWfh) {
-          locationBadge = `<span class="badge badge-gps-wfh" style="font-size: 0.72rem;">🏠 WFH</span>`;
-          locationRowHtml = `<span style="color: var(--accent-cyan); font-weight: 700;">🏠 Remote (WFH)</span>`;
+        let statusBadgeHtml = '';
+        if (dev.status === 'working') {
+          statusBadgeHtml = `<span class="badge badge-working"><span class="badge-dot"></span> Working</span>`;
+        } else if (dev.status === 'break') {
+          statusBadgeHtml = `<span class="badge badge-break"><span class="badge-dot"></span> Break</span>`;
         } else {
-          const distStr = dev.activeSession && dev.activeSession.gps && dev.activeSession.gps.distanceMeters != null 
-            ? `${dev.activeSession.gps.distanceMeters}m` 
-            : (dev.activeSession && dev.activeSession.gps && dev.activeSession.gps.manualOnsiteConfirmed ? 'Self-Audit' : 'Verified');
-          locationBadge = `<span class="badge badge-gps-verified" style="font-size: 0.72rem;">🏢 Onsite (${distStr})</span>`;
-          locationRowHtml = `<span style="color: var(--status-working); font-weight: 700;">🏢 Office Onsite (${distStr})</span>`;
+          statusBadgeHtml = `<span class="badge badge-offline"><span class="badge-dot"></span> Offline</span>`;
         }
-      } else {
-        locationRowHtml = `<span style="color: var(--text-muted);">⚪ Not Logged In</span>`;
-      }
 
-      const displayName = dev.name.includes(',')
-        ? `${dev.name.split(',')[1].trim()} ${dev.name.split(',')[0].trim()}`
-        : dev.name;
+        let currentProj = 'Idle';
+        if (dev.activeSession && dev.activeSession.projectId) {
+          const p = store.getProjectById(dev.activeSession.projectId);
+          currentProj = (p && p.name) ? p.name : 'Diverse Ideas Core Portal';
+        }
 
-      card.innerHTML = `
-        <div class="attendance-card-header">
-          <div class="attendance-user-info">
-            <div class="attendance-user-avatar" style="background: ${dev.avatarColor};">
-              ${dev.initials}
-              <div class="online-indicator ${dev.status}"></div>
-            </div>
-            <div>
-              <div style="font-weight: 700; color: var(--text-primary); font-size: 0.98rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                ${displayName} ${locationBadge}
+        const currentTask = dev.activeSession ? (dev.activeSession.taskNote || 'Working') : 'Not clocked in';
+        const isWfh = (dev.activeSession && dev.activeSession.workLocation === 'wfh');
+        
+        let locationBadge = '';
+        let locationRowHtml = '';
+        if (isWorking) {
+          if (isWfh) {
+            locationBadge = `<span class="badge badge-gps-wfh" style="font-size: 0.72rem;">🏠 WFH</span>`;
+            locationRowHtml = `<span style="color: var(--accent-cyan); font-weight: 700;">🏠 Remote (WFH)</span>`;
+          } else {
+            const distStr = dev.activeSession && dev.activeSession.gps && dev.activeSession.gps.distanceMeters != null 
+              ? `${dev.activeSession.gps.distanceMeters}m` 
+              : (dev.activeSession && dev.activeSession.gps && dev.activeSession.gps.manualOnsiteConfirmed ? 'Self-Audit' : 'Verified');
+            locationBadge = `<span class="badge badge-gps-verified" style="font-size: 0.72rem;">🏢 Onsite (${distStr})</span>`;
+            locationRowHtml = `<span style="color: var(--status-working); font-weight: 700;">🏢 Office Onsite (${distStr})</span>`;
+          }
+        } else {
+          locationRowHtml = `<span style="color: var(--text-muted);">⚪ Not Logged In</span>`;
+        }
+
+        const rawName = dev.name || 'Developer';
+        const displayName = rawName.includes(',')
+          ? `${rawName.split(',')[1].trim()} ${rawName.split(',')[0].trim()}`
+          : rawName;
+
+        card.innerHTML = `
+          <div class="attendance-card-header">
+            <div class="attendance-user-info">
+              <div class="attendance-user-avatar" style="background: ${dev.avatarColor || '#6366f1'};">
+                ${dev.initials || 'DV'}
+                <div class="online-indicator ${dev.status || 'offline'}"></div>
               </div>
-              <div style="font-size: 0.8rem; color: var(--text-secondary);">${dev.role}</div>
+              <div style="min-width: 0; overflow: hidden;">
+                <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; display: flex; align-items: center; gap: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  ${displayName} ${locationBadge}
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${dev.role || 'Developer'}</div>
+              </div>
+            </div>
+            ${statusBadgeHtml}
+          </div>
+
+          <div class="attendance-details-list">
+            <div class="attendance-detail-row">
+              <span class="attendance-detail-label">Location:</span>
+              <span class="attendance-detail-value">${locationRowHtml}</span>
+            </div>
+            <div class="attendance-detail-row">
+              <span class="attendance-detail-label">Current Project:</span>
+              <span class="attendance-detail-value" style="font-family: var(--font-sans); font-size: 0.78rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 140px;">
+                ${currentProj}
+              </span>
+            </div>
+            <div class="attendance-detail-row">
+              <span class="attendance-detail-label">Active Session:</span>
+              <span class="attendance-detail-value" style="color: var(--accent-cyan);">${liveStats.formattedTime || '00:00:00'}</span>
             </div>
           </div>
-          ${statusBadgeHtml}
-        </div>
 
-        <div class="attendance-details-list">
-          <div class="attendance-detail-row">
-            <span class="attendance-detail-label">Location:</span>
-            <span class="attendance-detail-value">${locationRowHtml}</span>
+          <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; margin-top: 4px; padding-top: 6px; border-top: 1px dashed var(--border-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${currentTask}</span>
           </div>
-          <div class="attendance-detail-row">
-            <span class="attendance-detail-label">Current Project:</span>
-            <span class="attendance-detail-value" style="font-family: var(--font-sans); font-size: 0.82rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 150px;">
-              ${currentProj}
-            </span>
-          </div>
-          <div class="attendance-detail-row">
-            <span class="attendance-detail-label">Active Session:</span>
-            <span class="attendance-detail-value" style="color: var(--accent-cyan);">${liveStats.formattedTime}</span>
-          </div>
-        </div>
+        `;
 
-        <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border-color);">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${currentTask}</span>
-        </div>
-      `;
-
-      attendanceGrid.appendChild(card);
+        attendanceGrid.appendChild(card);
+      } catch (err) {
+        console.error('Error rendering card for developer:', dev, err);
+      }
     });
 
-    statOnlineDevs.innerHTML = `${onlineCount} / ${state.developers.length} <span style="font-size: 0.72rem; font-weight: 400; color: var(--text-muted); display: block; margin-top: 2px;">🏢 ${onsiteCount} Onsite • 🏠 ${wfhCount} WFH</span>`;
-    statTodayHours.textContent = `${(todayTotalMinutes / 60).toFixed(1)} hrs`;
-    statTodayPayroll.textContent = store.isAdmin() ? `$${todayTotalGross.toFixed(2)}` : '••••••';
+    if (statOnlineDevs) {
+      statOnlineDevs.innerHTML = `${onlineCount} / ${developers.length} <span style="font-size: 0.72rem; font-weight: 400; color: var(--text-muted); display: block; margin-top: 2px;">🏢 ${onsiteCount} Onsite • 🏠 ${wfhCount} WFH</span>`;
+    }
+    if (statTodayHours) {
+      statTodayHours.textContent = `${(todayTotalMinutes / 60).toFixed(1)} hrs`;
+    }
+    if (statTodayPayroll) {
+      statTodayPayroll.textContent = store.isAdmin() ? `$${todayTotalGross.toFixed(2)}` : '••••••';
+    }
   }
 
   // ==========================================
