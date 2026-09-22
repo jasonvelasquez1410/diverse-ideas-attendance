@@ -4,7 +4,7 @@
  * and live bidirectional server synchronization across office network / cloud.
  */
 
-const STORAGE_KEY = 'devtrack_app_state_v3';
+const STORAGE_KEY = 'devtrack_app_state_v4';
 const SESSION_AUTH_KEY = 'devtrack_active_session_auth';
 const FIREBASE_DB_URL = 'https://diverse-ideas-attendance-default-rtdb.asia-southeast1.firebasedatabase.app/state.json';
 
@@ -449,9 +449,16 @@ class Store {
         // Clean up legacy placeholder projects; leave Diverse Ideas Core Portal and user added projects
         this.sanitizeProjects(parsed);
 
-        // Safe migration: ONLY replace if old placeholder names ('Alex Rivera'/'Chloe Gomez') exist AND no real developers
-        if (parsed.developers && parsed.developers.some(d => d.name && (d.name.includes('Alex Rivera') || d.name.includes('Chloe Gomez')))) {
-          parsed.developers = DEFAULT_INITIAL_STATE.developers;
+        // Safe migration: ensure all 4 default developers exist
+        if (!Array.isArray(parsed.developers) || parsed.developers.length === 0) {
+          parsed.developers = JSON.parse(JSON.stringify(DEFAULT_INITIAL_STATE.developers));
+        } else {
+          DEFAULT_INITIAL_STATE.developers.forEach(defDev => {
+            const exists = parsed.developers.some(d => d.id === defDev.id);
+            if (!exists) {
+              parsed.developers.push(JSON.parse(JSON.stringify(defDev)));
+            }
+          });
         }
 
         // Ensure default admin PIN exists or migrate legacy PINs (9999, 0104) to 1410
@@ -571,6 +578,17 @@ class Store {
 
     // First sanitize and deduplicate existing records
     stateObj.attendanceRecords = this.sanitizeAndDeduplicateAttendanceRecords(stateObj.attendanceRecords);
+
+    // Ensure all 4 developers exist in developers roster
+    if (!Array.isArray(stateObj.developers) || stateObj.developers.length === 0) {
+      stateObj.developers = JSON.parse(JSON.stringify(DEFAULT_INITIAL_STATE.developers));
+    } else {
+      DEFAULT_INITIAL_STATE.developers.forEach(defDev => {
+        if (!stateObj.developers.some(d => d.id === defDev.id)) {
+          stateObj.developers.push(JSON.parse(JSON.stringify(defDev)));
+        }
+      });
+    }
 
     // Ensure all 4 developers have both 2026-09-21 and 2026-09-19 records
     const allDevs = ['dev-1', 'dev-2', 'dev-3', 'dev-4'];

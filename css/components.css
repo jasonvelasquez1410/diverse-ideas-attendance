@@ -519,58 +519,67 @@ select.form-control option {
 .attendance-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  gap: 12px;
+  width: 100%;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 992px) {
   .attendance-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 540px) {
   .attendance-grid {
     grid-template-columns: 1fr;
+    gap: 10px;
   }
 }
 
 .attendance-card {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
+  padding: 16px 14px;
+  min-width: 0;
 }
 
 .attendance-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
 }
 
 .attendance-user-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .attendance-user-avatar {
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 0.92rem;
   color: white;
   position: relative;
 }
 
 .online-indicator {
   position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 12px;
-  height: 12px;
+  bottom: -1px;
+  right: -1px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   border: 2px solid var(--bg-secondary);
 }
@@ -581,27 +590,35 @@ select.form-control option {
 .attendance-details-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   background: var(--bg-tertiary);
-  padding: 12px;
+  padding: 10px;
   border-radius: var(--radius-md);
-  font-size: 0.85rem;
+  font-size: 0.78rem;
 }
 
 .attendance-detail-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 6px;
 }
 
 .attendance-detail-label {
   color: var(--text-secondary);
+  font-size: 0.75rem;
+  white-space: nowrap;
 }
 
 .attendance-detail-value {
   font-weight: 600;
   font-family: var(--font-mono);
   color: var(--text-primary);
+  font-size: 0.78rem;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Data Tables */
