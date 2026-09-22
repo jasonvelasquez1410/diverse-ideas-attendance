@@ -4217,13 +4217,13 @@ document.addEventListener('DOMContentLoaded', () => {
       syncStatusIndicator.style.borderColor = 'rgba(245, 158, 11, 0.3)';
       syncStatusIndicator.style.color = '#d97706';
       syncStatusDot.style.background = '#f59e0b';
-      syncStatusText.textContent = 'Saving...';
+      syncStatusText.textContent = 'Syncing...';
     } else if (isServerConnected || status === 'synced') {
       syncStatusIndicator.style.background = 'rgba(16, 185, 129, 0.12)';
       syncStatusIndicator.style.borderColor = 'rgba(16, 185, 129, 0.25)';
       syncStatusIndicator.style.color = '#10b981';
       syncStatusDot.style.background = '#10b981';
-      syncStatusText.textContent = 'Saved & Synced';
+      syncStatusText.textContent = 'Cloud Synced (Firebase)';
     } else {
       syncStatusIndicator.style.background = 'rgba(99, 102, 241, 0.12)';
       syncStatusIndicator.style.borderColor = 'rgba(99, 102, 241, 0.25)';
