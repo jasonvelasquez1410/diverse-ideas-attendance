@@ -1,7 +1,7 @@
 /**
- * Serverless handler for /api/state on Vercel
+ * Serverless handler for /api/state on Vercel with Firebase Realtime Database persistence
  */
-let inMemoryState = null;
+const FIREBASE_DB_URL = 'https://diverse-ideas-attendance-default-rtdb.asia-southeast1.firebasedatabase.app/state.json';
 
 const legacyNames = ['JETZ Enterprise System', 'Accounting & Payroll Module', 'Mobile App Optimization', 'Internal Tooling & Automation'];
 const legacyCodes = ['JETZ', 'ACCT', 'MOBI', 'TOOL'];
@@ -25,7 +25,7 @@ function sanitizeStateProjects(data) {
   }
 }
 
-module.exports = (req, res) => {
+module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Cache-Control, Pragma');
@@ -36,10 +36,18 @@ module.exports = (req, res) => {
   }
 
   if (req.method === 'GET') {
-    if (inMemoryState) {
-      sanitizeStateProjects(inMemoryState);
-      inMemoryState._serverTimestamp = Date.now();
-      return res.status(200).json(inMemoryState);
+    try {
+      const fbRes = await fetch(FIREBASE_DB_URL, { headers: { 'Cache-Control': 'no-cache' } });
+      if (fbRes.ok) {
+        const cloudData = await fbRes.json();
+        if (cloudData && Array.isArray(cloudData.developers)) {
+          sanitizeStateProjects(cloudData);
+          cloudData._serverTimestamp = Date.now();
+          return res.status(200).json(cloudData);
+        }
+      }
+    } catch (err) {
+      console.warn('Firebase fetch fallback in api/state:', err.message);
     }
     return res.status(200).json({ exists: false });
   }
@@ -52,7 +60,13 @@ module.exports = (req, res) => {
       }
       sanitizeStateProjects(data);
       data._serverTimestamp = Date.now();
-      inMemoryState = data;
+
+      await fetch(FIREBASE_DB_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
       return res.status(200).json({ success: true, timestamp: data._serverTimestamp });
     } catch (err) {
       return res.status(400).json({ error: err.message });

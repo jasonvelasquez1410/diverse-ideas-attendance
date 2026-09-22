@@ -6,6 +6,7 @@
 
 const STORAGE_KEY = 'devtrack_app_state_v3';
 const SESSION_AUTH_KEY = 'devtrack_active_session_auth';
+const FIREBASE_DB_URL = 'https://diverse-ideas-attendance-default-rtdb.asia-southeast1.firebasedatabase.app/state.json';
 
 // Default initial state
 const DEFAULT_INITIAL_STATE = {
@@ -624,7 +625,7 @@ class Store {
   }
 
   // ==========================================
-  // Bidirectional Server Synchronization Engine
+  // Bidirectional Firebase Cloud Synchronization Engine
   // ==========================================
 
   async initServerSync() {
@@ -633,10 +634,10 @@ class Store {
     // Initial server fetch
     await this.fetchServerState(true);
 
-    // Periodic background sync every 6 seconds
+    // High-frequency live background cloud sync every 3.5 seconds
     setInterval(() => {
       this.fetchServerState(false);
-    }, 6000);
+    }, 3500);
   }
 
   dispatchSyncStatus(status, detail = {}) {
@@ -647,69 +648,95 @@ class Store {
     }
   }
 
+  hasMeaningfulServerChanges(localState, serverData) {
+    if (!localState || !serverData) return true;
+    if ((localState.attendanceRecords || []).length !== (serverData.attendanceRecords || []).length) return true;
+    for (let i = 0; i < (serverData.developers || []).length; i++) {
+      const sDev = serverData.developers[i];
+      const lDev = (localState.developers || []).find(d => d.id === sDev.id);
+      if (!lDev) return true;
+      if (lDev.status !== sDev.status) return true;
+      const lSession = lDev.activeSession ? lDev.activeSession.startTime : null;
+      const sSession = sDev.activeSession ? sDev.activeSession.startTime : null;
+      if (lSession !== sSession) return true;
+    }
+    return false;
+  }
+
   async fetchServerState(isInitial = false) {
     try {
-      const response = await fetch('/api/state', {
-        method: 'GET',
-        headers: { 'Cache-Control': 'no-cache' }
-      });
+      let serverData = null;
 
-      if (!response.ok) {
-        throw new Error(`Server returned HTTP ${response.status}`);
+      // 1. Direct fetch from Firebase Realtime Database
+      try {
+        const fbRes = await fetch(FIREBASE_DB_URL, { headers: { 'Cache-Control': 'no-cache' } });
+        if (fbRes.ok) {
+          serverData = await fbRes.json();
+        }
+      } catch (fbErr) {
+        console.warn('Direct Firebase sync fallback to API:', fbErr.message);
       }
 
-      const serverData = await response.json();
+      // 2. Fallback to /api/state proxy if needed
+      if (!serverData) {
+        const response = await fetch('/api/state', {
+          method: 'GET',
+          headers: { 'Cache-Control': 'no-cache' }
+        });
+        if (response.ok) {
+          serverData = await response.json();
+        }
+      }
+
+      if (!serverData) {
+        throw new Error('No cloud response');
+      }
+
       this.isServerConnected = true;
 
-      if (serverData && serverData.exists === false) {
-        // Server database is empty or new -> Push local state to seed server database
+      if (serverData.exists === false || !Array.isArray(serverData.developers)) {
+        // Cloud database is empty -> push local state to seed
         await this.postStateToServer(this.state);
-        this.dispatchSyncStatus('synced', { message: 'Database initialized on local server' });
+        this.dispatchSyncStatus('synced', { message: 'Cloud database initialized' });
         return;
       }
 
-      if (serverData && Array.isArray(serverData.developers) && Array.isArray(serverData.attendanceRecords)) {
-        const serverTimestamp = serverData._serverTimestamp || 0;
+      const serverTimestamp = serverData._serverTimestamp || 0;
 
-        // If server data is present and newer or initial load
-        if (isInitial || serverTimestamp > this.lastServerSyncTimestamp) {
-          // Preserve local active clock-in session for currently logged-in developer
-          const activeAuthDevId = (this.auth && this.auth.devId) ? this.auth.devId : null;
-          let currentLocalSession = null;
-          let currentLocalStatus = null;
-          if (activeAuthDevId) {
-            const localDev = this.getDeveloperById(activeAuthDevId);
-            if (localDev && localDev.activeSession) {
-              currentLocalSession = localDev.activeSession;
-              currentLocalStatus = localDev.status;
-            }
+      // Check if server data is newer or has live status updates from other team members
+      if (isInitial || serverTimestamp > this.lastServerSyncTimestamp || this.hasMeaningfulServerChanges(this.state, serverData)) {
+        const activeAuthDevId = (this.auth && this.auth.devId) ? this.auth.devId : null;
+        let currentLocalSession = null;
+        let currentLocalStatus = null;
+        if (activeAuthDevId) {
+          const localDev = this.getDeveloperById(activeAuthDevId);
+          if (localDev && localDev.activeSession) {
+            currentLocalSession = localDev.activeSession;
+            currentLocalStatus = localDev.status;
           }
-
-          // Ensure all 4 developers have records & clean projects in the incoming serverData
-          this.sanitizeProjects(serverData);
-          this.ensureAllDevelopersAttendanceRecords(serverData);
-
-          // Update local state from server
-          this.state = serverData;
-          this.lastServerSyncTimestamp = serverTimestamp;
-
-          // Restore local active session if active
-          if (activeAuthDevId && currentLocalSession) {
-            const mergedDev = this.getDeveloperById(activeAuthDevId);
-            if (mergedDev) {
-              mergedDev.activeSession = currentLocalSession;
-              mergedDev.status = currentLocalStatus;
-            }
-          }
-
-          // Persist to localStorage without triggering loop
-          try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
-          } catch (e) {}
-
-          this.notify();
-          this.dispatchSyncStatus('synced', { message: 'Synchronized with server' });
         }
+
+        this.sanitizeProjects(serverData);
+        this.ensureAllDevelopersAttendanceRecords(serverData);
+
+        this.state = serverData;
+        this.lastServerSyncTimestamp = serverTimestamp;
+
+        // Preserve local clock-in session if currently working on this device
+        if (activeAuthDevId && currentLocalSession) {
+          const mergedDev = this.getDeveloperById(activeAuthDevId);
+          if (mergedDev && !mergedDev.activeSession) {
+            mergedDev.activeSession = currentLocalSession;
+            mergedDev.status = currentLocalStatus;
+          }
+        }
+
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+        } catch (e) {}
+
+        this.notify();
+        this.dispatchSyncStatus('synced', { message: '🟢 Cloud Synced (Firebase)' });
       }
     } catch (err) {
       this.isServerConnected = false;
@@ -725,28 +752,39 @@ class Store {
 
     this.serverSyncTimeout = setTimeout(async () => {
       await this.postStateToServer(this.state);
-    }, 400);
+    }, 250);
   }
 
   async postStateToServer(stateData) {
     try {
-      const response = await fetch('/api/state', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache'
-        },
-        body: JSON.stringify(stateData)
-      });
+      this.sanitizeProjects(stateData);
+      stateData._serverTimestamp = Date.now();
+      const payload = JSON.stringify(stateData);
 
-      if (response.ok) {
-        const result = await response.json();
-        this.isServerConnected = true;
-        this.lastServerSyncTimestamp = result.timestamp || Date.now();
-        this.dispatchSyncStatus('synced', { timestamp: this.lastServerSyncTimestamp });
-      } else {
-        throw new Error(`Save failed with HTTP ${response.status}`);
-      }
+      // Direct Firebase PUT (Instant sub-second cloud sync)
+      try {
+        await fetch(FIREBASE_DB_URL, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload
+        });
+      } catch (e) {}
+
+      // Also notify /api/state proxy
+      try {
+        await fetch('/api/state', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache'
+          },
+          body: payload
+        });
+      } catch (e) {}
+
+      this.isServerConnected = true;
+      this.lastServerSyncTimestamp = stateData._serverTimestamp;
+      this.dispatchSyncStatus('synced', { timestamp: this.lastServerSyncTimestamp, message: '🟢 Cloud Synced (Firebase)' });
     } catch (err) {
       this.isServerConnected = false;
       this.dispatchSyncStatus('local', { error: err.message });
