@@ -1588,36 +1588,94 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
-  // 6. Real-Time USD ⇄ PHP Forex Exchange Engine
+  // 6. Real-Time USD ⇄ PHP Forex Exchange Engine (Auto-Synced & Multi-Provider)
   // ==========================================
-  async function fetchLiveExchangeRate(showNotification = false) {
-    try {
-      if (exchangeSourceBadge) {
-        exchangeSourceBadge.textContent = '⏳ Fetching...';
-      }
-      const response = await fetch('https://open.er-api.com/v6/latest/USD', { cache: 'no-cache' });
-      if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-      const data = await response.json();
+  let lastForexSyncTimestamp = 0;
+  let forexAutoSyncInterval = null;
 
-      if (data && data.rates && data.rates.PHP) {
-        const phpRate = parseFloat(data.rates.PHP);
-        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        store.setUsdToPhpRate(phpRate, timeStr);
-        updateForexUI(phpRate, timeStr, true);
-        if (showNotification) {
-          showToast(`Forex rate updated: 1 USD = ₱${phpRate.toFixed(2)} PHP`, 'success');
-        }
-        renderTimesheetsAndPayroll();
-        return;
+  async function fetchLiveExchangeRate(showNotification = false) {
+    if (exchangeSourceBadge) {
+      exchangeSourceBadge.textContent = '⏳ Fetching...';
+      exchangeSourceBadge.className = 'badge badge-working';
+    }
+
+    // Provider endpoints with failover
+    const endpoints = [
+      {
+        url: 'https://open.er-api.com/v6/latest/USD',
+        extractor: (data) => data && data.rates && data.rates.PHP ? parseFloat(data.rates.PHP) : null
+      },
+      {
+        url: 'https://api.exchangerate-api.com/v4/latest/USD',
+        extractor: (data) => data && data.rates && data.rates.PHP ? parseFloat(data.rates.PHP) : null
+      },
+      {
+        url: 'https://api.frankfurter.app/latest?from=USD&to=PHP',
+        extractor: (data) => data && data.rates && data.rates.PHP ? parseFloat(data.rates.PHP) : null
       }
-    } catch (err) {
-      console.warn('Live forex fetch failed, using stored/fallback rate:', err);
-      const currentRate = store.getUsdToPhpRate();
-      updateForexUI(currentRate, 'Fallback / Manual', false);
-      if (showNotification) {
-        showToast(`Using stored exchange rate: 1 USD = ₱${currentRate.toFixed(2)} PHP`, 'info');
+    ];
+
+    let phpRate = null;
+    for (const provider of endpoints) {
+      try {
+        const response = await fetch(provider.url, { cache: 'no-cache' });
+        if (response.ok) {
+          const data = await response.json();
+          const rate = provider.extractor(data);
+          if (rate && !isNaN(rate) && rate > 20 && rate < 100) {
+            phpRate = rate;
+            break;
+          }
+        }
+      } catch (e) {
+        console.warn(`Forex provider ${provider.url} failed, trying fallback...`, e);
       }
     }
+
+    if (phpRate) {
+      lastForexSyncTimestamp = Date.now();
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      store.setUsdToPhpRate(phpRate, timeStr);
+      updateForexUI(phpRate, timeStr, true);
+      if (showNotification) {
+        showToast(`Forex rate updated: 1 USD = ₱${phpRate.toFixed(2)} PHP`, 'success');
+      }
+      renderTimesheetsAndPayroll();
+      return;
+    }
+
+    // Fallback if all endpoints are unreachable
+    console.warn('All live forex endpoints failed, using stored/fallback rate');
+    const currentRate = store.getUsdToPhpRate();
+    updateForexUI(currentRate, 'Fallback / Manual', false);
+    if (showNotification) {
+      showToast(`Using stored exchange rate: 1 USD = ₱${currentRate.toFixed(2)} PHP`, 'info');
+    }
+  }
+
+  function startForexAutoSync() {
+    if (forexAutoSyncInterval) clearInterval(forexAutoSyncInterval);
+    // Auto-sync every 15 minutes in background
+    forexAutoSyncInterval = setInterval(() => {
+      fetchLiveExchangeRate(false);
+    }, 15 * 60 * 1000);
+
+    // Auto-sync when tab regains focus if > 5 minutes have elapsed
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        const elapsedSinceLastSync = Date.now() - lastForexSyncTimestamp;
+        if (elapsedSinceLastSync > 5 * 60 * 1000) {
+          fetchLiveExchangeRate(false);
+        }
+      }
+    });
+
+    window.addEventListener('focus', () => {
+      const elapsedSinceLastSync = Date.now() - lastForexSyncTimestamp;
+      if (elapsedSinceLastSync > 5 * 60 * 1000) {
+        fetchLiveExchangeRate(false);
+      }
+    });
   }
 
   function updateForexUI(rate, updateTime = null, isLive = true) {
@@ -2981,6 +3039,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeDev = devId ? store.getDeveloperById(devId) : store.getActiveDeveloper();
     if (!activeDev) return;
 
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (editTimeoutDate) editTimeoutDate.value = todayStr;
+
+    // Find today's completed records for this dev
+    const todayRecords = (store.getState().attendanceRecords || []).filter(r => r.developerId === activeDev.id && r.date === todayStr);
+    const latestRec = todayRecords.length > 0 ? todayRecords[todayRecords.length - 1] : null;
+
     if (editTimeoutDevSelect) {
       editTimeoutDevSelect.innerHTML = '';
       const devList = store.isAdmin() ? store.getState().developers : [activeDev];
@@ -3003,17 +3068,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Populate projects
     if (editTimeoutProject) {
-      const selectedProj = (latestRec && latestRec.projectId) || 'proj-1';
+      const selectedProj = (latestRec && latestRec.projectId) || (activeDev.activeSession && activeDev.activeSession.projectId) || 'proj-1';
       populateProjectSelect(editTimeoutProject, selectedProj, true);
       attachProjectAddListener(editTimeoutProject);
     }
-
-    const todayStr = new Date().toISOString().split('T')[0];
-    if (editTimeoutDate) editTimeoutDate.value = todayStr;
-
-    // Find today's completed records for this dev
-    const todayRecords = (store.getState().attendanceRecords || []).filter(r => r.developerId === activeDev.id && r.date === todayStr);
-    const latestRec = todayRecords.length > 0 ? todayRecords[todayRecords.length - 1] : null;
 
     if (latestRec) {
       currentEditingTodayRecId = latestRec.id;
@@ -4259,5 +4317,6 @@ document.addEventListener('DOMContentLoaded', () => {
   checkAuth();
   renderAll();
   fetchLiveExchangeRate(false);
+  startForexAutoSync();
 });
 
