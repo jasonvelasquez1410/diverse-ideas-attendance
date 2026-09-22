@@ -76,33 +76,46 @@ class AttendanceEngine {
     return true;
   }
 
-  clockOut(devId, gpsData = null) {
+  clockOut(devId, gpsData = null, customEndTime = null) {
     const dev = this.store.getDeveloperById(devId);
     if (!dev || !dev.activeSession) return null;
 
-    const now = new Date();
     const session = dev.activeSession;
+    const sessionStart = new Date(session.startTime);
+    const end = customEndTime ? new Date(customEndTime) : new Date();
+    
+    // Date of record is the shift start date (so if clocked in at 9am today, it logs for today)
+    const recordDate = session.startTime ? session.startTime.split('T')[0] : end.toISOString().split('T')[0];
+
     if (!Array.isArray(session.breaks)) session.breaks = [];
 
     // If currently on break, close the break first
     if (dev.status === 'break' && session.currentBreakStart) {
       const breakStart = new Date(session.currentBreakStart);
+      const breakEnd = breakStart > end ? breakStart : end;
       session.breaks.push({
         start: session.currentBreakStart,
-        end: now.toISOString(),
-        durationMs: Math.max(0, now - breakStart)
+        end: breakEnd.toISOString(),
+        durationMs: Math.max(0, breakEnd - breakStart)
       });
       session.currentBreakStart = null;
     }
 
-    const sessionStart = new Date(session.startTime);
-    const totalElapsedMs = Math.max(0, now - sessionStart);
+    const totalElapsedMs = Math.max(0, end - sessionStart);
     
     // Sum total break duration
-    const totalBreakMs = session.breaks.reduce((acc, b) => acc + ((b && b.durationMs) || 0), 0);
+    let totalBreakMs = session.breaks.reduce((acc, b) => acc + ((b && b.durationMs) || 0), 0);
+    if (totalBreakMs > totalElapsedMs) totalBreakMs = 0;
+
+    // Standard policy: if shift duration is >= 6 hours and 0 breaks were logged, apply standard 60-min lunch break
+    let breakDurationMinutes = Math.round(totalBreakMs / 60000);
+    if (breakDurationMinutes === 0 && (totalElapsedMs / 3600000) >= 6) {
+      breakDurationMinutes = 60;
+      totalBreakMs = 60 * 60000;
+    }
+
     const netWorkedMs = Math.max(0, totalElapsedMs - totalBreakMs);
     const workedMinutes = Math.round(netWorkedMs / 60000);
-    const breakDurationMinutes = Math.round(totalBreakMs / 60000);
 
     // Calculate final earnings
     const hourlyRate = parseFloat(dev.hourlyRate) || 0;
@@ -110,18 +123,19 @@ class AttendanceEngine {
 
     const record = {
       developerId: dev.id,
-      date: now.toISOString().split('T')[0],
+      date: recordDate,
       startTime: session.startTime,
-      endTime: now.toISOString(),
+      endTime: end.toISOString(),
       breakDurationMinutes,
       workedMinutes,
       hourlyRate,
       currencySymbol: dev.currencySymbol || '$',
       totalEarnings,
-      projectId: session.projectId,
+      projectId: session.projectId || 'proj-1',
       workLocation: session.workLocation || 'onsite',
-      taskNote: session.taskNote,
-      gps: session.gps || gpsData || null
+      taskNote: session.taskNote || 'Work session',
+      gps: session.gps || gpsData || null,
+      autoTimedOut: !!customEndTime
     };
 
     // Save record & reset active session
@@ -182,6 +196,73 @@ class AttendanceEngine {
     return true;
   }
 
+  // Automatic Shift Timeout Evaluation Engine
+  // Automatically times out employees who forgot to punch out (15 mins after shift end -> stamped as 17:00)
+  checkAutoTimeouts() {
+    const state = this.store.getState();
+    const schedules = this.store.getWorkSchedules ? this.store.getWorkSchedules() : (state.workSchedules || {});
+    if (schedules.autoTimeoutEnabled === false) return [];
+
+    const shiftEndStr = schedules.shiftEnd || '17:00';
+    const graceMins = parseInt(schedules.gracePeriodMins != null ? schedules.gracePeriodMins : 15) || 15;
+    const [endH, endM] = shiftEndStr.split(':').map(Number);
+    
+    // Cutoff minutes from midnight (e.g. 17:00 + 15m grace = 17:15 -> 1035 mins)
+    const cutoffMinutes = (endH * 60 + endM) + graceMins;
+    const now = new Date();
+    const nowYear = now.getFullYear();
+    const nowMonth = String(now.getMonth() + 1).padStart(2, '0');
+    const nowDay = String(now.getDate()).padStart(2, '0');
+    const todayDateStr = `${nowYear}-${nowMonth}-${nowDay}`;
+    const currentMinutesToday = now.getHours() * 60 + now.getMinutes();
+
+    const timedOutDevs = [];
+    const developers = state.developers || [];
+
+    developers.forEach(dev => {
+      if ((dev.status === 'working' || dev.status === 'break') && dev.activeSession && dev.activeSession.startTime) {
+        const sessionStart = new Date(dev.activeSession.startTime);
+        if (isNaN(sessionStart.getTime())) return;
+
+        const sessionDate = new Date(dev.activeSession.startTime);
+        const sYear = sessionDate.getFullYear();
+        const sMonth = String(sessionDate.getMonth() + 1).padStart(2, '0');
+        const sDay = String(sessionDate.getDate()).padStart(2, '0');
+        const sessionStartDateStr = `${sYear}-${sMonth}-${sDay}`;
+
+        const isPastDay = sessionStartDateStr < todayDateStr;
+        const isShiftDay = sessionStartDateStr === todayDateStr;
+        const hasPassedShiftCutoff = isShiftDay && (currentMinutesToday >= cutoffMinutes);
+
+        if (isPastDay || hasPassedShiftCutoff) {
+          // Construct target official punch out time (5:00 PM on that shift's date)
+          const targetEndDate = new Date(sYear, parseInt(sMonth) - 1, parseInt(sDay), endH, endM, 0, 0);
+          
+          let finalEndISO = targetEndDate.toISOString();
+          if (targetEndDate <= sessionStart) {
+            const fallbackEnd = new Date(sessionStart.getTime() + (8 * 3600000));
+            finalEndISO = fallbackEnd.toISOString();
+          }
+
+          const savedRecord = this.clockOut(dev.id, null, finalEndISO);
+          if (savedRecord) {
+            savedRecord.taskNote = (savedRecord.taskNote ? savedRecord.taskNote + ' ' : '') + '(Auto-timed out at 5:00 PM)';
+            this.store.saveState();
+            timedOutDevs.push({ dev, record: savedRecord });
+          }
+        }
+      }
+    });
+
+    if (timedOutDevs.length > 0) {
+      window.dispatchEvent(new CustomEvent('devtrack:autoTimedOut', {
+        detail: { timedOutDevs }
+      }));
+    }
+
+    return timedOutDevs;
+  }
+
   // Calculate live current active stats for a developer
   calculateLiveStats(dev) {
     if (!dev || !dev.activeSession) {
@@ -228,6 +309,9 @@ class AttendanceEngine {
   }
 
   tick() {
+    // Run auto-timeout check to protect against forgotten punch-outs
+    this.checkAutoTimeouts();
+
     // Dispatch custom event with live stats for active developer and team
     const activeDev = this.store.getActiveDeveloper();
     if (activeDev) {

@@ -2284,6 +2284,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const minHoursEl = document.getElementById('setting-min-hours');
     const maxHoursEl = document.getElementById('setting-max-hours');
     const satPolicyEl = document.getElementById('setting-saturday-policy');
+    const autoTimeoutEl = document.getElementById('setting-auto-timeout-enabled');
 
     if (startEl) startEl.value = sched.shiftStart || '09:00';
     if (endEl) endEl.value = sched.shiftEnd || '17:00';
@@ -2292,6 +2293,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (minHoursEl) minHoursEl.value = sched.minWeeklyHours || 35;
     if (maxHoursEl) maxHoursEl.value = sched.maxWeeklyHours || 45;
     if (satPolicyEl) satPolicyEl.value = sched.saturdayPolicy || 'Optional / Rest Day (Walay pugsanay)';
+    if (autoTimeoutEl) autoTimeoutEl.checked = sched.autoTimeoutEnabled !== false;
 
     // Update greeting weekday text & shift pill
     const greetingWeekdayText = document.getElementById('greeting-weekday-text');
@@ -2315,9 +2317,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const gracePeriodMins = parseInt(document.getElementById('setting-grace-mins').value) || 15;
       const minWeeklyHours = parseFloat(document.getElementById('setting-min-hours').value) || 35;
       const maxWeeklyHours = parseFloat(document.getElementById('setting-max-hours').value) || 45;
+      const autoTimeoutEnabled = document.getElementById('setting-auto-timeout-enabled') ? document.getElementById('setting-auto-timeout-enabled').checked : true;
 
-      store.updateWorkSchedules({ shiftStart, shiftEnd, wfhDays, gracePeriodMins, minWeeklyHours, maxWeeklyHours });
-      showToast('Work schedule & hybrid rules updated (09:00 AM - 05:00 PM, 35h-45h target)!', 'success');
+      store.updateWorkSchedules({ shiftStart, shiftEnd, wfhDays, gracePeriodMins, minWeeklyHours, maxWeeklyHours, autoTimeoutEnabled });
+      showToast('Work schedule & auto-timeout policy updated (09:00 AM - 05:00 PM)!', 'success');
       renderAll();
     });
   }
@@ -4312,9 +4315,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Auto-Timeout Broadcast Listener
+  window.addEventListener('devtrack:autoTimedOut', (e) => {
+    const { timedOutDevs } = e.detail || {};
+    if (Array.isArray(timedOutDevs) && timedOutDevs.length > 0) {
+      const names = timedOutDevs.map(t => t.dev.name).join(', ');
+      showToast(`⏱️ Auto-Timeout: ${names} automatically clocked out at 5:00 PM per company schedule policy.`, 'info');
+      renderAll();
+    }
+  });
+
   initHeaderClock();
   initSettingsSubtabs();
   checkAuth();
+  if (attendance && attendance.checkAutoTimeouts) {
+    attendance.checkAutoTimeouts();
+  }
   renderAll();
   fetchLiveExchangeRate(false);
   startForexAutoSync();

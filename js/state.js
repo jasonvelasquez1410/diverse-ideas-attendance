@@ -54,7 +54,9 @@ const DEFAULT_INITIAL_STATE = {
     minWeeklyHours: 35,
     maxWeeklyHours: 45,
     saturdayPolicy: 'Optional / Rest Day (No Forcing)',
-    gracePeriodMins: 15
+    gracePeriodMins: 15,
+    autoTimeoutEnabled: true,          // Automatic timeout if employee forgets to clock out
+    autoTimeoutTargetTime: '17:00'     // Stamps timeout as 5:00 PM (17:00)
   },
   developers: [
     {
@@ -1154,7 +1156,9 @@ class Store {
       minWeeklyHours: 35,
       maxWeeklyHours: 45,
       saturdayPolicy: 'Optional / Rest Day (No Forcing)',
-      gracePeriodMins: 15
+      gracePeriodMins: 15,
+      autoTimeoutEnabled: true,
+      autoTimeoutTargetTime: '17:00'
     };
   }
 
