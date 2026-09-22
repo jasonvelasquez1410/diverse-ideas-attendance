@@ -87,6 +87,14 @@ const server = http.createServer((req, res) => {
       try {
         const raw = fs.readFileSync(DB_FILE, 'utf8');
         const parsed = JSON.parse(raw);
+        const legacyNames = ['JETZ Enterprise System', 'Accounting & Payroll Module', 'Mobile App Optimization', 'Internal Tooling & Automation'];
+        const legacyCodes = ['JETZ', 'ACCT', 'MOBI', 'TOOL'];
+        if (Array.isArray(parsed.projects)) {
+          parsed.projects = parsed.projects.filter(p => p && p.name && !legacyNames.includes(p.name) && !legacyCodes.includes(p.code) && !['proj-2', 'proj-3', 'proj-4', 'proj-5'].includes(p.id));
+          if (!parsed.projects.some(p => p.id === 'proj-1' || p.name === 'Diverse Ideas Core Portal')) {
+            parsed.projects.unshift({ id: 'proj-1', name: 'Diverse Ideas Core Portal', code: 'DICP', description: 'Internal staff management & attendance suite', status: 'Active' });
+          }
+        }
         parsed._serverTimestamp = Date.now();
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(parsed));
@@ -110,6 +118,14 @@ const server = http.createServer((req, res) => {
         const parsed = JSON.parse(body);
         if (!parsed || !Array.isArray(parsed.developers)) {
           throw new Error('Invalid state schema: missing developers list');
+        }
+        const legacyNames = ['JETZ Enterprise System', 'Accounting & Payroll Module', 'Mobile App Optimization', 'Internal Tooling & Automation'];
+        const legacyCodes = ['JETZ', 'ACCT', 'MOBI', 'TOOL'];
+        if (Array.isArray(parsed.projects)) {
+          parsed.projects = parsed.projects.filter(p => p && p.name && !legacyNames.includes(p.name) && !legacyCodes.includes(p.code) && !['proj-2', 'proj-3', 'proj-4', 'proj-5'].includes(p.id));
+          if (!parsed.projects.some(p => p.id === 'proj-1' || p.name === 'Diverse Ideas Core Portal')) {
+            parsed.projects.unshift({ id: 'proj-1', name: 'Diverse Ideas Core Portal', code: 'DICP', description: 'Internal staff management & attendance suite', status: 'Active' });
+          }
         }
         parsed._serverTimestamp = Date.now();
         const jsonToSave = JSON.stringify(parsed, null, 2);

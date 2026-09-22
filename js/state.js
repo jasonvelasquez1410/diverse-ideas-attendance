@@ -446,28 +446,7 @@ class Store {
         }
 
         // Clean up legacy placeholder projects; leave Diverse Ideas Core Portal and user added projects
-        const legacyPlaceholderProjects = ['JETZ Enterprise System', 'Accounting & Payroll Module', 'Mobile App Optimization', 'Internal Tooling & Automation'];
-        if (parsed.projects && Array.isArray(parsed.projects)) {
-          parsed.projects = parsed.projects.filter(p => p && p.name && !legacyPlaceholderProjects.includes(p.name));
-          if (!parsed.projects.some(p => p.id === 'proj-1' || p.name === 'Diverse Ideas Core Portal')) {
-            parsed.projects.unshift({ id: 'proj-1', name: 'Diverse Ideas Core Portal', code: 'DICP', description: 'Internal staff management & attendance suite', status: 'Active' });
-          }
-          parsed.projects.forEach(p => {
-            if (!p.status) p.status = 'Active';
-            if (!p.description) p.description = '';
-          });
-        } else {
-          parsed.projects = [...DEFAULT_INITIAL_STATE.projects];
-        }
-
-        // Remap any attendance records with old placeholder project IDs to proj-1
-        if (parsed.attendanceRecords && Array.isArray(parsed.attendanceRecords)) {
-          parsed.attendanceRecords.forEach(rec => {
-            if (['proj-2', 'proj-3', 'proj-4', 'proj-5'].includes(rec.projectId)) {
-              rec.projectId = 'proj-1';
-            }
-          });
-        }
+        this.sanitizeProjects(parsed);
 
         // Safe migration: ONLY replace if old placeholder names ('Alex Rivera'/'Chloe Gomez') exist AND no real developers
         if (parsed.developers && parsed.developers.some(d => d.name && (d.name.includes('Alex Rivera') || d.name.includes('Chloe Gomez')))) {
@@ -513,6 +492,59 @@ class Store {
     return JSON.parse(JSON.stringify(DEFAULT_INITIAL_STATE));
   }
 
+  sanitizeProjects(stateObj) {
+    if (!stateObj) return;
+    const legacyPlaceholderProjects = [
+      'JETZ Enterprise System',
+      'Accounting & Payroll Module',
+      'Mobile App Optimization',
+      'Internal Tooling & Automation'
+    ];
+    const legacyPlaceholderCodes = ['JETZ', 'ACCT', 'MOBI', 'TOOL'];
+
+    if (Array.isArray(stateObj.projects)) {
+      stateObj.projects = stateObj.projects.filter(p => {
+        if (!p || !p.name) return false;
+        if (legacyPlaceholderProjects.includes(p.name)) return false;
+        if (p.code && legacyPlaceholderCodes.includes(p.code)) return false;
+        if (['proj-2', 'proj-3', 'proj-4', 'proj-5'].includes(p.id)) return false;
+        return true;
+      });
+      if (!stateObj.projects.some(p => p.id === 'proj-1' || p.name === 'Diverse Ideas Core Portal')) {
+        stateObj.projects.unshift({
+          id: 'proj-1',
+          name: 'Diverse Ideas Core Portal',
+          code: 'DICP',
+          description: 'Internal staff management & attendance suite',
+          status: 'Active'
+        });
+      }
+      stateObj.projects.forEach(p => {
+        if (!p.status) p.status = 'Active';
+        if (!p.description) p.description = '';
+      });
+    } else {
+      stateObj.projects = [
+        {
+          id: 'proj-1',
+          name: 'Diverse Ideas Core Portal',
+          code: 'DICP',
+          description: 'Internal staff management & attendance suite',
+          status: 'Active'
+        }
+      ];
+    }
+
+    // Remap any attendance records with old placeholder project IDs to proj-1
+    if (Array.isArray(stateObj.attendanceRecords)) {
+      stateObj.attendanceRecords.forEach(rec => {
+        if (['proj-2', 'proj-3', 'proj-4', 'proj-5'].includes(rec.projectId)) {
+          rec.projectId = 'proj-1';
+        }
+      });
+    }
+  }
+
   sanitizeDeveloperStatuses(stateObj) {
     if (!stateObj || !Array.isArray(stateObj.developers)) return;
     const todayStr = new Date().toISOString().split('T')[0];
@@ -533,6 +565,8 @@ class Store {
     if (!Array.isArray(stateObj.attendanceRecords)) {
       stateObj.attendanceRecords = [];
     }
+
+    this.sanitizeProjects(stateObj);
 
     // First sanitize and deduplicate existing records
     stateObj.attendanceRecords = this.sanitizeAndDeduplicateAttendanceRecords(stateObj.attendanceRecords);
@@ -651,7 +685,8 @@ class Store {
             }
           }
 
-          // Ensure all 4 developers have records in the incoming serverData
+          // Ensure all 4 developers have records & clean projects in the incoming serverData
+          this.sanitizeProjects(serverData);
           this.ensureAllDevelopersAttendanceRecords(serverData);
 
           // Update local state from server
@@ -886,6 +921,7 @@ class Store {
 
   // Projects CRUD (Admin Configured)
   getProjects() {
+    this.sanitizeProjects(this.state);
     return this.state.projects || [];
   }
 
