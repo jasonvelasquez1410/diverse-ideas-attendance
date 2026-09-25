@@ -4,7 +4,7 @@
  * and live bidirectional server synchronization across office network / cloud.
  */
 
-const STORAGE_KEY = 'devtrack_app_state_v4';
+const STORAGE_KEY = 'devtrack_app_state_v5';
 const SESSION_AUTH_KEY = 'devtrack_active_session_auth';
 const FIREBASE_DB_URL = 'https://diverse-ideas-attendance-default-rtdb.asia-southeast1.firebasedatabase.app/state.json';
 
@@ -186,127 +186,667 @@ const DEFAULT_INITIAL_STATE = {
     { date: '2026-12-31', name: 'Last Day of the Year (New Year’s Eve)', type: 'Special Non-Working', location: 'National' }
   ],
   attendanceRecords: [
-    {
-      id: "rec-101-2026-09-21",
-      developerId: "dev-1",
-      date: "2026-09-21",
-      startTime: "2026-09-21T00:48:00.000Z",
-      endTime: "2026-09-21T09:01:00.000Z",
-      breakDurationMinutes: 0,
-      workedMinutes: 493,
-      hourlyRate: 5.00,
-      currencySymbol: "$",
-      totalEarnings: 41.08,
-      projectId: "proj-1",
-      workLocation: "wfh",
-      taskNote: "Core feature development & sprint backlog"
-    },
-    {
-      id: "rec-102-2026-09-21",
-      developerId: "dev-2",
-      date: "2026-09-21",
-      startTime: "2026-09-21T00:40:00.000Z",
-      endTime: "2026-09-21T09:00:00.000Z",
-      breakDurationMinutes: 0,
-      workedMinutes: 500,
-      hourlyRate: 5.00,
-      currencySymbol: "$",
-      totalEarnings: 41.67,
-      projectId: "proj-1",
-      workLocation: "onsite",
-      taskNote: "Modern responsive glassmorphic dashboard design"
-    },
-    {
-      id: "rec-103-2026-09-21",
-      developerId: "dev-3",
-      date: "2026-09-21",
-      startTime: "2026-09-21T01:00:00.000Z",
-      endTime: "2026-09-21T09:00:00.000Z",
-      breakDurationMinutes: 0,
-      workedMinutes: 480,
-      hourlyRate: 18.00,
-      currencySymbol: "$",
-      totalEarnings: 144.00,
-      projectId: "proj-1",
-      workLocation: "wfh",
-      taskNote: "Database schema migration, query optimization & payroll logic sprint"
-    },
-    {
-      id: "rec-104-2026-09-21",
-      developerId: "dev-4",
-      date: "2026-09-21",
-      startTime: "2026-09-21T00:26:00.000Z",
-      endTime: "2026-09-21T09:00:00.000Z",
-      breakDurationMinutes: 0,
-      workedMinutes: 514,
-      hourlyRate: 12.00,
-      currencySymbol: "$",
-      totalEarnings: 102.80,
-      projectId: "proj-1",
-      workLocation: "wfh",
-      taskNote: "Core system architecture, attendance synchronization & DTR portal engine"
-    },
-    {
-      id: "rec-101-2026-09-19",
-      developerId: "dev-1",
-      date: "2026-09-19",
-      startTime: "2026-09-19T00:48:00.000Z",
-      endTime: "2026-09-19T09:00:00.000Z",
-      breakDurationMinutes: 0,
-      workedMinutes: 492,
-      hourlyRate: 5.00,
-      currencySymbol: "$",
-      totalEarnings: 41.00,
-      projectId: "proj-1",
-      workLocation: "onsite",
-      taskNote: "Core feature development & sprint backlog"
-    },
-    {
-      id: "rec-102-2026-09-19",
-      developerId: "dev-2",
-      date: "2026-09-19",
-      startTime: "2026-09-19T00:42:00.000Z",
-      endTime: "2026-09-19T09:14:00.000Z",
-      breakDurationMinutes: 0,
-      workedMinutes: 512,
-      hourlyRate: 5.00,
-      currencySymbol: "$",
-      totalEarnings: 42.67,
-      projectId: "proj-1",
-      workLocation: "onsite",
-      taskNote: "Modern responsive glassmorphic dashboard design"
-    },
-    {
-      id: "rec-103-2026-09-19",
-      developerId: "dev-3",
-      date: "2026-09-19",
-      startTime: "2026-09-19T00:59:00.000Z",
-      endTime: "2026-09-19T09:00:00.000Z",
-      breakDurationMinutes: 0,
-      workedMinutes: 481,
-      hourlyRate: 18.00,
-      currencySymbol: "$",
-      totalEarnings: 144.30,
-      projectId: "proj-1",
-      workLocation: "wfh",
-      taskNote: "Database schema migration, query optimization & payroll logic sprint"
-    },
-    {
-      id: "rec-104-2026-09-19",
-      developerId: "dev-4",
-      date: "2026-09-19",
-      startTime: "2026-09-19T00:46:00.000Z",
-      endTime: "2026-09-19T09:00:00.000Z",
-      breakDurationMinutes: 0,
-      workedMinutes: 494,
-      hourlyRate: 12.00,
-      currencySymbol: "$",
-      totalEarnings: 98.80,
-      projectId: "proj-1",
-      workLocation: "wfh",
-      taskNote: "Core system architecture, attendance synchronization & DTR portal engine"
-    }
-  ]
+  {
+    "id": "rec-101-2026-09-25",
+    "developerId": "dev-1",
+    "date": "2026-09-25",
+    "startTime": "2026-09-25T00:48:00.000Z",
+    "endTime": "2026-09-25T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 492,
+    "hourlyRate": 5,
+    "currencySymbol": "$",
+    "totalEarnings": 41,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Core feature development & sprint backlog"
+  },
+  {
+    "id": "rec-102-2026-09-25",
+    "developerId": "dev-2",
+    "date": "2026-09-25",
+    "startTime": "2026-09-25T00:41:00.000Z",
+    "endTime": "2026-09-25T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 499,
+    "hourlyRate": 5,
+    "currencySymbol": "$",
+    "totalEarnings": 41.58,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Modern responsive glassmorphic dashboard design"
+  },
+  {
+    "id": "rec-103-2026-09-25",
+    "developerId": "dev-3",
+    "date": "2026-09-25",
+    "startTime": "2026-09-25T01:00:00.000Z",
+    "endTime": "2026-09-25T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 480,
+    "hourlyRate": 18,
+    "currencySymbol": "$",
+    "totalEarnings": 144,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Database schema migration, query optimization & payroll logic sprint"
+  },
+  {
+    "id": "rec-104-2026-09-25",
+    "developerId": "dev-4",
+    "date": "2026-09-25",
+    "startTime": "2026-09-25T00:28:00.000Z",
+    "endTime": "2026-09-25T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 512,
+    "hourlyRate": 12,
+    "currencySymbol": "$",
+    "totalEarnings": 102.4,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Core system architecture, attendance synchronization & DTR portal engine"
+  },
+  {
+    "id": "rec-101-2026-09-24",
+    "developerId": "dev-1",
+    "date": "2026-09-24",
+    "startTime": "2026-09-24T00:49:00.000Z",
+    "endTime": "2026-09-24T09:02:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 493,
+    "hourlyRate": 5,
+    "currencySymbol": "$",
+    "totalEarnings": 41.08,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Core feature development & sprint backlog"
+  },
+  {
+    "id": "rec-102-2026-09-24",
+    "developerId": "dev-2",
+    "date": "2026-09-24",
+    "startTime": "2026-09-24T00:44:00.000Z",
+    "endTime": "2026-09-24T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 496,
+    "hourlyRate": 5,
+    "currencySymbol": "$",
+    "totalEarnings": 41.33,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Modern responsive glassmorphic dashboard design"
+  },
+  {
+    "id": "rec-103-2026-09-24",
+    "developerId": "dev-3",
+    "date": "2026-09-24",
+    "startTime": "2026-09-24T00:58:00.000Z",
+    "endTime": "2026-09-24T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 482,
+    "hourlyRate": 18,
+    "currencySymbol": "$",
+    "totalEarnings": 144.6,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Database schema migration, query optimization & payroll logic sprint"
+  },
+  {
+    "id": "rec-104-2026-09-24",
+    "developerId": "dev-4",
+    "date": "2026-09-24",
+    "startTime": "2026-09-24T00:25:00.000Z",
+    "endTime": "2026-09-24T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 515,
+    "hourlyRate": 12,
+    "currencySymbol": "$",
+    "totalEarnings": 103,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Core system architecture, attendance synchronization & DTR portal engine"
+  },
+  {
+    "id": "rec-101-2026-09-23",
+    "developerId": "dev-1",
+    "date": "2026-09-23",
+    "startTime": "2026-09-23T00:46:00.000Z",
+    "endTime": "2026-09-23T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 494,
+    "hourlyRate": 5,
+    "currencySymbol": "$",
+    "totalEarnings": 41.17,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Core feature development & sprint backlog"
+  },
+  {
+    "id": "rec-102-2026-09-23",
+    "developerId": "dev-2",
+    "date": "2026-09-23",
+    "startTime": "2026-09-23T00:43:00.000Z",
+    "endTime": "2026-09-23T09:05:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 502,
+    "hourlyRate": 5,
+    "currencySymbol": "$",
+    "totalEarnings": 41.83,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Modern responsive glassmorphic dashboard design"
+  },
+  {
+    "id": "rec-103-2026-09-23",
+    "developerId": "dev-3",
+    "date": "2026-09-23",
+    "startTime": "2026-09-23T01:00:00.000Z",
+    "endTime": "2026-09-23T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 480,
+    "hourlyRate": 18,
+    "currencySymbol": "$",
+    "totalEarnings": 144,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Database schema migration, query optimization & payroll logic sprint"
+  },
+  {
+    "id": "rec-104-2026-09-23",
+    "developerId": "dev-4",
+    "date": "2026-09-23",
+    "startTime": "2026-09-23T00:30:00.000Z",
+    "endTime": "2026-09-23T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 510,
+    "hourlyRate": 12,
+    "currencySymbol": "$",
+    "totalEarnings": 102,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Core system architecture, attendance synchronization & DTR portal engine"
+  },
+  {
+    "id": "rec-101-2026-09-22",
+    "developerId": "dev-1",
+    "date": "2026-09-22",
+    "startTime": "2026-09-22T00:50:00.000Z",
+    "endTime": "2026-09-22T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 490,
+    "hourlyRate": 5,
+    "currencySymbol": "$",
+    "totalEarnings": 40.83,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Core feature development & sprint backlog"
+  },
+  {
+    "id": "rec-102-2026-09-22",
+    "developerId": "dev-2",
+    "date": "2026-09-22",
+    "startTime": "2026-09-22T00:39:00.000Z",
+    "endTime": "2026-09-22T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 501,
+    "hourlyRate": 5,
+    "currencySymbol": "$",
+    "totalEarnings": 41.75,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Modern responsive glassmorphic dashboard design"
+  },
+  {
+    "id": "rec-103-2026-09-22",
+    "developerId": "dev-3",
+    "date": "2026-09-22",
+    "startTime": "2026-09-22T00:55:00.000Z",
+    "endTime": "2026-09-22T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 485,
+    "hourlyRate": 18,
+    "currencySymbol": "$",
+    "totalEarnings": 145.5,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Database schema migration, query optimization & payroll logic sprint"
+  },
+  {
+    "id": "rec-104-2026-09-22",
+    "developerId": "dev-4",
+    "date": "2026-09-22",
+    "startTime": "2026-09-22T00:27:00.000Z",
+    "endTime": "2026-09-22T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 513,
+    "hourlyRate": 12,
+    "currencySymbol": "$",
+    "totalEarnings": 102.6,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Core system architecture, attendance synchronization & DTR portal engine"
+  },
+  {
+    "id": "rec-101-2026-09-21",
+    "developerId": "dev-1",
+    "date": "2026-09-21",
+    "startTime": "2026-09-21T00:48:00.000Z",
+    "endTime": "2026-09-21T09:01:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 493,
+    "hourlyRate": 5,
+    "currencySymbol": "$",
+    "totalEarnings": 41.08,
+    "projectId": "proj-1",
+    "workLocation": "wfh",
+    "taskNote": "Core feature development & sprint backlog"
+  },
+  {
+    "id": "rec-102-2026-09-21",
+    "developerId": "dev-2",
+    "date": "2026-09-21",
+    "startTime": "2026-09-21T00:40:00.000Z",
+    "endTime": "2026-09-21T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 500,
+    "hourlyRate": 5,
+    "currencySymbol": "$",
+    "totalEarnings": 41.67,
+    "projectId": "proj-1",
+    "workLocation": "wfh",
+    "taskNote": "Modern responsive glassmorphic dashboard design"
+  },
+  {
+    "id": "rec-103-2026-09-21",
+    "developerId": "dev-3",
+    "date": "2026-09-21",
+    "startTime": "2026-09-21T01:00:00.000Z",
+    "endTime": "2026-09-21T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 480,
+    "hourlyRate": 18,
+    "currencySymbol": "$",
+    "totalEarnings": 144,
+    "projectId": "proj-1",
+    "workLocation": "wfh",
+    "taskNote": "Database schema migration, query optimization & payroll logic sprint"
+  },
+  {
+    "id": "rec-104-2026-09-21",
+    "developerId": "dev-4",
+    "date": "2026-09-21",
+    "startTime": "2026-09-21T00:26:00.000Z",
+    "endTime": "2026-09-21T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 514,
+    "hourlyRate": 12,
+    "currencySymbol": "$",
+    "totalEarnings": 102.8,
+    "projectId": "proj-1",
+    "workLocation": "wfh",
+    "taskNote": "Core system architecture, attendance synchronization & DTR portal engine"
+  },
+  {
+    "id": "rec-101-2026-09-19",
+    "developerId": "dev-1",
+    "date": "2026-09-19",
+    "startTime": "2026-09-19T00:48:00.000Z",
+    "endTime": "2026-09-19T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 492,
+    "hourlyRate": 5,
+    "currencySymbol": "$",
+    "totalEarnings": 41,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Core feature development & sprint backlog"
+  },
+  {
+    "id": "rec-102-2026-09-19",
+    "developerId": "dev-2",
+    "date": "2026-09-19",
+    "startTime": "2026-09-19T00:42:00.000Z",
+    "endTime": "2026-09-19T09:14:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 512,
+    "hourlyRate": 5,
+    "currencySymbol": "$",
+    "totalEarnings": 42.67,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Modern responsive glassmorphic dashboard design"
+  },
+  {
+    "id": "rec-103-2026-09-19",
+    "developerId": "dev-3",
+    "date": "2026-09-19",
+    "startTime": "2026-09-19T00:59:00.000Z",
+    "endTime": "2026-09-19T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 481,
+    "hourlyRate": 18,
+    "currencySymbol": "$",
+    "totalEarnings": 144.3,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Database schema migration, query optimization & payroll logic sprint"
+  },
+  {
+    "id": "rec-104-2026-09-19",
+    "developerId": "dev-4",
+    "date": "2026-09-19",
+    "startTime": "2026-09-19T00:46:00.000Z",
+    "endTime": "2026-09-19T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 494,
+    "hourlyRate": 12,
+    "currencySymbol": "$",
+    "totalEarnings": 98.8,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Core system architecture, attendance synchronization & DTR portal engine"
+  },
+  {
+    "id": "rec-101-2026-09-18",
+    "developerId": "dev-1",
+    "date": "2026-09-18",
+    "startTime": "2026-09-18T00:48:00.000Z",
+    "endTime": "2026-09-18T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 492,
+    "hourlyRate": 5,
+    "currencySymbol": "$",
+    "totalEarnings": 41,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Core feature development & sprint backlog"
+  },
+  {
+    "id": "rec-102-2026-09-18",
+    "developerId": "dev-2",
+    "date": "2026-09-18",
+    "startTime": "2026-09-18T00:45:00.000Z",
+    "endTime": "2026-09-18T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 495,
+    "hourlyRate": 5,
+    "currencySymbol": "$",
+    "totalEarnings": 41.25,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Modern responsive glassmorphic dashboard design"
+  },
+  {
+    "id": "rec-103-2026-09-18",
+    "developerId": "dev-3",
+    "date": "2026-09-18",
+    "startTime": "2026-09-18T01:00:00.000Z",
+    "endTime": "2026-09-18T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 480,
+    "hourlyRate": 18,
+    "currencySymbol": "$",
+    "totalEarnings": 144,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Database schema migration, query optimization & payroll logic sprint"
+  },
+  {
+    "id": "rec-104-2026-09-18",
+    "developerId": "dev-4",
+    "date": "2026-09-18",
+    "startTime": "2026-09-18T00:35:00.000Z",
+    "endTime": "2026-09-18T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 505,
+    "hourlyRate": 12,
+    "currencySymbol": "$",
+    "totalEarnings": 101,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Core system architecture, attendance synchronization & DTR portal engine"
+  },
+  {
+    "id": "rec-101-2026-09-17",
+    "developerId": "dev-1",
+    "date": "2026-09-17",
+    "startTime": "2026-09-17T00:50:00.000Z",
+    "endTime": "2026-09-17T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 490,
+    "hourlyRate": 5,
+    "currencySymbol": "$",
+    "totalEarnings": 40.83,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Core feature development & sprint backlog"
+  },
+  {
+    "id": "rec-102-2026-09-17",
+    "developerId": "dev-2",
+    "date": "2026-09-17",
+    "startTime": "2026-09-17T00:42:00.000Z",
+    "endTime": "2026-09-17T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 498,
+    "hourlyRate": 5,
+    "currencySymbol": "$",
+    "totalEarnings": 41.5,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Modern responsive glassmorphic dashboard design"
+  },
+  {
+    "id": "rec-103-2026-09-17",
+    "developerId": "dev-3",
+    "date": "2026-09-17",
+    "startTime": "2026-09-17T00:58:00.000Z",
+    "endTime": "2026-09-17T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 482,
+    "hourlyRate": 18,
+    "currencySymbol": "$",
+    "totalEarnings": 144.6,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Database schema migration, query optimization & payroll logic sprint"
+  },
+  {
+    "id": "rec-104-2026-09-17",
+    "developerId": "dev-4",
+    "date": "2026-09-17",
+    "startTime": "2026-09-17T00:28:00.000Z",
+    "endTime": "2026-09-17T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 512,
+    "hourlyRate": 12,
+    "currencySymbol": "$",
+    "totalEarnings": 102.4,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Core system architecture, attendance synchronization & DTR portal engine"
+  },
+  {
+    "id": "rec-101-2026-09-16",
+    "developerId": "dev-1",
+    "date": "2026-09-16",
+    "startTime": "2026-09-16T00:47:00.000Z",
+    "endTime": "2026-09-16T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 493,
+    "hourlyRate": 5,
+    "currencySymbol": "$",
+    "totalEarnings": 41.08,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Core feature development & sprint backlog"
+  },
+  {
+    "id": "rec-102-2026-09-16",
+    "developerId": "dev-2",
+    "date": "2026-09-16",
+    "startTime": "2026-09-16T00:40:00.000Z",
+    "endTime": "2026-09-16T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 500,
+    "hourlyRate": 5,
+    "currencySymbol": "$",
+    "totalEarnings": 41.67,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Modern responsive glassmorphic dashboard design"
+  },
+  {
+    "id": "rec-103-2026-09-16",
+    "developerId": "dev-3",
+    "date": "2026-09-16",
+    "startTime": "2026-09-16T01:00:00.000Z",
+    "endTime": "2026-09-16T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 480,
+    "hourlyRate": 18,
+    "currencySymbol": "$",
+    "totalEarnings": 144,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Database schema migration, query optimization & payroll logic sprint"
+  },
+  {
+    "id": "rec-104-2026-09-16",
+    "developerId": "dev-4",
+    "date": "2026-09-16",
+    "startTime": "2026-09-16T00:32:00.000Z",
+    "endTime": "2026-09-16T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 508,
+    "hourlyRate": 12,
+    "currencySymbol": "$",
+    "totalEarnings": 101.6,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Core system architecture, attendance synchronization & DTR portal engine"
+  },
+  {
+    "id": "rec-101-2026-09-15",
+    "developerId": "dev-1",
+    "date": "2026-09-15",
+    "startTime": "2026-09-15T00:52:00.000Z",
+    "endTime": "2026-09-15T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 488,
+    "hourlyRate": 5,
+    "currencySymbol": "$",
+    "totalEarnings": 40.67,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Core feature development & sprint backlog"
+  },
+  {
+    "id": "rec-102-2026-09-15",
+    "developerId": "dev-2",
+    "date": "2026-09-15",
+    "startTime": "2026-09-15T00:45:00.000Z",
+    "endTime": "2026-09-15T09:03:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 498,
+    "hourlyRate": 5,
+    "currencySymbol": "$",
+    "totalEarnings": 41.5,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Modern responsive glassmorphic dashboard design"
+  },
+  {
+    "id": "rec-103-2026-09-15",
+    "developerId": "dev-3",
+    "date": "2026-09-15",
+    "startTime": "2026-09-15T00:55:00.000Z",
+    "endTime": "2026-09-15T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 485,
+    "hourlyRate": 18,
+    "currencySymbol": "$",
+    "totalEarnings": 145.5,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Database schema migration, query optimization & payroll logic sprint"
+  },
+  {
+    "id": "rec-104-2026-09-15",
+    "developerId": "dev-4",
+    "date": "2026-09-15",
+    "startTime": "2026-09-15T00:25:00.000Z",
+    "endTime": "2026-09-15T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 515,
+    "hourlyRate": 12,
+    "currencySymbol": "$",
+    "totalEarnings": 103,
+    "projectId": "proj-1",
+    "workLocation": "onsite",
+    "taskNote": "Core system architecture, attendance synchronization & DTR portal engine"
+  },
+  {
+    "id": "rec-101-2026-09-14",
+    "developerId": "dev-1",
+    "date": "2026-09-14",
+    "startTime": "2026-09-14T00:48:00.000Z",
+    "endTime": "2026-09-14T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 492,
+    "hourlyRate": 5,
+    "currencySymbol": "$",
+    "totalEarnings": 41,
+    "projectId": "proj-1",
+    "workLocation": "wfh",
+    "taskNote": "Core feature development & sprint backlog"
+  },
+  {
+    "id": "rec-102-2026-09-14",
+    "developerId": "dev-2",
+    "date": "2026-09-14",
+    "startTime": "2026-09-14T00:42:00.000Z",
+    "endTime": "2026-09-14T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 498,
+    "hourlyRate": 5,
+    "currencySymbol": "$",
+    "totalEarnings": 41.5,
+    "projectId": "proj-1",
+    "workLocation": "wfh",
+    "taskNote": "Modern responsive glassmorphic dashboard design"
+  },
+  {
+    "id": "rec-103-2026-09-14",
+    "developerId": "dev-3",
+    "date": "2026-09-14",
+    "startTime": "2026-09-14T01:00:00.000Z",
+    "endTime": "2026-09-14T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 480,
+    "hourlyRate": 18,
+    "currencySymbol": "$",
+    "totalEarnings": 144,
+    "projectId": "proj-1",
+    "workLocation": "wfh",
+    "taskNote": "Database schema migration, query optimization & payroll logic sprint"
+  },
+  {
+    "id": "rec-104-2026-09-14",
+    "developerId": "dev-4",
+    "date": "2026-09-14",
+    "startTime": "2026-09-14T00:30:00.000Z",
+    "endTime": "2026-09-14T09:00:00.000Z",
+    "breakDurationMinutes": 0,
+    "workedMinutes": 510,
+    "hourlyRate": 12,
+    "currencySymbol": "$",
+    "totalEarnings": 102,
+    "projectId": "proj-1",
+    "workLocation": "wfh",
+    "taskNote": "Core system architecture, attendance synchronization & DTR portal engine"
+  }
+]
 };
 
 class Store {
@@ -340,6 +880,7 @@ class Store {
     if (!Array.isArray(records)) return [];
 
     const seenKeyMap = new Map();
+    const devRateMap = { 'dev-1': 5.00, 'dev-2': 5.00, 'dev-3': 18.00, 'dev-4': 12.00 };
 
     records.forEach(rawRec => {
       if (!rawRec || !rawRec.developerId) return;
@@ -356,62 +897,30 @@ class Store {
         rec.endTime = rec.endTime.replace(/2026-09-(11|12)/, '2026-09-19');
       }
 
-      // 2. Explicit target normalization for all 4 team members
-      if (rec.developerId === 'dev-1') {
-        rec.hourlyRate = 5.00;
-        if (rec.date === '2026-09-21') {
-          rec.startTime = '2026-09-21T00:48:00.000Z';
-          rec.endTime = '2026-09-21T09:01:00.000Z';
-          rec.workedMinutes = 493;
-          rec.totalEarnings = 41.08;
-        } else if (rec.date === '2026-09-19') {
-          rec.startTime = '2026-09-19T00:48:00.000Z';
-          rec.endTime = '2026-09-19T09:00:00.000Z';
-          rec.workedMinutes = 492;
-          rec.totalEarnings = 41.00;
-        }
-      } else if (rec.developerId === 'dev-2') {
-        rec.hourlyRate = 5.00;
-        if (rec.date === '2026-09-21') {
-          rec.startTime = '2026-09-21T00:40:00.000Z';
-          rec.endTime = '2026-09-21T09:00:00.000Z';
-          rec.workedMinutes = 500;
-          rec.totalEarnings = 41.67;
-        } else if (rec.date === '2026-09-19') {
-          rec.startTime = '2026-09-19T00:42:00.000Z';
-          rec.endTime = '2026-09-19T09:14:00.000Z';
-          rec.workedMinutes = 512;
-          rec.totalEarnings = 42.67;
-        }
-      } else if (rec.developerId === 'dev-3') {
-        rec.hourlyRate = 18.00;
-        if (rec.date === '2026-09-21') {
-          rec.startTime = '2026-09-21T01:00:00.000Z';
-          rec.endTime = '2026-09-21T09:00:00.000Z';
-          rec.workedMinutes = 480;
-          rec.totalEarnings = 144.00;
-        } else if (rec.date === '2026-09-19') {
-          rec.startTime = '2026-09-19T00:59:00.000Z';
-          rec.endTime = '2026-09-19T09:00:00.000Z';
-          rec.workedMinutes = 481;
-          rec.totalEarnings = 144.30;
-        }
-      } else if (rec.developerId === 'dev-4') {
-        rec.hourlyRate = 12.00;
-        if (rec.date === '2026-09-21') {
-          rec.startTime = '2026-09-21T00:26:00.000Z';
-          rec.endTime = '2026-09-21T09:00:00.000Z';
-          rec.workedMinutes = 514;
-          rec.totalEarnings = 102.80;
-        } else if (rec.date === '2026-09-19') {
-          rec.startTime = '2026-09-19T00:46:00.000Z';
-          rec.endTime = '2026-09-19T09:00:00.000Z';
-          rec.workedMinutes = 494;
-          rec.totalEarnings = 98.80;
+      // 2. Normalize developer hourly rate & defaults
+      if (devRateMap[rec.developerId] !== undefined) {
+        rec.hourlyRate = devRateMap[rec.developerId];
+      }
+      rec.currencySymbol = rec.currencySymbol || '$';
+      if (!rec.projectId || ['proj-2', 'proj-3', 'proj-4', 'proj-5'].includes(rec.projectId)) {
+        rec.projectId = 'proj-1';
+      }
+
+      // 3. Compute/verify workedMinutes and totalEarnings accurately
+      if (rec.startTime && rec.endTime) {
+        const startMs = new Date(rec.startTime).getTime();
+        const endMs = new Date(rec.endTime).getTime();
+        if (!isNaN(startMs) && !isNaN(endMs) && endMs >= startMs) {
+          const totalElapsedMs = endMs - startMs;
+          const breakMs = (parseInt(rec.breakDurationMinutes) || 0) * 60000;
+          const netWorkedMs = Math.max(0, totalElapsedMs - breakMs);
+          rec.workedMinutes = Math.round(netWorkedMs / 60000);
+          const rate = parseFloat(rec.hourlyRate) || 0;
+          rec.totalEarnings = parseFloat(((netWorkedMs / 3600000) * rate).toFixed(2));
         }
       }
 
-      // Duplicate removal: Key by devId + date
+      // 4. Duplicate removal: Key by devId + date
       const key = `${rec.developerId}_${rec.date}`;
       if (!seenKeyMap.has(key)) {
         seenKeyMap.set(key, rec);
@@ -438,7 +947,7 @@ class Store {
 
   loadState() {
     try {
-      const serialized = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('devtrack_app_state_v2');
+      const serialized = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('devtrack_app_state_v4') || localStorage.getItem('devtrack_app_state_v2');
       if (serialized) {
         const parsed = JSON.parse(serialized);
         if (!parsed.usdToPhpRate) parsed.usdToPhpRate = 58.50;
@@ -489,7 +998,7 @@ class Store {
 
         this.ensureAllDevelopersAttendanceRecords(parsed);
 
-        // Save into new v3 storage key
+        // Save into new storage key
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
         } catch (e) {}
@@ -510,13 +1019,13 @@ class Store {
       'Mobile App Optimization',
       'Internal Tooling & Automation'
     ];
-    const legacyPlaceholderCodes = ['JETZ', 'ACCT', 'MOBI', 'TOOL'];
+    const legacyCodes = ['JETZ', 'ACCT', 'MOBI', 'TOOL'];
 
     if (Array.isArray(stateObj.projects)) {
       stateObj.projects = stateObj.projects.filter(p => {
         if (!p || !p.name) return false;
         if (legacyPlaceholderProjects.includes(p.name)) return false;
-        if (p.code && legacyPlaceholderCodes.includes(p.code)) return false;
+        if (p.code && legacyCodes.includes(p.code)) return false;
         if (['proj-2', 'proj-3', 'proj-4', 'proj-5'].includes(p.id)) return false;
         return true;
       });
@@ -592,9 +1101,21 @@ class Store {
       });
     }
 
-    // Ensure all 4 developers have both 2026-09-21 and 2026-09-19 records
+    // Ensure all 4 developers have records for all standard working dates
     const allDevs = ['dev-1', 'dev-2', 'dev-3', 'dev-4'];
-    const requiredDates = ['2026-09-21', '2026-09-19'];
+    const requiredDates = [
+      '2026-09-25',
+      '2026-09-24',
+      '2026-09-23',
+      '2026-09-22',
+      '2026-09-21',
+      '2026-09-19',
+      '2026-09-18',
+      '2026-09-17',
+      '2026-09-16',
+      '2026-09-15',
+      '2026-09-14'
+    ];
 
     allDevs.forEach(devId => {
       requiredDates.forEach(dStr => {
