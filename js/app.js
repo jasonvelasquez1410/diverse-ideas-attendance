@@ -329,12 +329,11 @@ document.addEventListener('DOMContentLoaded', () => {
         headerUserRoleBadge.style.background = 'rgba(99, 102, 241, 0.2)';
         headerUserRoleBadge.style.color = 'var(--accent-cyan)';
       }
-      // Hide Manager Guide and Payslip buttons completely for individual staff logins
-      if (btnHeaderGuide) {
-        btnHeaderGuide.style.display = 'none';
-      }
+      // Staff can view their own Draft Payslip
       if (btnCardPayslip) {
-        btnCardPayslip.style.display = 'none';
+        btnCardPayslip.style.display = 'inline-flex';
+        btnCardPayslip.innerHTML = '📄 My Draft Payslip';
+        btnCardPayslip.title = 'View and verify your real-time draft payslip and earnings';
       }
       if (btnHeaderChangePin) {
         btnHeaderChangePin.style.display = 'inline-flex';
@@ -1783,11 +1782,19 @@ document.addEventListener('DOMContentLoaded', () => {
         hoursSub.textContent = `Target: 35h min – 45h max/week (Sat Optional)`;
       }
     }
+    const isStaffDev = (auth && auth.role === 'developer' && auth.devId);
+    const loggedInDev = isStaffDev ? store.getDeveloperById(auth.devId) : null;
+
     if (store.isAdmin()) {
       summaryTotalPayroll.textContent = `$${parseFloat(summary.totalGrossPay).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       summaryTotalPayrollPhp.textContent = `≈ ₱${parseFloat(summary.totalGrossPhp).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} PHP`;
       summaryAvgRate.textContent = `$${parseFloat(summary.avgHourlyPay).toFixed(2)}/hr`;
       summaryAvgRatePhp.textContent = `≈ ₱${parseFloat(summary.avgHourlyPhp).toFixed(2)}/hr`;
+    } else if (loggedInDev) {
+      summaryTotalPayroll.textContent = `$${parseFloat(summary.totalGrossPay).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      summaryTotalPayrollPhp.textContent = `≈ ₱${parseFloat(summary.totalGrossPhp).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} PHP`;
+      summaryAvgRate.textContent = `$${(loggedInDev.hourlyRate || 0).toFixed(2)}/hr`;
+      summaryAvgRatePhp.textContent = `≈ ₱${((loggedInDev.hourlyRate || 0) * rate).toFixed(2)}/hr`;
     } else {
       summaryTotalPayroll.textContent = 'Confidential 🔒';
       summaryTotalPayrollPhp.textContent = 'Log in as Admin to view';
@@ -1799,13 +1806,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Hide dev selector for regular developers
     payrollDevFilter.style.display = store.isAdmin() ? 'block' : 'none';
 
-    // Payslip quick bar and export buttons strictly exclusive to Admin (PIN 1410)
+    // Payslip quick bar and export buttons
     const quickPayslipBar = document.getElementById('quick-payslip-bar');
     if (quickPayslipBar) {
-      quickPayslipBar.style.display = store.isAdmin() ? 'flex' : 'none';
+      quickPayslipBar.style.display = 'flex';
     }
     if (btnPrintReport) {
-      btnPrintReport.style.display = store.isAdmin() ? 'inline-flex' : 'none';
+      btnPrintReport.style.display = 'inline-flex';
+      btnPrintReport.innerHTML = store.isAdmin() 
+        ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> Print Payroll Slip'
+        : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> Print My Draft Payslip';
     }
 
     // Render Table Rows
@@ -1832,11 +1842,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const ratePhpVal = (rateUsdVal * rate);
         const grossPhpVal = (grossUsdVal * rate);
 
-        const rateDisplay = store.isAdmin() 
+        const canSeeRate = store.isAdmin() || (auth && auth.devId === rec.developerId);
+
+        const rateDisplay = canSeeRate 
           ? `<span>$${rateUsdVal.toFixed(2)}</span><span class="php-subtext">≈ ₱${ratePhpVal.toFixed(2)}</span>`
           : '<span class="confidential-pill">••••</span>';
 
-        const payDisplay = store.isAdmin()
+        const payDisplay = canSeeRate
           ? `<span style="color: var(--status-working); font-weight: 700;">$${grossUsdVal.toFixed(2)}</span><span class="php-subtext" style="color: var(--status-working);">≈ ₱${grossPhpVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>`
           : '<span class="confidential-pill">Confidential</span>';
 
@@ -1873,8 +1885,8 @@ document.addEventListener('DOMContentLoaded', () => {
               <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.72rem; color: var(--accent-cyan);" onclick="openEditRecordModal('${rec.id}')" title="Edit timesheet record">
                 ✏️ Edit
               </button>
-              ${store.isAdmin() ? `
-              <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.72rem; color: var(--status-working);" onclick="generateSinglePayslip('${rec.developerId}', '${rec.id}')" title="Generate and print payslip for this entry">
+              ${(store.isAdmin() || (auth && auth.devId === rec.developerId)) ? `
+              <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.72rem; color: var(--status-working);" onclick="generateSinglePayslip('${rec.developerId}', '${rec.id}')" title="${store.isAdmin() ? 'Generate official payslip for this entry' : 'View your draft payslip for this entry'}">
                 📄 Slip
               </button>
               ` : ''}
@@ -1928,6 +1940,33 @@ document.addEventListener('DOMContentLoaded', () => {
             bottomDevBreakdownGrid.appendChild(card);
           });
         }
+      } else if (loggedInDev) {
+        bottomUsdTotal.textContent = `$${parseFloat(summary.totalGrossPay).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        bottomPhpTotal.textContent = `₱${parseFloat(summary.totalGrossPhp).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        bottomPhpAvgRate.textContent = `₱${((loggedInDev.hourlyRate || 0) * rate).toFixed(2)} / hr`;
+        bottomHoursCount.textContent = `${summary.totalHours} billable hours rendered by you`;
+        bottomDevBreakdownGrid.innerHTML = `
+          <div class="glass-card" style="grid-column: span 4; padding: 16px 20px; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.25);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 40px; height: 40px; border-radius: 50%; background: ${loggedInDev.avatarColor || '#6366f1'}; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 700; color: white;">
+                ${loggedInDev.initials || 'DV'}
+              </div>
+              <div>
+                <div style="font-weight: 700; font-size: 1rem; color: var(--text-primary);">${loggedInDev.name}</div>
+                <div style="font-size: 0.78rem; color: var(--text-secondary);">${summary.totalHours} hrs rendered • Verified Rate: $${(loggedInDev.hourlyRate || 0).toFixed(2)} / hr (≈ ₱${((loggedInDev.hourlyRate || 0) * rate).toFixed(2)} / hr)</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 16px;">
+              <div style="text-align: right;">
+                <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Your Total Gross Pay</div>
+                <div style="font-family: var(--font-mono); font-weight: 800; font-size: 1.15rem; color: var(--status-working);">$${parseFloat(summary.totalGrossPay).toFixed(2)} <span style="font-size: 0.85rem; color: var(--accent-cyan);">≈ ₱${parseFloat(summary.totalGrossPhp).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+              </div>
+              <button class="btn btn-primary" onclick="openPayslipModal('${auth.devId}')" style="padding: 8px 16px; font-size: 0.88rem;">
+                📄 View My Draft Payslip
+              </button>
+            </div>
+          </div>
+        `;
       } else {
         bottomUsdTotal.textContent = 'Confidential 🔒';
         bottomPhpTotal.textContent = 'Confidential 🔒';
@@ -1947,6 +1986,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const quickDevSelect = document.getElementById('quick-payslip-dev-select');
     const quickBarTitle = document.getElementById('quick-payslip-title');
     const quickBarDesc = document.getElementById('quick-payslip-desc');
+    const btnQuickRun = document.getElementById('btn-quick-run-payslip');
     const auth = store.getAuth();
     
     if (payrollDevFilter) {
@@ -1962,11 +2002,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (quickDevSelect) {
       quickDevSelect.innerHTML = '';
       if (!store.isAdmin()) {
-        quickDevSelect.disabled = true;
+        quickDevSelect.style.display = 'none';
+        if (quickBarTitle) quickBarTitle.textContent = '📄 My Live Draft Payslip & Earnings';
+        if (quickBarDesc) quickBarDesc.textContent = 'Review your rendered billable hours, verified hourly rate, and real-time gross pay ($ USD ⇄ ₱ PHP) before official payday.';
+        if (btnQuickRun) {
+          btnQuickRun.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> 📄 View My Draft Payslip';
+        }
       } else {
+        quickDevSelect.style.display = 'inline-block';
         quickDevSelect.disabled = false;
         if (quickBarTitle) quickBarTitle.textContent = 'Run Staff Payslip';
         if (quickBarDesc) quickBarDesc.textContent = 'Select any developer to instantly calculate and generate their official printable payslip voucher.';
+        if (btnQuickRun) {
+          btnQuickRun.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> Run & Print Payslip';
+        }
         devs.forEach(d => {
           const opt = document.createElement('option');
           opt.value = d.id;
@@ -1980,9 +2029,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnQuickRunPayslip = document.getElementById('btn-quick-run-payslip');
   if (btnQuickRunPayslip) {
     btnQuickRunPayslip.addEventListener('click', () => {
-      const select = document.getElementById('quick-payslip-dev-select');
-      const devId = select ? select.value : null;
-      window.openPayslipModal(devId);
+      const auth = store.getAuth();
+      if (!store.isAdmin()) {
+        window.openPayslipModal(auth ? auth.devId : null);
+      } else {
+        const select = document.getElementById('quick-payslip-dev-select');
+        const devId = select ? select.value : null;
+        window.openPayslipModal(devId);
+      }
     });
   }
 
@@ -2014,20 +2068,24 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================================
-  // 8. Official Payslip Generator & Print Controller (Admin Exclusive PIN 1410)
+  // 8. Official / Draft Payslip Generator & Print Controller
   // ==========================================
   window.openPayslipModal = function(targetDevId = null, targetRecordId = null) {
-    if (!store.isAdmin()) {
-      showToast('🔒 Access Restricted: Payslip generation is confidential and strictly exclusive to Administrator (Master PIN 1410).', 'warning');
+    const auth = store.getAuth();
+    if (!auth || !auth.isAuthenticated) {
+      showToast('🔒 Please enter your 4-digit PIN to view payslip.', 'warning');
       return;
     }
 
     const state = store.getState();
     const rate = store.getUsdToPhpRate();
+    const isAdmin = store.isAdmin();
     
-    // Choose developer (Admin mode)
+    // Choose developer (Admin can pick any developer; Staff is strictly locked to their own ID)
     let devId = targetDevId;
-    if (!devId) {
+    if (!isAdmin) {
+      devId = auth.devId;
+    } else if (!devId) {
       devId = (payrollDevFilter && payrollDevFilter.value !== 'all') ? payrollDevFilter.value : state.activeDeveloperId;
     }
 
@@ -2063,15 +2121,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const dateRangeLabel = payrollDateFilter.options[payrollDateFilter.selectedIndex]?.text || 'Current Period';
 
     // Populate Payslip Modal fields
+    const modalTitle = document.querySelector('#modal-payslip-preview .modal-title');
+    const headerSub = document.getElementById('payslip-header-subtitle');
+    const badgeStatus = document.getElementById('payslip-voucher-status-badge');
+
+    if (modalTitle) {
+      modalTitle.textContent = isAdmin ? 'Official Payroll Statement & Payslip' : 'My Live Draft Payslip & Earnings';
+    }
+    if (headerSub) {
+      headerSub.textContent = isAdmin 
+        ? 'Diverse Ideas GMBH • Dual Currency Statement' 
+        : 'Diverse Ideas GMBH • Draft Employee Verification Copy';
+    }
+    if (badgeStatus) {
+      badgeStatus.textContent = isAdmin ? 'Official Payslip' : 'Draft Payslip (Employee Copy)';
+      badgeStatus.className = isAdmin ? 'badge badge-working' : 'badge';
+      if (!isAdmin) {
+        badgeStatus.style.background = 'rgba(99, 102, 241, 0.2)';
+        badgeStatus.style.color = 'var(--accent-cyan)';
+      } else {
+        badgeStatus.style.background = 'rgba(16, 185, 129, 0.2)';
+        badgeStatus.style.color = 'var(--status-working)';
+      }
+    }
+
     payslipEmpName.textContent = dev.name;
     payslipEmpRole.textContent = `${dev.role} (${dev.email || 'Diverse Ideas Remote'})`;
     payslipPeriodDates.textContent = `${dateRangeLabel} • ${records.length} Work Session(s)`;
     payslipRateApplied.textContent = `$1.00 USD = ₱${rate.toFixed(2)} PHP`;
-    payslipVoucherNo.textContent = `VOUCHER #DIV-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}`;
+    payslipVoucherNo.textContent = `VOUCHER #DIV-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}${isAdmin ? '' : '-DRAFT'}`;
 
     // Populate and bind Employee Selector in Modal for Admin
     const payslipSelectDev = document.getElementById('payslip-select-dev');
-    if (payslipSelectDev) {
+    const controlsBar = document.getElementById('payslip-modal-controls');
+    if (controlsBar) {
+      controlsBar.style.display = isAdmin ? 'flex' : 'none';
+    }
+    if (payslipSelectDev && isAdmin) {
       payslipSelectDev.innerHTML = '';
       state.developers.forEach(d => {
         const opt = document.createElement('option');
@@ -2083,11 +2169,6 @@ document.addEventListener('DOMContentLoaded', () => {
       payslipSelectDev.onchange = (e) => {
         window.openPayslipModal(e.target.value);
       };
-      // Only show selector for Admin
-      const controlsBar = document.getElementById('payslip-modal-controls');
-      if (controlsBar) {
-        controlsBar.style.display = store.isAdmin() ? 'flex' : 'none';
-      }
     }
 
     // Populate rows
@@ -2156,20 +2237,28 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   window.generateSinglePayslip = function(devId, recordId) {
-    if (!store.isAdmin()) {
-      showToast('🔒 Access Restricted: Payslip generation is confidential and strictly exclusive to Administrator (Master PIN 1410).', 'warning');
+    const auth = store.getAuth();
+    if (!auth || !auth.isAuthenticated) {
+      showToast('🔒 Please enter your 4-digit PIN to view your payslip.', 'warning');
+      return;
+    }
+    if (!store.isAdmin() && auth.devId !== devId) {
+      showToast('🔒 You can only view your own draft payslip.', 'warning');
       return;
     }
     window.openPayslipModal(devId, recordId);
   };
 
-  btnPrintReport.addEventListener('click', () => {
-    if (!store.isAdmin()) {
-      showToast('🔒 Access Restricted: Payslip generation is confidential and strictly exclusive to Administrator (Master PIN 1410).', 'warning');
-      return;
-    }
-    window.openPayslipModal();
-  });
+  if (btnPrintReport) {
+    btnPrintReport.addEventListener('click', () => {
+      const auth = store.getAuth();
+      if (!auth || !auth.isAuthenticated) {
+        showToast('🔒 Please enter your 4-digit PIN.', 'warning');
+        return;
+      }
+      window.openPayslipModal(store.isAdmin() ? null : auth.devId);
+    });
+  }
 
   if (btnClosePayslip) {
     btnClosePayslip.addEventListener('click', () => modalPayslipPreview.classList.remove('active'));

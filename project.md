@@ -95,7 +95,8 @@ DevTrack is an in-house **Time & Attendance, Daily Time Record (DTR), Time Off &
 
 ### 📊 Module 5: Timesheets & Real-Time Dual Currency ($ USD ⇄ ₱ PHP)
 - Live Forex Ticker ($1 USD = ₱58.50 PHP) + instant gross pay calculation.
-- 1-Page Printable Executive Payslip slip with dual signatures.
+- **Employee Self-Service Draft Payslip:** Staff can view and generate their own real-time **Draft Payslip & Earnings Breakdown** (USD & PHP) to verify their hours and computed pay before official payroll disbursement.
+- **Executive Management Payslips:** Admin (PIN `1410`) can generate, review, and print 1-page Official Executive Payslips for all developers with dual signatures.
 
 ---
 
