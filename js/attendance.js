@@ -33,7 +33,8 @@ class AttendanceEngine {
       gps: gpsData || null
     };
 
-    this.store.saveState();
+    this.store.saveState(true);
+    this.store.postStateToServer(this.store.getState());
     return true;
   }
 
@@ -41,7 +42,8 @@ class AttendanceEngine {
     const dev = this.store.getDeveloperById(devId);
     if (!dev || !dev.activeSession) return false;
     dev.activeSession.startTime = new Date(newStartTimeISO).toISOString();
-    this.store.saveState();
+    this.store.saveState(true);
+    this.store.postStateToServer(this.store.getState());
     return true;
   }
 
@@ -51,7 +53,8 @@ class AttendanceEngine {
 
     dev.status = 'break';
     dev.activeSession.currentBreakStart = new Date().toISOString();
-    this.store.saveState();
+    this.store.saveState(true);
+    this.store.postStateToServer(this.store.getState());
     return true;
   }
 
@@ -72,7 +75,8 @@ class AttendanceEngine {
 
     dev.activeSession.currentBreakStart = null;
     dev.status = 'working';
-    this.store.saveState();
+    this.store.saveState(true);
+    this.store.postStateToServer(this.store.getState());
     return true;
   }
 
@@ -142,7 +146,8 @@ class AttendanceEngine {
     this.store.addAttendanceRecord(record);
     dev.status = 'offline';
     dev.activeSession = null;
-    this.store.saveState();
+    this.store.saveState(true);
+    this.store.postStateToServer(this.store.getState());
 
     return record;
   }

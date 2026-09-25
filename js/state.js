@@ -4,7 +4,7 @@
  * and live bidirectional server synchronization across office network / cloud.
  */
 
-const STORAGE_KEY = 'devtrack_app_state_v5';
+const STORAGE_KEY = 'devtrack_app_state_v6';
 const SESSION_AUTH_KEY = 'devtrack_active_session_auth';
 const FIREBASE_DB_URL = 'https://diverse-ideas-attendance-default-rtdb.asia-southeast1.firebasedatabase.app/state.json';
 
@@ -1066,13 +1066,9 @@ class Store {
 
   sanitizeDeveloperStatuses(stateObj) {
     if (!stateObj || !Array.isArray(stateObj.developers)) return;
-    const todayStr = new Date().toISOString().split('T')[0];
-
     stateObj.developers.forEach(dev => {
-      // If the developer has a completed attendance record for today (with an endTime),
-      // their shift has completed for today, so set activeSession to null and status to 'offline'.
-      const todayRecord = (stateObj.attendanceRecords || []).find(r => r.developerId === dev.id && r.date === todayStr && r.endTime);
-      if (todayRecord) {
+      // Only sanitize if developer status is working/break but activeSession is missing or empty
+      if ((dev.status === 'working' || dev.status === 'break') && (!dev.activeSession || !dev.activeSession.startTime)) {
         dev.status = 'offline';
         dev.activeSession = null;
       }
@@ -1086,9 +1082,6 @@ class Store {
     }
 
     this.sanitizeProjects(stateObj);
-
-    // First sanitize and deduplicate existing records
-    stateObj.attendanceRecords = this.sanitizeAndDeduplicateAttendanceRecords(stateObj.attendanceRecords);
 
     // Ensure all 4 developers exist in developers roster
     if (!Array.isArray(stateObj.developers) || stateObj.developers.length === 0) {
@@ -1130,7 +1123,7 @@ class Store {
     // Final clean sort and deduplication
     stateObj.attendanceRecords = this.sanitizeAndDeduplicateAttendanceRecords(stateObj.attendanceRecords);
 
-    // Reset lingering working status / active sessions for all developers whose shift is already logged out
+    // Reset corrupted/empty working sessions without clearing legitimate active punches
     this.sanitizeDeveloperStatuses(stateObj);
 
     return stateObj;
@@ -1246,31 +1239,39 @@ class Store {
 
       // Check if server data is newer or has live status updates from other team members
       if (isInitial || serverTimestamp > this.lastServerSyncTimestamp || this.hasMeaningfulServerChanges(this.state, serverData)) {
-        const activeAuthDevId = (this.auth && this.auth.devId) ? this.auth.devId : null;
-        let currentLocalSession = null;
-        let currentLocalStatus = null;
-        if (activeAuthDevId) {
-          const localDev = this.getDeveloperById(activeAuthDevId);
-          if (localDev && localDev.activeSession) {
-            currentLocalSession = localDev.activeSession;
-            currentLocalStatus = localDev.status;
-          }
-        }
-
         this.sanitizeProjects(serverData);
         this.ensureAllDevelopersAttendanceRecords(serverData);
 
+        // 1. Merge attendance records: Union with deduplication so NO record is ever lost
+        const mergedRecords = this.sanitizeAndDeduplicateAttendanceRecords([
+          ...(this.state.attendanceRecords || []),
+          ...(serverData.attendanceRecords || [])
+        ]);
+        serverData.attendanceRecords = mergedRecords;
+
+        // 2. Intelligent developer active session merge across all developers
+        if (Array.isArray(this.state.developers) && Array.isArray(serverData.developers)) {
+          this.state.developers.forEach(localDev => {
+            const serverDev = serverData.developers.find(d => d.id === localDev.id);
+            if (!serverDev) return;
+
+            // If localDev is working/break and serverDev is offline:
+            // Preserve local active session unless server has a completed record matching this session
+            if ((localDev.status === 'working' || localDev.status === 'break') && localDev.activeSession) {
+              const localStart = localDev.activeSession.startTime;
+              const hasCompleted = mergedRecords.some(
+                r => r.developerId === localDev.id && r.startTime === localStart && r.endTime
+              );
+              if (!hasCompleted) {
+                serverDev.status = localDev.status;
+                serverDev.activeSession = localDev.activeSession;
+              }
+            }
+          });
+        }
+
         this.state = serverData;
         this.lastServerSyncTimestamp = serverTimestamp;
-
-        // Preserve local clock-in session if currently working on this device
-        if (activeAuthDevId && currentLocalSession) {
-          const mergedDev = this.getDeveloperById(activeAuthDevId);
-          if (mergedDev && !mergedDev.activeSession) {
-            mergedDev.activeSession = currentLocalSession;
-            mergedDev.status = currentLocalStatus;
-          }
-        }
 
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
@@ -1552,7 +1553,9 @@ class Store {
       id: record.id || ('rec-' + Date.now()),
       ...record
     });
-    this.saveState();
+    this.state.attendanceRecords = this.sanitizeAndDeduplicateAttendanceRecords(this.state.attendanceRecords);
+    this.saveState(true);
+    this.postStateToServer(this.state);
   }
 
   updateAttendanceRecord(id, updates) {
@@ -1581,14 +1584,17 @@ class Store {
       rec.totalEarnings = parseFloat(((rec.workedMinutes / 60) * rate).toFixed(2));
     }
 
-    this.saveState();
+    this.state.attendanceRecords = this.sanitizeAndDeduplicateAttendanceRecords(this.state.attendanceRecords);
+    this.saveState(true);
+    this.postStateToServer(this.state);
     return rec;
   }
 
   deleteAttendanceRecord(id) {
     if (!this.state.attendanceRecords) return;
     this.state.attendanceRecords = this.state.attendanceRecords.filter(r => r.id !== id);
-    this.saveState();
+    this.saveState(true);
+    this.postStateToServer(this.state);
   }
 
   // Leave & Request Management (Sprout HR Style)

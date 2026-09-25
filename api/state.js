@@ -25,6 +25,69 @@ function sanitizeStateProjects(data) {
   }
 }
 
+function mergeCloudAndClientState(existingData, incomingData) {
+  if (!existingData || typeof existingData !== 'object' || !Array.isArray(existingData.developers)) {
+    return incomingData;
+  }
+  if (!incomingData || typeof incomingData !== 'object' || !Array.isArray(incomingData.developers)) {
+    return existingData;
+  }
+
+  sanitizeStateProjects(existingData);
+  sanitizeStateProjects(incomingData);
+
+  // 1. Merge attendance records: Union with deduplication
+  const recordMap = new Map();
+  const allRecords = [
+    ...(Array.isArray(existingData.attendanceRecords) ? existingData.attendanceRecords : []),
+    ...(Array.isArray(incomingData.attendanceRecords) ? incomingData.attendanceRecords : [])
+  ];
+
+  allRecords.forEach(rawRec => {
+    if (!rawRec || !rawRec.developerId || !rawRec.date) return;
+    const key = `${rawRec.developerId}_${rawRec.date}`;
+    if (!recordMap.has(key)) {
+      recordMap.set(key, rawRec);
+    } else {
+      const existing = recordMap.get(key);
+      const existingEnd = existing.endTime ? new Date(existing.endTime).getTime() : 0;
+      const currentEnd = rawRec.endTime ? new Date(rawRec.endTime).getTime() : 0;
+      if (currentEnd >= existingEnd || (rawRec.workedMinutes || 0) >= (existing.workedMinutes || 0)) {
+        recordMap.set(key, rawRec);
+      }
+    }
+  });
+
+  const mergedRecords = Array.from(recordMap.values());
+  mergedRecords.sort((a, b) => {
+    const cmp = (b.date || '').localeCompare(a.date || '');
+    if (cmp !== 0) return cmp;
+    return (b.startTime || '').localeCompare(a.startTime || '');
+  });
+
+  incomingData.attendanceRecords = mergedRecords;
+
+  // 2. Merge developer active sessions
+  if (Array.isArray(existingData.developers) && Array.isArray(incomingData.developers)) {
+    incomingData.developers.forEach(inDev => {
+      const exDev = existingData.developers.find(d => d.id === inDev.id);
+      if (exDev) {
+        // If exDev has an active working session and inDev is offline, verify if inDev explicitly completed the shift
+        if ((exDev.status === 'working' || exDev.status === 'break') && exDev.activeSession && inDev.status === 'offline') {
+          const exStart = exDev.activeSession.startTime;
+          const hasClosedRecord = mergedRecords.some(r => r.developerId === exDev.id && r.startTime === exStart && r.endTime);
+          if (!hasClosedRecord) {
+            inDev.status = exDev.status;
+            inDev.activeSession = exDev.activeSession;
+          }
+        }
+      }
+    });
+  }
+
+  return incomingData;
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -54,10 +117,24 @@ module.exports = async (req, res) => {
 
   if (req.method === 'POST') {
     try {
-      const data = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+      let data = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
       if (!data || !Array.isArray(data.developers)) {
         return res.status(400).json({ error: 'Invalid state schema' });
       }
+
+      // Fetch existing cloud data to safely merge
+      try {
+        const fbRes = await fetch(FIREBASE_DB_URL, { headers: { 'Cache-Control': 'no-cache' } });
+        if (fbRes.ok) {
+          const existingCloud = await fbRes.json();
+          if (existingCloud && Array.isArray(existingCloud.developers)) {
+            data = mergeCloudAndClientState(existingCloud, data);
+          }
+        }
+      } catch (mergeErr) {
+        console.warn('Could not fetch existing cloud data for merge:', mergeErr.message);
+      }
+
       sanitizeStateProjects(data);
       data._serverTimestamp = Date.now();
 
@@ -67,7 +144,7 @@ module.exports = async (req, res) => {
         body: JSON.stringify(data)
       });
 
-      return res.status(200).json({ success: true, timestamp: data._serverTimestamp });
+      return res.status(200).json({ success: true, timestamp: data._serverTimestamp, state: data });
     } catch (err) {
       return res.status(400).json({ error: err.message });
     }

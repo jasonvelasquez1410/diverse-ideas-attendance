@@ -115,10 +115,63 @@ const server = http.createServer((req, res) => {
     req.on('data', chunk => { body += chunk; });
     req.on('end', () => {
       try {
-        const parsed = JSON.parse(body);
+        let parsed = JSON.parse(body);
         if (!parsed || !Array.isArray(parsed.developers)) {
           throw new Error('Invalid state schema: missing developers list');
         }
+
+        // Merge with existing server DB if present
+        if (fs.existsSync(DB_FILE)) {
+          try {
+            const rawExisting = fs.readFileSync(DB_FILE, 'utf8');
+            const existingState = JSON.parse(rawExisting);
+            if (existingState && Array.isArray(existingState.developers)) {
+              // 1. Merge attendance records
+              const recordMap = new Map();
+              const allRecords = [
+                ...(Array.isArray(existingState.attendanceRecords) ? existingState.attendanceRecords : []),
+                ...(Array.isArray(parsed.attendanceRecords) ? parsed.attendanceRecords : [])
+              ];
+              allRecords.forEach(rawRec => {
+                if (!rawRec || !rawRec.developerId || !rawRec.date) return;
+                const key = `${rawRec.developerId}_${rawRec.date}`;
+                if (!recordMap.has(key)) {
+                  recordMap.set(key, rawRec);
+                } else {
+                  const existing = recordMap.get(key);
+                  const existingEnd = existing.endTime ? new Date(existing.endTime).getTime() : 0;
+                  const currentEnd = rawRec.endTime ? new Date(rawRec.endTime).getTime() : 0;
+                  if (currentEnd >= existingEnd || (rawRec.workedMinutes || 0) >= (existing.workedMinutes || 0)) {
+                    recordMap.set(key, rawRec);
+                  }
+                }
+              });
+              const mergedRecords = Array.from(recordMap.values());
+              mergedRecords.sort((a, b) => {
+                const cmp = (b.date || '').localeCompare(a.date || '');
+                if (cmp !== 0) return cmp;
+                return (b.startTime || '').localeCompare(a.startTime || '');
+              });
+              parsed.attendanceRecords = mergedRecords;
+
+              // 2. Merge developer active sessions
+              parsed.developers.forEach(inDev => {
+                const exDev = existingState.developers.find(d => d.id === inDev.id);
+                if (exDev && (exDev.status === 'working' || exDev.status === 'break') && exDev.activeSession && inDev.status === 'offline') {
+                  const exStart = exDev.activeSession.startTime;
+                  const hasClosed = mergedRecords.some(r => r.developerId === exDev.id && r.startTime === exStart && r.endTime);
+                  if (!hasClosed) {
+                    inDev.status = exDev.status;
+                    inDev.activeSession = exDev.activeSession;
+                  }
+                }
+              });
+            }
+          } catch (e) {
+            console.warn('Could not merge with existing server DB:', e.message);
+          }
+        }
+
         const legacyNames = ['JETZ Enterprise System', 'Accounting & Payroll Module', 'Mobile App Optimization', 'Internal Tooling & Automation'];
         const legacyCodes = ['JETZ', 'ACCT', 'MOBI', 'TOOL'];
         if (Array.isArray(parsed.projects)) {
@@ -131,7 +184,7 @@ const server = http.createServer((req, res) => {
         const jsonToSave = JSON.stringify(parsed, null, 2);
         fs.writeFileSync(DB_FILE, jsonToSave, 'utf8');
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, timestamp: parsed._serverTimestamp }));
+        res.end(JSON.stringify({ success: true, timestamp: parsed._serverTimestamp, state: parsed }));
       } catch (err) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: err.message }));
