@@ -3932,9 +3932,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (el) el.textContent = activeDev.leaveCredits.emergency;
     }
 
-    // Render Recent IN / OUT logs in Attendance card (PayDay style)
+    // Render Recent IN / OUT logs in Attendance card (PayDay style) - All Days / All Time
     if (paydayRecentTimelogs) {
-      const records = store.getState().attendanceRecords.filter(r => r.developerId === activeDev.id).slice(0, 4);
+      const records = store.getState().attendanceRecords.filter(r => r.developerId === activeDev.id);
+      const badgeTimelog = document.getElementById('badge-timelog-count');
+      if (badgeTimelog) {
+        badgeTimelog.textContent = `All Time (${records.length} days)`;
+      }
       paydayRecentTimelogs.innerHTML = '';
 
       if (records.length === 0) {

@@ -329,10 +329,10 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                 Attendance Log
               </h3>
-              <span class="badge badge-working" style="font-size: 0.7rem;">Live Timelog</span>
+              <span class="badge badge-working" style="font-size: 0.7rem;" id="badge-timelog-count">All Time Logs</span>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 10px;" id="payday-recent-timelogs">
+            <div style="display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; padding-right: 6px;" id="payday-recent-timelogs">
               <!-- Rendered by JS -->
             </div>
           </div>
@@ -756,9 +756,9 @@
           <div class="form-group" style="min-width: 160px;">
             <label class="form-label" for="payroll-date-filter" style="font-size: 0.76rem; text-transform: uppercase;">Date Period</label>
             <select id="payroll-date-filter" class="form-control">
-              <option value="all">All Time</option>
+              <option value="all" selected>All Time</option>
               <option value="today">Today</option>
-              <option value="week" selected>This Week</option>
+              <option value="week">This Week</option>
               <option value="month">This Month</option>
               <option value="custom">Custom Date Range</option>
             </select>
@@ -2882,11 +2882,11 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- Application Scripts -->
-  <script src="js/state.js?v=20260925b"></script>
-  <script src="js/attendance.js?v=20260925b"></script>
-  <script src="js/payroll.js?v=20260925b"></script>
-  <script src="js/export.js?v=20260925b"></script>
-  <script src="js/app.js?v=20260925b"></script>
+  <script src="js/state.js?v=20260925c"></script>
+  <script src="js/attendance.js?v=20260925c"></script>
+  <script src="js/payroll.js?v=20260925c"></script>
+  <script src="js/export.js?v=20260925c"></script>
+  <script src="js/app.js?v=20260925c"></script>
 
 </body>
 </html>
