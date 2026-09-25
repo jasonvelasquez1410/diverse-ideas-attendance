@@ -93,10 +93,10 @@ DevTrack is an in-house **Time & Attendance, Daily Time Record (DTR), Time Off &
 ### 🌴 Module 4: Philippine & Cagayan de Oro (CDO) Holidays Center
 - Full 2026 Holiday Calendar including CDO City Fiesta (`Jan 10`), CDO Charter Day (`June 15`), and Higalaay Festival (`Aug 28`).
 
-### 📊 Module 5: Timesheets & Real-Time Dual Currency ($ USD ⇄ ₱ PHP)
-- Live Forex Ticker ($1 USD = ₱58.50 PHP) + instant gross pay calculation.
-- **Employee Self-Service Draft Payslip:** Staff can view and generate their own real-time **Draft Payslip & Earnings Breakdown** (USD & PHP) to verify their hours and computed pay before official payroll disbursement.
-- **Executive Management Payslips:** Admin (PIN `1410`) can generate, review, and print 1-page Official Executive Payslips for all developers with dual signatures.
+### 📊 Module 5: Timesheets, Rendered Hours & Real-Time Dual Currency ($ USD ⇄ ₱ PHP)
+- **Live Forex Ticker:** Real-time USD ⇄ PHP exchange rate ticker (`$1.00 USD = ₱58.50 PHP`) with auto-updates and manual override.
+- **Employee Visibility:** Staff can view their **exact rendered hours** (daily timelogs, active shift hours, weekly totals, and period rendered hours) along with the **live USD to PHP exchange rate**. Individual dollar/peso wage calculations and rates remain strictly confidential.
+- **Executive Confidential Payslips:** All payslip generation, payroll vouchers, and wage amounts remain locked behind Master PIN `1410` (Operations Manager / Tefanny). Admin can print 1-page Official Payslips for all developers with dual signatures.
 
 ---
 
