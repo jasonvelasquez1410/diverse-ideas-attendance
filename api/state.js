@@ -44,7 +44,7 @@ function mergeCloudAndClientState(existingData, incomingData) {
   ];
 
   allRecords.forEach(rawRec => {
-    if (!rawRec || !rawRec.developerId || !rawRec.date) return;
+    if (!rawRec || !rawRec.developerId || !rawRec.date || rawRec.date <= '2026-09-18') return;
     const key = `${rawRec.developerId}_${rawRec.date}`;
     if (!recordMap.has(key)) {
       recordMap.set(key, rawRec);
