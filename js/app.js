@@ -3188,25 +3188,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } else if (dev.status === 'working' || dev.status === 'break') {
         // Clock out active dev with custom end time
-        const startMs = startDateTime.getTime();
-        const endMs = endDateTime.getTime();
-        const elapsedMs = Math.max(0, endMs - startMs);
-        const breakMs = breakMins * 60000;
-        const netWorkedMs = Math.max(0, elapsedMs - breakMs);
-        const workedMinutes = Math.round(netWorkedMs / 60000);
-        const hourlyRate = parseFloat(dev.hourlyRate) || 0;
-        const totalEarnings = parseFloat(((netWorkedMs / 3600000) * hourlyRate).toFixed(2));
+        const rendered = store.calculateShiftRenderedTime({
+          startTime: startDateTime.toISOString(),
+          endTime: endDateTime.toISOString(),
+          breakDurationMinutes: breakMins,
+          developerId: dev.id,
+          date: dateVal,
+          workLocation: locVal
+        });
 
         const record = {
           developerId: dev.id,
           date: dateVal,
           startTime: startDateTime.toISOString(),
           endTime: endDateTime.toISOString(),
-          breakDurationMinutes: breakMins,
-          workedMinutes,
-          hourlyRate,
+          breakDurationMinutes: rendered.breakMinutes,
+          workedMinutes: rendered.workedMinutes,
+          hourlyRate: rendered.hourlyRate,
           currencySymbol: dev.currencySymbol || '$',
-          totalEarnings,
+          totalEarnings: rendered.totalEarnings,
           projectId: projId,
           workLocation: locVal,
           taskNote: notesVal,
@@ -3220,25 +3220,25 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast(`✅ Shift finalized with Time OUT at ${endTimeVal} for ${dev.name}!`, 'success');
       } else {
         // Create manual completed shift record for today
-        const startMs = startDateTime.getTime();
-        const endMs = endDateTime.getTime();
-        const elapsedMs = Math.max(0, endMs - startMs);
-        const breakMs = breakMins * 60000;
-        const netWorkedMs = Math.max(0, elapsedMs - breakMs);
-        const workedMinutes = Math.round(netWorkedMs / 60000);
-        const hourlyRate = parseFloat(dev.hourlyRate) || 0;
-        const totalEarnings = parseFloat(((netWorkedMs / 3600000) * hourlyRate).toFixed(2));
+        const rendered = store.calculateShiftRenderedTime({
+          startTime: startDateTime.toISOString(),
+          endTime: endDateTime.toISOString(),
+          breakDurationMinutes: breakMins,
+          developerId: dev.id,
+          date: dateVal,
+          workLocation: locVal
+        });
 
         const record = {
           developerId: dev.id,
           date: dateVal,
           startTime: startDateTime.toISOString(),
           endTime: endDateTime.toISOString(),
-          breakDurationMinutes: breakMins,
-          workedMinutes,
-          hourlyRate,
+          breakDurationMinutes: rendered.breakMinutes,
+          workedMinutes: rendered.workedMinutes,
+          hourlyRate: rendered.hourlyRate,
           currencySymbol: dev.currencySymbol || '$',
-          totalEarnings,
+          totalEarnings: rendered.totalEarnings,
           projectId: projId,
           workLocation: locVal,
           taskNote: notesVal
@@ -3306,7 +3306,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (editRecordEndTime) editRecordEndTime.value = '17:00';
     }
 
-    if (editRecordBreak) editRecordBreak.value = rec.breakDurationMinutes || 60;
+    if (editRecordBreak) editRecordBreak.value = rec.breakDurationMinutes || 0;
     if (editRecordLocation) editRecordLocation.value = rec.workLocation || 'onsite';
 
     // Populate projects
@@ -3401,7 +3401,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!manualStartTimeInput || !manualEndTimeInput || !manualHoursInput) return;
     const s = manualStartTimeInput.value;
     const e = manualEndTimeInput.value;
-    const b = parseInt(manualBreakInput ? manualBreakInput.value : 60) || 0;
+    const b = parseInt(manualBreakInput ? manualBreakInput.value : 0) || 0;
     if (s && e) {
       const [sh, sm] = s.split(':').map(Number);
       const [eh, em] = e.split(':').map(Number);

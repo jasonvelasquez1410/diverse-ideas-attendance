@@ -13,16 +13,20 @@ DevTrack is an in-house **Time & Attendance, Daily Time Record (DTR), Time Off &
 ### ⚖️ Compensation Model: "No Work, No Pay" (Hourly Rated)
 - **Policy Directive:** Per management (Tefanny), all developer compensation operates strictly on a **"No Work, No Pay"** hourly basis.
 - **Direct Hourly Wages:** Gross earnings are computed directly from actual logged billable hours recorded by the DTR terminal.
-- **Simplified Punches (No Break / Lunch Docking):** The DTR terminal tracks **Time IN** and **Time OUT** directly. Short pauses remain fully paid without dockings.
+- **Paid Lunch & Paid Pauses:** Lunch and short breaks are fully paid without 1-hour automatic deductions. A standard 09:00 AM – 05:00 PM shift renders a full **8.00 hours** of paid time.
+- **Shift Window Clamping (No Unauthorized OT):**
+  - Early punches before **09:00 AM** start rendering billable hours at **09:00 AM**.
+  - Late punches after **05:00 PM** stop rendering billable hours at **05:00 PM**, unless backed by an approved **Overtime (OT)** application or authorized task.
+  - Undertime (late arrival after 09:00 AM or early departure before 05:00 PM) is automatically deducted based on actual punch timestamps.
 - **Paid Leave Tracking Disabled by Default:** Because staff are compensated per hour worked, paid leave balances (VL, SL, EL) are disabled by default to eliminate confusion and unnecessary paperwork.
 - **Emergency / Missed Punch Resolution:** Staff use **Certificate of Attendance (COA)** to file time adjustments for missed punches caused by brownouts or internet cuts.
 - **Modular Admin Control:** Admin can re-enable paid leave credits, overtime forms, or undertime filing at any time via the **🎛️ Feature Sliders & Policy** center.
 
 ### 🏢 Work Schedule & Shifts
-- **Shift Hours:** `09:00 AM – 05:00 PM` (17:00) / Flexible 8-to-9 hour span.
+- **Shift Hours:** `09:00 AM – 05:00 PM` (17:00) / 8.00 billable hours per day (40 hrs/week regular).
 - **Default Work Mode:** Default is set directly to **🏢 Office (Onsite)**. Employees can toggle to **🏠 WFH** or **🛌 Saturday Rest Day** at any time.
 - **Weekly Target Commitment:** 35 hours minimum / 45 hours maximum per week.
-- **Saturday Policy:** Rest Day / Optional (Walay pugsanay — voluntary, no forced weekend work).
+- **Saturday Policy:** Rest Day / Optional (Walay pugsanay — voluntary, no forced weekend work; flexible rendering).
 
 ---
 

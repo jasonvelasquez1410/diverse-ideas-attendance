@@ -105,36 +105,32 @@ class AttendanceEngine {
       session.currentBreakStart = null;
     }
 
-    const totalElapsedMs = Math.max(0, end - sessionStart);
-    
-    // Sum total break duration
-    let totalBreakMs = session.breaks.reduce((acc, b) => acc + ((b && b.durationMs) || 0), 0);
-    if (totalBreakMs > totalElapsedMs) totalBreakMs = 0;
+    // Calculate total break duration (only manual logged breaks, lunch is paid)
+    const totalBreakMs = session.breaks.reduce((acc, b) => acc + ((b && b.durationMs) || 0), 0);
+    const breakDurationMinutes = Math.round(totalBreakMs / 60000);
 
-    // Standard policy: if shift duration is >= 6 hours and 0 breaks were logged, apply standard 60-min lunch break
-    let breakDurationMinutes = Math.round(totalBreakMs / 60000);
-    if (breakDurationMinutes === 0 && (totalElapsedMs / 3600000) >= 6) {
-      breakDurationMinutes = 60;
-      totalBreakMs = 60 * 60000;
-    }
+    // Compute rendered time with shift clamping (9:00 AM - 5:00 PM) & paid lunch
+    const rendered = this.store.calculateShiftRenderedTime({
+      startTime: session.startTime,
+      endTime: end.toISOString(),
+      breakDurationMinutes,
+      developerId: dev.id,
+      date: recordDate,
+      workLocation: session.workLocation || 'onsite'
+    });
 
-    const netWorkedMs = Math.max(0, totalElapsedMs - totalBreakMs);
-    const workedMinutes = Math.round(netWorkedMs / 60000);
-
-    // Calculate final earnings
     const hourlyRate = parseFloat(dev.hourlyRate) || 0;
-    const totalEarnings = parseFloat(((netWorkedMs / 3600000) * hourlyRate).toFixed(2));
 
     const record = {
       developerId: dev.id,
       date: recordDate,
       startTime: session.startTime,
       endTime: end.toISOString(),
-      breakDurationMinutes,
-      workedMinutes,
+      breakDurationMinutes: rendered.breakMinutes,
+      workedMinutes: rendered.workedMinutes,
       hourlyRate,
       currencySymbol: dev.currencySymbol || '$',
-      totalEarnings,
+      totalEarnings: rendered.totalEarnings,
       projectId: session.projectId || 'proj-1',
       workLocation: session.workLocation || 'onsite',
       taskNote: session.taskNote || 'Work session',
@@ -283,15 +279,23 @@ class AttendanceEngine {
 
     const now = new Date();
     const session = dev.activeSession;
-    const sessionStart = new Date(session.startTime);
-    const totalElapsedMs = Math.max(0, now - sessionStart);
     const breaks = (session && Array.isArray(session.breaks)) ? session.breaks : [];
     let totalBreakMs = breaks.reduce((acc, b) => acc + ((b && b.durationMs) || 0), 0);
     if (dev.status === 'break' && session.currentBreakStart) {
       totalBreakMs += Math.max(0, now - new Date(session.currentBreakStart));
     }
 
-    const netWorkedMs = Math.max(0, totalElapsedMs - totalBreakMs);
+    const recDate = session.startTime ? session.startTime.split('T')[0] : now.toISOString().split('T')[0];
+    const rendered = this.store.calculateShiftRenderedTime({
+      startTime: session.startTime,
+      endTime: now.toISOString(),
+      breakDurationMinutes: Math.round(totalBreakMs / 60000),
+      developerId: dev.id,
+      date: recDate,
+      workLocation: session.workLocation || 'onsite'
+    });
+
+    const netWorkedMs = rendered.netWorkedMs;
     const seconds = Math.floor((netWorkedMs / 1000) % 60);
     const minutes = Math.floor((netWorkedMs / (1000 * 60)) % 60);
     const hours = Math.floor(netWorkedMs / (1000 * 60 * 60));
@@ -299,14 +303,13 @@ class AttendanceEngine {
     const pad = (n) => String(n).padStart(2, '0');
     const formattedTime = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 
-    const hourlyRate = parseFloat(dev.hourlyRate) || 0;
-    const currentEarnings = (netWorkedMs / 3600000) * hourlyRate;
+    const currentEarnings = rendered.totalEarnings;
     const symbol = dev.currencySymbol || '$';
 
     return {
       formattedTime,
-      totalBreakMinutes: Math.round(totalBreakMs / 60000),
-      netMinutesWorked: Math.round(netWorkedMs / 60000),
+      totalBreakMinutes: rendered.breakMinutes,
+      netMinutesWorked: rendered.workedMinutes,
       currentEarnings,
       earningsFormatted: `${symbol}${currentEarnings.toFixed(2)}`,
       status: dev.status

@@ -576,6 +576,104 @@ class Store {
     this.initServerSync();
   }
 
+  calculateShiftRenderedTime(options) {
+    const {
+      startTime,
+      endTime,
+      breakDurationMinutes = 0,
+      developerId,
+      date,
+      workLocation = 'onsite'
+    } = options;
+
+    if (!startTime) {
+      return { workedMinutes: 0, totalEarnings: 0, netWorkedMs: 0, breakMinutes: 0, effectiveStart: null, effectiveEnd: null, hourlyRate: 0 };
+    }
+
+    const start = new Date(startTime);
+    const end = endTime ? new Date(endTime) : new Date();
+    if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) {
+      return { workedMinutes: 0, totalEarnings: 0, netWorkedMs: 0, breakMinutes: 0, effectiveStart: null, effectiveEnd: null, hourlyRate: 0 };
+    }
+
+    // Work Schedule & Shift Settings
+    const schedules = (this.state && this.state.workSchedules) || { shiftStart: '09:00', shiftEnd: '17:00' };
+    const shiftStartStr = schedules.shiftStart || '09:00';
+    const shiftEndStr = schedules.shiftEnd || '17:00';
+    const [startH, startM] = shiftStartStr.split(':').map(Number);
+    const [endH, endM] = shiftEndStr.split(':').map(Number);
+
+    const shiftYear = start.getFullYear();
+    const shiftMonth = start.getMonth();
+    const shiftDate = start.getDate();
+
+    // Official shift boundary Date objects on the shift's calendar day
+    const officialShiftStart = new Date(shiftYear, shiftMonth, shiftDate, startH, startM, 0, 0);
+    const officialShiftEnd = new Date(shiftYear, shiftMonth, shiftDate, endH, endM, 0, 0);
+
+    // Check if weekend / Saturday mode (flexible sprint)
+    const isSaturday = (workLocation === 'saturday') || (start.getDay() === 6);
+
+    let effectiveStart = start;
+    let effectiveEnd = end;
+
+    if (!isSaturday) {
+      // 1. Early Time IN rule: Clamped to 09:00 AM (no early OT counted unless approved)
+      if (start < officialShiftStart) {
+        effectiveStart = officialShiftStart;
+      }
+
+      // 2. Late Time OUT rule: Clamped to 05:00 PM (17:00) unless approved OT request exists
+      let allowedEnd = officialShiftEnd;
+      
+      // Check for approved Overtime request
+      const recDate = date || (startTime ? startTime.split('T')[0] : '');
+      const requests = (this.state && Array.isArray(this.state.requests)) ? this.state.requests : [];
+      const approvedOtReq = requests.find(r => 
+        r.developerId === developerId && 
+        r.type === 'Overtime' && 
+        r.status === 'Approved' && 
+        (r.startDate === recDate || r.date === recDate)
+      );
+
+      if (approvedOtReq) {
+        const otHours = parseFloat(approvedOtReq.hours) || 0;
+        allowedEnd = new Date(officialShiftEnd.getTime() + (otHours * 3600000));
+      }
+
+      if (end > allowedEnd) {
+        effectiveEnd = allowedEnd;
+      }
+    }
+
+    // Calculate elapsed span between effective start and effective end
+    let effectiveElapsedMs = 0;
+    if (effectiveEnd > effectiveStart) {
+      effectiveElapsedMs = effectiveEnd - effectiveStart;
+    }
+
+    // Lunch / Break rule: Lunch is PAID. No automatic 1-hour lunch break deduction.
+    // Only explicitly logged manual breaks are deducted.
+    const breakMs = Math.max(0, (parseInt(breakDurationMinutes) || 0) * 60000);
+    const netWorkedMs = Math.max(0, effectiveElapsedMs - breakMs);
+    const workedMinutes = Math.round(netWorkedMs / 60000);
+
+    // Earnings calculation
+    const dev = this.getDeveloperById(developerId);
+    const rate = dev ? (parseFloat(dev.hourlyRate) || 0) : 0;
+    const totalEarnings = parseFloat(((netWorkedMs / 3600000) * rate).toFixed(2));
+
+    return {
+      workedMinutes,
+      totalEarnings,
+      netWorkedMs,
+      breakMinutes: Math.round(breakMs / 60000),
+      effectiveStart,
+      effectiveEnd,
+      hourlyRate: rate
+    };
+  }
+
   sanitizeAndDeduplicateAttendanceRecords(records) {
     if (!Array.isArray(records)) return [];
 
@@ -609,18 +707,20 @@ class Store {
         rec.projectId = 'proj-1';
       }
 
-      // 3. Compute/verify workedMinutes and totalEarnings accurately
+      // 3. Compute/verify workedMinutes and totalEarnings accurately (Shift Clamped & Paid Lunch)
       if (rec.startTime && rec.endTime) {
-        const startMs = new Date(rec.startTime).getTime();
-        const endMs = new Date(rec.endTime).getTime();
-        if (!isNaN(startMs) && !isNaN(endMs) && endMs >= startMs) {
-          const totalElapsedMs = endMs - startMs;
-          const breakMs = (parseInt(rec.breakDurationMinutes) || 0) * 60000;
-          const netWorkedMs = Math.max(0, totalElapsedMs - breakMs);
-          rec.workedMinutes = Math.round(netWorkedMs / 60000);
-          const rate = parseFloat(rec.hourlyRate) || 0;
-          rec.totalEarnings = parseFloat(((netWorkedMs / 3600000) * rate).toFixed(2));
-        }
+        const rendered = this.calculateShiftRenderedTime({
+          startTime: rec.startTime,
+          endTime: rec.endTime,
+          breakDurationMinutes: rec.breakDurationMinutes || 0,
+          developerId: rec.developerId,
+          date: rec.date,
+          workLocation: rec.workLocation || 'onsite'
+        });
+        rec.workedMinutes = rendered.workedMinutes;
+        rec.breakDurationMinutes = rendered.breakMinutes;
+        rec.totalEarnings = rendered.totalEarnings;
+        if (!rec.hourlyRate) rec.hourlyRate = rendered.hourlyRate;
       }
 
       // 4. Duplicate removal: Key by devId + date
@@ -1268,19 +1368,20 @@ class Store {
 
     Object.assign(rec, updates);
 
-    // If startTime and endTime are updated, recalculate workedMinutes and totalEarnings
+    // If startTime and endTime are updated, recalculate workedMinutes and totalEarnings with shift clamping & paid lunch
     if (updates.startTime && updates.endTime) {
-      const startMs = new Date(updates.startTime).getTime();
-      const endMs = new Date(updates.endTime).getTime();
-      const elapsedMs = Math.max(0, endMs - startMs);
-      const breakMs = (parseInt(rec.breakDurationMinutes) || 0) * 60000;
-      const netWorkedMs = Math.max(0, elapsedMs - breakMs);
-      rec.workedMinutes = Math.round(netWorkedMs / 60000);
-      
-      const dev = this.getDeveloperById(rec.developerId);
-      const rate = dev ? (parseFloat(dev.hourlyRate) || 0) : (parseFloat(rec.hourlyRate) || 0);
-      rec.hourlyRate = rate;
-      rec.totalEarnings = parseFloat(((netWorkedMs / 3600000) * rate).toFixed(2));
+      const rendered = this.calculateShiftRenderedTime({
+        startTime: updates.startTime,
+        endTime: updates.endTime,
+        breakDurationMinutes: rec.breakDurationMinutes || 0,
+        developerId: rec.developerId,
+        date: rec.date,
+        workLocation: rec.workLocation || 'onsite'
+      });
+      rec.workedMinutes = rendered.workedMinutes;
+      rec.breakDurationMinutes = rendered.breakMinutes;
+      rec.totalEarnings = rendered.totalEarnings;
+      rec.hourlyRate = rendered.hourlyRate;
     } else if (updates.workedMinutes !== undefined) {
       const dev = this.getDeveloperById(rec.developerId);
       const rate = dev ? (parseFloat(dev.hourlyRate) || 0) : (parseFloat(rec.hourlyRate) || 0);
