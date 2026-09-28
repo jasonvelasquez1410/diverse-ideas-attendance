@@ -632,13 +632,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const todayStr = new Date().toISOString().split('T')[0];
     const todayRecords = store.getState().attendanceRecords.filter(r => r.developerId === activeDev.id && r.date === todayStr);
 
-    if (activeDev.status === 'working') {
+    const isCurrentlyActive = activeDev.status === 'working' || activeDev.status === 'break' || (activeDev.activeSession && activeDev.activeSession.startTime);
+
+    if (isCurrentlyActive) {
       if (terminalStatusBadge) {
-        terminalStatusBadge.className = 'badge badge-working';
-        terminalStatusBadge.innerHTML = `<span class="badge-dot"></span> Present (Working)`;
+        if (activeDev.status === 'break') {
+          terminalStatusBadge.className = 'badge badge-break';
+          terminalStatusBadge.innerHTML = `<span class="badge-dot"></span> On Scheduled Break`;
+        } else {
+          terminalStatusBadge.className = 'badge badge-working';
+          terminalStatusBadge.innerHTML = `<span class="badge-dot"></span> Present (Working)`;
+        }
       }
       if (btnClockIn) btnClockIn.disabled = true;
       if (btnClockOut) btnClockOut.disabled = false;
+      if (btnBreak) btnBreak.disabled = false;
 
       if (activeDev.activeSession) {
         const inDate = new Date(activeDev.activeSession.startTime);
@@ -660,6 +668,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (btnClockIn) btnClockIn.disabled = false;
       if (btnClockOut) btnClockOut.disabled = true;
+      if (btnBreak) btnBreak.disabled = true;
 
       if (todayRecords.length > 0) {
         const latest = todayRecords[0];
@@ -1431,6 +1440,17 @@ document.addEventListener('DOMContentLoaded', () => {
       if (dtrBreakTime) dtrBreakTime.textContent = `${liveStats.totalBreakMinutes}m`;
       if (dtrShiftStatus) dtrShiftStatus.textContent = activeDev.status === 'working' ? '🟢 Present (Working)' : '🟡 On Scheduled Break';
 
+      // Keep bottom terminalStatusBadge updated in real-time
+      if (terminalStatusBadge) {
+        if (activeDev.status === 'working') {
+          terminalStatusBadge.className = 'badge badge-working';
+          terminalStatusBadge.innerHTML = `<span class="badge-dot"></span> Present (Working)`;
+        } else if (activeDev.status === 'break') {
+          terminalStatusBadge.className = 'badge badge-break';
+          terminalStatusBadge.innerHTML = `<span class="badge-dot"></span> On Scheduled Break`;
+        }
+      }
+
       // Always guarantee Time IN timestamp is rendered while active
       if (activeDev.activeSession && activeDev.activeSession.startTime && dtrTimeIn) {
         if (dtrTimeIn.textContent === '--:--:--' || dtrTimeIn.textContent.includes('--')) {
@@ -1439,11 +1459,19 @@ document.addEventListener('DOMContentLoaded', () => {
           if (dtrDateIn) dtrDateIn.textContent = `Logged at ${inDate.toLocaleDateString()} (${(activeDev.activeSession.workLocation || 'onsite').toUpperCase()})`;
         }
       }
+      if (dtrDateOut && (dtrDateOut.textContent === 'End of shift' || !dtrDateOut.textContent)) {
+        dtrDateOut.textContent = 'Shift ongoing';
+      }
 
       // Guarantee button states are synchronized
       if (btnClockIn && !btnClockIn.disabled) btnClockIn.disabled = true;
       if (btnBreak && btnBreak.disabled) btnBreak.disabled = false;
       if (btnClockOut && btnClockOut.disabled) btnClockOut.disabled = false;
+    } else {
+      if (terminalStatusBadge && !terminalStatusBadge.className.includes('badge-offline')) {
+        terminalStatusBadge.className = 'badge badge-offline';
+        terminalStatusBadge.innerHTML = `<span class="badge-dot"></span> Offline / Not Logged In`;
+      }
     }
   });
 
@@ -4346,6 +4374,16 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast(`⏱️ Auto-Timeout: ${names} automatically clocked out at 5:00 PM per company schedule policy.`, 'info');
       renderAll();
     }
+  });
+
+  // Subscribe to store updates (Cloud/Firebase sync, cross-tab updates, etc.)
+  store.subscribe(() => {
+    renderClockTerminal();
+    renderAttendanceBoard();
+    renderTimesheetsAndPayroll();
+    renderLeavesAndRequests();
+    renderPaydayWidgets();
+    updateHeaderAuthProfile();
   });
 
   initHeaderClock();
