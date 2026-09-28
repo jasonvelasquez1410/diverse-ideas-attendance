@@ -161,6 +161,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Toast Container
   const toastContainer = document.getElementById('toast-container');
 
+  // PayDay / Sprout Dashboard & Greeting Elements
+  const btnApplyDropdownToggle = document.getElementById('btn-apply-dropdown-toggle');
+  const applyMenuDropdown = document.getElementById('apply-menu-dropdown');
+  const paydayRecentTimelogs = document.getElementById('payday-recent-timelogs');
+  const myStuffPendingList = document.getElementById('my-stuff-pending-list');
+  const greetingTodayDate = document.getElementById('greeting-today-date');
+
   // ==========================================
   // 1. Authentication & PIN Security Engine
   // ==========================================
@@ -617,9 +624,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeDev = store.getActiveDeveloper();
     if (!activeDev) return;
 
-    renderEmployeeDropdown();
-    renderPaydayWidgets();
-
     if (terminalDevAvatar) {
       terminalDevAvatar.textContent = activeDev.initials || 'DV';
       terminalDevAvatar.style.background = activeDev.avatarColor || '#6366f1';
@@ -627,6 +631,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (terminalDevName) terminalDevName.textContent = activeDev.name || 'Developer';
     if (terminalDevRole) terminalDevRole.textContent = activeDev.role || 'Software Developer';
     if (terminalDevRate) terminalDevRate.textContent = `Rate: Confidential 🔒`;
+
+    try {
+      renderEmployeeDropdown();
+    } catch (e) {
+      console.warn('renderEmployeeDropdown error:', e);
+    }
+
+    try {
+      renderPaydayWidgets();
+    } catch (e) {
+      console.warn('renderPaydayWidgets error:', e);
+    }
 
     // Check today's logged records for active developer
     const todayStr = new Date().toISOString().split('T')[0];
@@ -1440,7 +1456,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (dtrBreakTime) dtrBreakTime.textContent = `${liveStats.totalBreakMinutes}m`;
       if (dtrShiftStatus) dtrShiftStatus.textContent = activeDev.status === 'working' ? '🟢 Present (Working)' : '🟡 On Scheduled Break';
 
-      // Keep bottom terminalStatusBadge updated in real-time
+      // Keep bottom terminalStatusBadge and employee name/avatar updated in real-time
       if (terminalStatusBadge) {
         if (activeDev.status === 'working') {
           terminalStatusBadge.className = 'badge badge-working';
@@ -1449,6 +1465,17 @@ document.addEventListener('DOMContentLoaded', () => {
           terminalStatusBadge.className = 'badge badge-break';
           terminalStatusBadge.innerHTML = `<span class="badge-dot"></span> On Scheduled Break`;
         }
+      }
+
+      if (terminalDevName && (terminalDevName.textContent === 'Diverse Ideas Developer' || !terminalDevName.textContent || terminalDevName.textContent.trim() === '')) {
+        terminalDevName.textContent = activeDev.name || 'Developer';
+      }
+      if (terminalDevAvatar && (terminalDevAvatar.textContent === '' || terminalDevAvatar.innerHTML.includes('svg'))) {
+        terminalDevAvatar.textContent = activeDev.initials || 'DV';
+        terminalDevAvatar.style.background = activeDev.avatarColor || '#6366f1';
+      }
+      if (terminalDevRole && terminalDevRole.textContent === 'Software Developer' && activeDev.role) {
+        terminalDevRole.textContent = activeDev.role;
       }
 
       // Always guarantee Time IN timestamp is rendered while active
@@ -3904,11 +3931,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // PayDay Sprout My Stuff & Apply Dropdown Handlers
   // ==========================================
-  const btnApplyDropdownToggle = document.getElementById('btn-apply-dropdown-toggle');
-  const applyMenuDropdown = document.getElementById('apply-menu-dropdown');
-  const paydayRecentTimelogs = document.getElementById('payday-recent-timelogs');
-  const myStuffPendingList = document.getElementById('my-stuff-pending-list');
-  const greetingTodayDate = document.getElementById('greeting-today-date');
 
   // Toggle Apply Dropdown
   if (btnApplyDropdownToggle && applyMenuDropdown) {
