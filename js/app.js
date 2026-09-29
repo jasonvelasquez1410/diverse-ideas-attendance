@@ -4152,7 +4152,12 @@ document.addEventListener('DOMContentLoaded', () => {
           cardOngoing.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
               <span style="font-weight: 700; font-size: 0.84rem; color: var(--accent-cyan);">📅 ${datePart} (Active Today)</span>
-              <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-secondary);">${locBadge}</span>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-secondary);">${locBadge}</span>
+                <button type="button" class="btn btn-secondary btn-sm btn-cancel-active-shift" title="Cancel/Reset this active shift" style="padding: 2px 7px; font-size: 0.68rem; color: #f59e0b; border-color: rgba(245, 158, 11, 0.35); background: rgba(245, 158, 11, 0.1); border-radius: var(--radius-sm); cursor: pointer;">
+                  ❌ Reset Shift
+                </button>
+              </div>
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.84rem; padding: 2px 0;">
               <span style="font-weight: 700; color: #10b981; display: inline-flex; align-items: center; gap: 4px;">🟢 IN</span>
@@ -4163,6 +4168,26 @@ document.addEventListener('DOMContentLoaded', () => {
               <span class="font-mono" style="color: var(--accent-cyan); font-weight: 700;">Shift Ongoing...</span>
             </div>
           `;
+
+          const btnCancelShift = cardOngoing.querySelector('.btn-cancel-active-shift');
+          if (btnCancelShift) {
+            btnCancelShift.addEventListener('click', (e) => {
+              e.stopPropagation();
+              if (confirm(`Do you want to cancel and clear the active ongoing shift for ${activeDev.name}?`)) {
+                if (attendance && attendance.cancelActiveSession) {
+                  attendance.cancelActiveSession(activeDev.id);
+                } else {
+                  activeDev.status = 'offline';
+                  activeDev.activeSession = null;
+                  store.saveState(true);
+                  store.postStateToServer(store.getState());
+                }
+                showToast(`Active shift cancelled for ${activeDev.name}.`, 'info');
+                renderAll();
+              }
+            });
+          }
+
           paydayRecentTimelogs.appendChild(cardOngoing);
         }
 
@@ -4187,6 +4212,9 @@ document.addEventListener('DOMContentLoaded', () => {
               <div style="display: flex; align-items: center; gap: 6px;">
                 <span style="font-size: 0.72rem; color: var(--text-muted);">${loc}</span>
                 ${hrs ? `<span class="badge badge-working" style="font-size: 0.68rem; padding: 2px 6px;">${hrs}</span>` : ''}
+                <button type="button" class="btn btn-secondary btn-sm btn-delete-card-log" title="Delete this attendance log (e.g. duplicate)" style="padding: 2px 7px; font-size: 0.68rem; color: var(--status-danger); border-color: rgba(239, 68, 68, 0.35); background: rgba(239, 68, 68, 0.08); border-radius: var(--radius-sm); cursor: pointer; display: inline-flex; align-items: center; gap: 2px;">
+                  🗑️ Delete
+                </button>
               </div>
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.84rem; padding: 2px 0;">
@@ -4198,6 +4226,19 @@ document.addEventListener('DOMContentLoaded', () => {
               <span class="font-mono">${outTime}</span>
             </div>
           `;
+
+          const btnDelete = entryCard.querySelector('.btn-delete-card-log');
+          if (btnDelete) {
+            btnDelete.addEventListener('click', (e) => {
+              e.stopPropagation();
+              if (confirm(`Are you sure you want to delete this attendance log (${datePart}: IN ${inTime} - OUT ${outTime})?`)) {
+                store.deleteAttendanceRecord(r.id);
+                showToast(`🗑️ Attendance log for ${datePart} deleted.`, 'info');
+                renderAll();
+              }
+            });
+          }
+
           paydayRecentTimelogs.appendChild(entryCard);
         });
       }

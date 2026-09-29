@@ -264,6 +264,16 @@ class AttendanceEngine {
     return timedOutDevs;
   }
 
+  cancelActiveSession(devId) {
+    const dev = this.store.getDeveloperById(devId);
+    if (!dev) return false;
+    dev.status = 'offline';
+    dev.activeSession = null;
+    this.store.saveState(true);
+    this.store.postStateToServer(this.store.getState());
+    return true;
+  }
+
   // Calculate live current active stats for a developer
   calculateLiveStats(dev) {
     if (!dev || !dev.activeSession) {
