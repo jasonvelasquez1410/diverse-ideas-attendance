@@ -214,6 +214,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function selectAuthDev(devId) {
+    selectedAuthDevId = devId;
+    document.querySelectorAll('.auth-dev-btn').forEach(b => {
+      if (b.getAttribute('data-dev-id') === devId) {
+        b.classList.add('selected');
+      } else {
+        b.classList.remove('selected');
+      }
+    });
+    if (authPinInput) {
+      const dev = (devId && devId !== 'admin') ? store.getDeveloperById(devId) : null;
+      const name = devId === 'admin' ? 'Administrator' : (dev ? dev.name.split(' ')[0] : 'Staff');
+      authPinInput.placeholder = `Type PIN for ${name}`;
+      authPinInput.focus();
+    }
+  }
+  window.selectAuthDev = selectAuthDev;
+
   function renderAuthLockScreen() {
     if (!authDevGrid) return;
     const state = store ? store.getState() : null;
@@ -230,6 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminBtn = document.createElement('button');
     adminBtn.type = 'button';
     adminBtn.className = 'auth-dev-btn selected';
+    adminBtn.setAttribute('data-dev-id', 'admin');
     adminBtn.innerHTML = `
       <div style="width: 28px; height: 28px; border-radius: 50%; background: #ec4899; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: white; box-shadow: 0 0 10px rgba(236,72,153,0.5);">
         ADM
@@ -240,13 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
     adminBtn.addEventListener('click', () => {
-      selectedAuthDevId = 'admin';
-      document.querySelectorAll('.auth-dev-btn').forEach(b => b.classList.remove('selected'));
-      adminBtn.classList.add('selected');
-      if (authPinInput) {
-        authPinInput.placeholder = '••••';
-        authPinInput.focus();
-      }
+      selectAuthDev('admin');
     });
     authDevGrid.appendChild(adminBtn);
 
@@ -256,6 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'auth-dev-btn';
+      btn.setAttribute('data-dev-id', dev.id);
       
       const rawName = dev.name || 'Developer';
       const displayName = rawName.includes(',') 
@@ -276,17 +290,15 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
 
       btn.addEventListener('click', () => {
-        selectedAuthDevId = dev.id;
-        document.querySelectorAll('.auth-dev-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        if (authPinInput) {
-          authPinInput.placeholder = '••••';
-          authPinInput.focus();
-        }
+        selectAuthDev(dev.id);
       });
 
       authDevGrid.appendChild(btn);
     });
+
+    if (authPinInput) {
+      setTimeout(() => { authPinInput.focus(); }, 100);
+    }
   }
 
   function handleSuccessfulAuth(msg = '') {
@@ -344,6 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   }
+  window.processPinLogin = processPinLogin;
 
   authPinForm.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -1061,6 +1074,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const distancePill = document.getElementById('terminal-gps-distance-pill');
 
     if (!banner) return;
+
+    // Do NOT trigger GPS satellite / geolocation queries when locked on auth screen
+    const auth = store ? store.getAuth() : null;
+    if (!auth || !auth.isAuthenticated) {
+      if (dot) dot.className = 'gps-pulse-icon';
+      if (emoji) emoji.textContent = '🏢';
+      if (statusText) statusText.textContent = 'Office Onsite Terminal';
+      if (badge) {
+        badge.textContent = 'Standby';
+        badge.className = 'badge badge-break';
+      }
+      return;
+    }
 
     const isGpsFeatureOn = store.isFeatureEnabled('gpsGeofenceEnabled');
     const gpsSettings = store.getGpsSettings();
@@ -4527,7 +4553,9 @@ document.addEventListener('DOMContentLoaded', () => {
     attendance.checkAutoTimeouts();
   }
   renderAll();
-  fetchLiveExchangeRate(false);
-  startForexAutoSync();
+  setTimeout(() => {
+    fetchLiveExchangeRate(false);
+    startForexAutoSync();
+  }, 1200);
 });
 

@@ -6,8 +6,8 @@
   <meta name="description" content="DevTrack - Modern In-House Developer Attendance & Hourly Rate Payroll Dashboard for Diverse Ideas GMBH">
   <title>DevTrack | Developer Attendance, Time Off & Payroll</title>
   <link rel="icon" type="image/png" href="assets/favicon.png">
-  <link rel="stylesheet" href="css/style.css?v=20260922i">
-  <link rel="stylesheet" href="css/components.css?v=20260922i">
+  <link rel="stylesheet" href="css/style.css?v=20260929e">
+  <link rel="stylesheet" href="css/components.css?v=20260929e">
 </head>
 <body>
 
@@ -2975,12 +2975,30 @@
       });
 
       document.addEventListener('click', function(e) {
+        // Profile card selection
+        var devBtn = e.target.closest('.auth-dev-btn');
+        if (devBtn) {
+          var devId = devBtn.getAttribute('data-dev-id');
+          if (window.selectAuthDev) {
+            window.selectAuthDev(devId);
+          } else {
+            document.querySelectorAll('.auth-dev-btn').forEach(function(b) { b.classList.remove('selected'); });
+            devBtn.classList.add('selected');
+            var pinInput = document.getElementById('auth-pin-input');
+            if (pinInput) pinInput.focus();
+          }
+          return;
+        }
+
+        // Visual PIN boxes click -> focus input
         var boxesRow = e.target.closest('#pin-boxes-display');
         if (boxesRow) {
           var pinInput = document.getElementById('auth-pin-input');
           if (pinInput) pinInput.focus();
+          return;
         }
 
+        // On-screen Keypad buttons
         var keyBtn = e.target.closest('.auth-key-btn');
         if (!keyBtn) return;
         var pinInput = document.getElementById('auth-pin-input');
@@ -2993,14 +3011,30 @@
           updatePinDots();
           pinInput.focus();
         } else if (key === 'enter') {
-          form.dispatchEvent(new Event('submit', { cancelable: true }));
+          if (typeof window.processPinLogin === 'function') {
+            window.processPinLogin();
+          } else {
+            form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+          }
         } else if (key && pinInput.value.length < 4) {
           pinInput.value += key;
           updatePinDots();
           pinInput.dispatchEvent(new Event('input', { bubbles: true }));
           if (pinInput.value.length === 4) {
-            form.dispatchEvent(new Event('submit', { cancelable: true }));
+            if (typeof window.processPinLogin === 'function') {
+              window.processPinLogin();
+            } else {
+              form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+            }
           }
+        }
+      });
+
+      // Auto focus PIN input on load
+      window.addEventListener('load', function() {
+        var pinInput = document.getElementById('auth-pin-input');
+        if (pinInput) {
+          setTimeout(function() { pinInput.focus(); }, 150);
         }
       });
     })();
@@ -3010,11 +3044,11 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- Application Scripts -->
-  <script src="js/state.js?v=20260929d"></script>
-  <script src="js/attendance.js?v=20260929d"></script>
-  <script src="js/payroll.js?v=20260929d"></script>
-  <script src="js/export.js?v=20260929d"></script>
-  <script src="js/app.js?v=20260929d"></script>
+  <script src="js/state.js?v=20260929e"></script>
+  <script src="js/attendance.js?v=20260929e"></script>
+  <script src="js/payroll.js?v=20260929e"></script>
+  <script src="js/export.js?v=20260929e"></script>
+  <script src="js/app.js?v=20260929e"></script>
 
 </body>
 </html>

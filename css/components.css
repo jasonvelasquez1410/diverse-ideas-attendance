@@ -851,6 +851,9 @@ select.form-control option {
   margin: auto;
   max-height: calc(100dvh - 32px);
   overflow-y: auto;
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 10000;
 }
 
 .auth-dev-grid {
@@ -858,6 +861,7 @@ select.form-control option {
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
   margin: 18px 0;
+  pointer-events: auto !important;
 }
 
 .auth-dev-btn {
@@ -872,7 +876,8 @@ select.form-control option {
   font-family: var(--font-sans);
   font-size: 0.86rem;
   font-weight: 600;
-  cursor: pointer;
+  cursor: pointer !important;
+  pointer-events: auto !important;
   transition: all var(--transition-fast);
   text-align: left;
 }
@@ -896,6 +901,8 @@ select.form-control option {
   width: 100%;
   margin: 10px 0;
   transition: all 150ms ease;
+  pointer-events: auto !important;
+  cursor: text !important;
 }
 
 .pin-input-field:focus {
@@ -909,6 +916,8 @@ select.form-control option {
   justify-content: center;
   gap: 10px;
   margin: 10px 0 14px 0;
+  cursor: pointer !important;
+  pointer-events: auto !important;
 }
 
 .pin-box-dot {
@@ -925,6 +934,8 @@ select.form-control option {
   color: var(--accent-primary);
   transition: all 120ms ease;
   user-select: none;
+  cursor: pointer !important;
+  pointer-events: auto !important;
 }
 
 .pin-box-dot.filled {
@@ -939,6 +950,7 @@ select.form-control option {
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin: 10px 0 14px 0;
+  pointer-events: auto !important;
 }
 
 .auth-key-btn {
@@ -949,6 +961,7 @@ select.form-control option {
   align-items: center !important;
   justify-content: center !important;
   cursor: pointer !important;
+  pointer-events: auto !important;
   user-select: none !important;
   touch-action: manipulation !important;
   border-radius: var(--radius-md) !important;
