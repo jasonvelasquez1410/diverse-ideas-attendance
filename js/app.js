@@ -267,44 +267,71 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  authPinForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const pin = authPinInput.value.trim();
+  function handleSuccessfulAuth(msg = '') {
+    if (authLockScreen) {
+      authLockScreen.style.display = 'none';
+    }
+    if (authPinInput) {
+      authPinInput.value = '';
+    }
+    if (authErrorMsg) {
+      authErrorMsg.textContent = '';
+    }
+    if (msg) {
+      showToast(msg, 'success');
+    }
+    try {
+      updateHeaderAuthProfile();
+    } catch (e) {
+      console.warn('updateHeaderAuthProfile error:', e);
+    }
+    try {
+      renderAll();
+    } catch (e) {
+      console.warn('renderAll error:', e);
+    }
+  }
+
+  function processPinLogin() {
+    const pin = (authPinInput ? authPinInput.value : '').trim();
     if (!pin) return;
 
     // MASTER OVERRIDE: Entering Master PIN 1410 ALWAYS logs in as Administrator regardless of button selected!
     if (pin === '1410' || pin === String(store.getState().adminPin).trim()) {
       const result = store.loginAdmin(pin);
-      if (result.success) {
+      if (result && result.success) {
         selectedAuthDevId = 'admin';
-        authLockScreen.style.display = 'none';
-        showToast('👑 Welcome, Administrator (Management Mode)', 'success');
-        updateHeaderAuthProfile();
-        renderAll();
+        handleSuccessfulAuth('👑 Welcome, Administrator (Management Mode)');
         return;
       }
     }
 
-    // Developer / Staff login with Smart PIN Auto-Match
+    // Developer / Staff login with Smart PIN Auto-Match & Default Fallback
     const result = store.loginDeveloper(selectedAuthDevId, pin);
-    if (result.success) {
-      authLockScreen.style.display = 'none';
-      showToast(`Welcome, ${result.dev.name}!`, 'success');
-      updateHeaderAuthProfile();
-      renderAll();
+    if (result && result.success) {
+      handleSuccessfulAuth(`Welcome, ${result.dev.name}!`);
     } else {
       const targetDev = (selectedAuthDevId && selectedAuthDevId !== 'admin') ? store.getDeveloperById(selectedAuthDevId) : null;
       const devName = targetDev ? targetDev.name.split(' ')[0] : null;
-      authErrorMsg.textContent = devName ? `❌ Incorrect PIN for ${devName}.` : `❌ Incorrect PIN code entered.`;
-      authPinInput.value = '';
-      authPinInput.focus();
+      if (authErrorMsg) {
+        authErrorMsg.textContent = devName ? `❌ Incorrect PIN for ${devName}.` : `❌ Incorrect PIN code entered.`;
+      }
+      if (authPinInput) {
+        authPinInput.value = '';
+        authPinInput.focus();
+      }
     }
+  }
+
+  authPinForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    processPinLogin();
   });
 
   // Auto-submit instantly as soon as 4 digits are entered
   authPinInput.addEventListener('input', () => {
     if (authPinInput.value.length === 4) {
-      authPinForm.dispatchEvent(new Event('submit', { cancelable: true }));
+      processPinLogin();
     }
   });
 
@@ -313,11 +340,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const pin = prompt('Enter Admin Master PIN (1410):');
       if (pin !== null) {
         const result = store.loginAdmin(pin.trim());
-        if (result.success) {
-          authLockScreen.style.display = 'none';
-          showToast('Unlocked Admin Mode (Full Payroll & Rates Access)', 'success');
-          updateHeaderAuthProfile();
-          renderAll();
+        if (result && result.success) {
+          handleSuccessfulAuth('Unlocked Admin Mode (Full Payroll & Rates Access)');
         } else {
           alert('❌ Access Denied: Incorrect Admin PIN.');
         }
@@ -4458,12 +4482,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Subscribe to store updates (Cloud/Firebase sync, cross-tab updates, etc.)
   store.subscribe(() => {
-    renderClockTerminal();
-    renderAttendanceBoard();
-    renderTimesheetsAndPayroll();
-    renderLeavesAndRequests();
-    renderPaydayWidgets();
-    updateHeaderAuthProfile();
+    try {
+      const currentAuth = store.getAuth();
+      if (currentAuth && currentAuth.isAuthenticated && authLockScreen) {
+        authLockScreen.style.display = 'none';
+      }
+      renderClockTerminal();
+      renderAttendanceBoard();
+      renderTimesheetsAndPayroll();
+      renderLeavesAndRequests();
+      renderPaydayWidgets();
+      updateHeaderAuthProfile();
+    } catch (err) {
+      console.warn('Store subscriber warning:', err);
+    }
   });
 
   initHeaderClock();
