@@ -1040,29 +1040,41 @@ class Store {
     try {
       let serverData = null;
 
-      // 1. Direct fetch from Firebase Realtime Database
+      // 1. Direct fetch from Firebase Realtime Database with 3.5s timeout
       try {
-        const fbRes = await fetch(FIREBASE_DB_URL, { headers: { 'Cache-Control': 'no-cache' } });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+        const fbRes = await fetch(FIREBASE_DB_URL, { 
+          headers: { 'Cache-Control': 'no-cache' },
+          signal: controller.signal 
+        });
+        clearTimeout(timeoutId);
         if (fbRes.ok) {
           serverData = await fbRes.json();
         }
       } catch (fbErr) {
-        console.warn('Direct Firebase sync fallback to API:', fbErr.message);
+        // Silent fallback to local/API
       }
 
       // 2. Fallback to /api/state proxy if needed
       if (!serverData) {
-        const response = await fetch('/api/state', {
-          method: 'GET',
-          headers: { 'Cache-Control': 'no-cache' }
-        });
-        if (response.ok) {
-          serverData = await response.json();
-        }
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3500);
+          const response = await fetch('/api/state', {
+            method: 'GET',
+            headers: { 'Cache-Control': 'no-cache' },
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          if (response.ok) {
+            serverData = await response.json();
+          }
+        } catch (apiErr) {}
       }
 
       if (!serverData) {
-        throw new Error('No cloud response');
+        throw new Error('Cloud sync standby');
       }
 
       this.isServerConnected = true;
@@ -1144,23 +1156,31 @@ class Store {
 
       // Direct Firebase PUT (Instant sub-second cloud sync)
       try {
+        const c1 = new AbortController();
+        const t1 = setTimeout(() => c1.abort(), 4000);
         await fetch(FIREBASE_DB_URL, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: payload
+          body: payload,
+          signal: c1.signal
         });
+        clearTimeout(t1);
       } catch (e) {}
 
       // Also notify /api/state proxy
       try {
+        const c2 = new AbortController();
+        const t2 = setTimeout(() => c2.abort(), 4000);
         await fetch('/api/state', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Cache-Control': 'no-cache'
           },
-          body: payload
+          body: payload,
+          signal: c2.signal
         });
+        clearTimeout(t2);
       } catch (e) {}
 
       this.isServerConnected = true;

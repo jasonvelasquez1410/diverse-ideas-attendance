@@ -1128,6 +1128,25 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    // If no cached GPS and not explicit force refresh, display ready status without blocking browser
+    if (!cachedDeviceGps && !forceRefresh) {
+      if (dot) dot.className = 'gps-pulse-icon';
+      if (emoji) emoji.textContent = '🏢';
+      if (statusText) statusText.textContent = 'Office Onsite Terminal';
+      if (badge) {
+        badge.textContent = 'Ready';
+        badge.className = 'badge badge-working';
+        badge.removeAttribute('style');
+      }
+      if (detailText) detailText.textContent = `Target: ${gpsSettings.officeName}. Location verified upon clock-in.`;
+      if (distancePill) {
+        distancePill.textContent = '🏢 Office Terminal';
+        distancePill.className = 'badge badge-working';
+        distancePill.removeAttribute('style');
+      }
+      return;
+    }
+
     // Onsite Mode: check office geofence
     if (dot) dot.className = 'gps-pulse-icon loading-mode';
     if (emoji) emoji.textContent = '📡';
@@ -1147,7 +1166,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       let coords = cachedDeviceGps;
       if (!coords || forceRefresh) {
-        coords = await getCurrentDeviceGPS();
+        coords = await getCurrentDeviceGPS({ timeout: 6000 });
       }
 
       const result = store.checkGeofence(coords.latitude, coords.longitude, coords.accuracy);

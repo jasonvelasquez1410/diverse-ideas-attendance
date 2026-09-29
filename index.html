@@ -2907,7 +2907,7 @@
       </div>
 
       <!-- PIN Input & Visual 4-Digit Display -->
-      <form id="auth-pin-form">
+      <form id="auth-pin-form" onsubmit="event.preventDefault(); if(typeof window.processPinLogin==='function'){window.processPinLogin();} return false;">
         <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">
           Enter 4-Digit PIN
         </label>
@@ -3044,11 +3044,11 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- Application Scripts -->
-  <script src="js/state.js?v=20260929e"></script>
-  <script src="js/attendance.js?v=20260929e"></script>
-  <script src="js/payroll.js?v=20260929e"></script>
-  <script src="js/export.js?v=20260929e"></script>
-  <script src="js/app.js?v=20260929e"></script>
+  <script src="js/state.js?v=20260929f"></script>
+  <script src="js/attendance.js?v=20260929f"></script>
+  <script src="js/payroll.js?v=20260929f"></script>
+  <script src="js/export.js?v=20260929f"></script>
+  <script src="js/app.js?v=20260929f"></script>
 
 </body>
 </html>
