@@ -75,10 +75,19 @@ function mergeCloudAndClientState(existingData, incomingData) {
         // If exDev has an active working session and inDev is offline, verify if inDev explicitly completed the shift
         if ((exDev.status === 'working' || exDev.status === 'break') && exDev.activeSession && inDev.status === 'offline') {
           const exStart = exDev.activeSession.startTime;
-          const hasClosedRecord = mergedRecords.some(r => r.developerId === exDev.id && r.startTime === exStart && r.endTime);
-          if (!hasClosedRecord) {
-            inDev.status = exDev.status;
-            inDev.activeSession = exDev.activeSession;
+          const hasClosedRecord = mergedRecords.some(r => 
+            r.developerId === exDev.id && (
+              r.startTime === exStart || 
+              (r.date && exStart && r.date === exStart.split('T')[0] && r.endTime)
+            ) && r.endTime
+          );
+          if (!hasClosedRecord && !inDev._isExplicitClockOut) {
+            const inRecords = Array.isArray(incomingData.attendanceRecords) ? incomingData.attendanceRecords : [];
+            const hasRecentRecord = inRecords.some(r => r.developerId === inDev.id && r.endTime);
+            if (!hasRecentRecord && inDev.activeSession === undefined) {
+              inDev.status = exDev.status;
+              inDev.activeSession = exDev.activeSession;
+            }
           }
         }
       }

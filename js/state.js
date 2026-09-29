@@ -576,6 +576,21 @@ class Store {
     this.initServerSync();
   }
 
+  getLocalDateStr(dateInput = new Date()) {
+    const d = (dateInput instanceof Date) ? dateInput : new Date(dateInput);
+    if (isNaN(d.getTime())) {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
   calculateShiftRenderedTime(options) {
     const {
       startTime,
@@ -627,7 +642,7 @@ class Store {
       let allowedEnd = officialShiftEnd;
       
       // Check for approved Overtime request
-      const recDate = date || (startTime ? startTime.split('T')[0] : '');
+      const recDate = date || (startTime ? this.getLocalDateStr(start) : this.getLocalDateStr());
       const requests = (this.state && Array.isArray(this.state.requests)) ? this.state.requests : [];
       const approvedOtReq = requests.find(r => 
         r.developerId === developerId && 
@@ -641,8 +656,15 @@ class Store {
         allowedEnd = new Date(officialShiftEnd.getTime() + (otHours * 3600000));
       }
 
-      if (end > allowedEnd) {
-        effectiveEnd = allowedEnd;
+      // Clamping logic: only clamp end if shift started before allowedEnd
+      if (effectiveStart < allowedEnd) {
+        if (end > allowedEnd) {
+          effectiveEnd = allowedEnd;
+        }
+      } else {
+        // Shift started during evening / overtime
+        effectiveStart = start;
+        effectiveEnd = end;
       }
     }
 
@@ -947,16 +969,30 @@ class Store {
 
   loadAuth() {
     try {
-      const auth = sessionStorage.getItem(SESSION_AUTH_KEY);
-      if (auth) return JSON.parse(auth);
+      const sessionAuth = sessionStorage.getItem(SESSION_AUTH_KEY);
+      if (sessionAuth) {
+        const parsed = JSON.parse(sessionAuth);
+        if (parsed && parsed.isAuthenticated) return parsed;
+      }
+      const localAuth = localStorage.getItem(SESSION_AUTH_KEY);
+      if (localAuth) {
+        const parsed = JSON.parse(localAuth);
+        if (parsed && parsed.isAuthenticated) return parsed;
+      }
     } catch (e) {}
     return { isAuthenticated: false, role: null, devId: null };
   }
 
   saveAuth(authObj) {
-    this.auth = authObj;
+    this.auth = authObj || { isAuthenticated: false, role: null, devId: null };
     try {
-      sessionStorage.setItem(SESSION_AUTH_KEY, JSON.stringify(authObj));
+      if (this.auth && this.auth.isAuthenticated) {
+        sessionStorage.setItem(SESSION_AUTH_KEY, JSON.stringify(this.auth));
+        localStorage.setItem(SESSION_AUTH_KEY, JSON.stringify(this.auth));
+      } else {
+        sessionStorage.removeItem(SESSION_AUTH_KEY);
+        localStorage.removeItem(SESSION_AUTH_KEY);
+      }
     } catch (e) {}
     this.notify();
   }
@@ -1147,15 +1183,43 @@ class Store {
       return this.loginAdmin(trimmedPin);
     }
 
-    if (devId === 'admin') {
-      return { success: false, message: 'Please enter Admin Master PIN (1410)' };
+    // 1. Direct match if a developer profile is selected
+    if (devId && devId !== 'admin') {
+      const dev = this.getDeveloperById(devId);
+      if (dev && dev.pin != null && String(dev.pin).trim() === trimmedPin) {
+        this.saveAuth({
+          isAuthenticated: true,
+          role: 'developer',
+          devId: dev.id
+        });
+        this.setActiveDeveloper(dev.id);
+        return { success: true, role: 'developer', dev };
+      }
     }
 
-    const dev = this.getDeveloperById(devId);
-    if (!dev) return { success: false, message: 'Developer profile not found' };
+    // 2. Smart PIN Auto-Match: Check if entered PIN belongs to any registered developer
+    const matchedDev = (this.state.developers || []).find(d => d.pin != null && String(d.pin).trim() === trimmedPin);
+    if (matchedDev) {
+      this.saveAuth({
+        isAuthenticated: true,
+        role: 'developer',
+        devId: matchedDev.id
+      });
+      this.setActiveDeveloper(matchedDev.id);
+      return { success: true, role: 'developer', dev: matchedDev };
+    }
 
-    // Strict: Only the developer's exact assigned PIN can unlock their profile
-    if (String(dev.pin).trim() === trimmedPin) {
+    // 3. Fallback: also check against default developer initial state PINs if localStorage had corrupted developer array
+    const defaultMatched = DEFAULT_INITIAL_STATE.developers.find(d => d.pin != null && String(d.pin).trim() === trimmedPin);
+    if (defaultMatched) {
+      let dev = this.getDeveloperById(defaultMatched.id);
+      if (dev) {
+        dev.pin = defaultMatched.pin;
+      } else {
+        dev = JSON.parse(JSON.stringify(defaultMatched));
+        this.state.developers.push(dev);
+      }
+      this.saveState();
       this.saveAuth({
         isAuthenticated: true,
         role: 'developer',
@@ -1164,7 +1228,13 @@ class Store {
       this.setActiveDeveloper(dev.id);
       return { success: true, role: 'developer', dev };
     }
-    return { success: false, message: `Incorrect PIN code for ${dev.name}` };
+
+    if (devId === 'admin') {
+      return { success: false, message: 'Please enter Admin Master PIN (1410)' };
+    }
+
+    const targetDev = devId ? this.getDeveloperById(devId) : null;
+    return { success: false, message: targetDev ? `Incorrect PIN code for ${targetDev.name}` : 'Incorrect PIN code' };
   }
 
   loginAdmin(pin) {
@@ -1422,7 +1492,7 @@ class Store {
       hours: reqData.hours || null,
       reason: reqData.reason,
       status: 'Pending',
-      dateFiled: new Date().toISOString().split('T')[0]
+      dateFiled: this.getLocalDateStr(new Date())
     };
     if (!this.state.requests) this.state.requests = [];
     this.state.requests.unshift(newReq);

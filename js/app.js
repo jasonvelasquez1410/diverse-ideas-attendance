@@ -17,6 +17,27 @@ document.addEventListener('DOMContentLoaded', () => {
   const headerUserName = document.getElementById('header-user-name');
   const headerUserRoleBadge = document.getElementById('header-user-role-badge');
   const btnLogout = document.getElementById('btn-logout');
+  const btnHeaderChangePin = document.getElementById('btn-header-change-pin');
+  const btnHeaderGuide = document.getElementById('btn-header-guide');
+  const modalManagerGuide = document.getElementById('modal-manager-guide');
+  const btnOpenGuideModalFromSettings = document.getElementById('btn-open-guide-modal-from-settings');
+  const btnCloseManagerGuide = document.getElementById('btn-close-manager-guide');
+  const btnCloseManagerGuideFooter = document.getElementById('btn-close-manager-guide-footer');
+  const btnCopyStaffMsg = document.getElementById('btn-copy-staff-msg');
+  const btnCopyStaffMsgModal = document.getElementById('btn-copy-staff-msg-modal');
+  const modalChangePin = document.getElementById('modal-change-pin');
+  const formChangePin = document.getElementById('form-change-pin');
+  const btnCloseChangePin = document.getElementById('btn-close-change-pin');
+  const btnCancelChangePin = document.getElementById('btn-cancel-change-pin');
+  const inputCurrentPin = document.getElementById('input-current-pin');
+  const inputNewPin = document.getElementById('input-new-pin');
+  const inputConfirmPin = document.getElementById('input-confirm-pin');
+  const changePinAlert = document.getElementById('change-pin-alert');
+  const changePinModalTitle = document.getElementById('change-pin-modal-title');
+  const changePinModalUser = document.getElementById('change-pin-modal-user');
+  const syncStatusIndicator = document.getElementById('sync-status-indicator');
+  const syncStatusDot = document.getElementById('sync-status-dot');
+  const syncStatusText = document.getElementById('sync-status-text');
   const themeToggleBtn = document.getElementById('theme-toggle-btn');
 
   // DOM Elements - Auth Lock Overlay
@@ -180,6 +201,8 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       authLockScreen.style.display = 'none';
       updateHeaderAuthProfile();
+      renderClockTerminal();
+      renderPaydayWidgets();
     }
   }
 
@@ -262,15 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // If Administrator profile was selected but incorrect PIN entered:
-    if (selectedAuthDevId === 'admin') {
-      authErrorMsg.textContent = '❌ Incorrect Admin Master PIN (1410).';
-      authPinInput.value = '';
-      authPinInput.focus();
-      return;
-    }
-
-    // Staff profile login:
+    // Developer / Staff login with Smart PIN Auto-Match
     const result = store.loginDeveloper(selectedAuthDevId, pin);
     if (result.success) {
       authLockScreen.style.display = 'none';
@@ -278,11 +293,18 @@ document.addEventListener('DOMContentLoaded', () => {
       updateHeaderAuthProfile();
       renderAll();
     } else {
-      const targetDev = store.getDeveloperById(selectedAuthDevId);
-      const devName = targetDev ? targetDev.name.split(' ')[0] : 'Staff';
-      authErrorMsg.textContent = `❌ Incorrect PIN for ${devName}.`;
+      const targetDev = (selectedAuthDevId && selectedAuthDevId !== 'admin') ? store.getDeveloperById(selectedAuthDevId) : null;
+      const devName = targetDev ? targetDev.name.split(' ')[0] : null;
+      authErrorMsg.textContent = devName ? `❌ Incorrect PIN for ${devName}.` : `❌ Incorrect PIN code entered.`;
       authPinInput.value = '';
       authPinInput.focus();
+    }
+  });
+
+  // Auto-submit instantly as soon as 4 digits are entered
+  authPinInput.addEventListener('input', () => {
+    if (authPinInput.value.length === 4) {
+      authPinForm.dispatchEvent(new Event('submit', { cancelable: true }));
     }
   });
 
@@ -645,7 +667,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Check today's logged records for active developer
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = store.getLocalDateStr ? store.getLocalDateStr(new Date()) : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
     const todayRecords = store.getState().attendanceRecords.filter(r => r.developerId === activeDev.id && r.date === todayStr);
 
     const isCurrentlyActive = activeDev.status === 'working' || activeDev.status === 'break' || (activeDev.activeSession && activeDev.activeSession.startTime);
@@ -711,7 +733,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderTodayActivityList(devId) {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = store.getLocalDateStr ? store.getLocalDateStr(new Date()) : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
     const records = store.getState().attendanceRecords.filter(r => r.developerId === devId && r.date === todayStr);
 
     todayActivityList.innerHTML = '';
@@ -1406,22 +1428,10 @@ document.addEventListener('DOMContentLoaded', () => {
       renderClockTerminal();
       renderAttendanceBoard();
       renderTimesheetsAndPayroll();
+      renderPaydayWidgets();
     }
   });
 
-  // Master Render
-  function renderAll() {
-    renderProjectDropdowns();
-    renderEmployeeDropdown();
-    populatePayrollDevFilter();
-    renderClockTerminal();
-    renderAttendanceBoard();
-    renderLeavesAndRequests();
-    renderTimesheetsAndPayroll();
-    renderSettings();
-    updateHeaderAuthProfile();
-    updateTerminalGpsStatus();
-  }
 
   terminalProjectSelect.addEventListener('change', () => {
     const dev = store.getActiveDeveloper();
@@ -1515,7 +1525,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let wfhCount = 0;
     let todayTotalMinutes = 0;
     let todayTotalGross = 0;
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = store.getLocalDateStr ? store.getLocalDateStr(new Date()) : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
 
     (state.attendanceRecords || []).filter(r => r && r.date === todayStr).forEach(r => {
       todayTotalMinutes += (r.workedMinutes || 0);
@@ -3027,7 +3037,7 @@ document.addEventListener('DOMContentLoaded', () => {
         attachProjectAddListener(editTimeinProject);
       }
 
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = store.getLocalDateStr ? store.getLocalDateStr(new Date()) : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
       if (editTimeinDate) editTimeinDate.value = todayStr;
 
       // Default time: if active session exists, use its time, otherwise 09:00
@@ -3064,7 +3074,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const dev = store.getDeveloperById(devId);
       if (!dev) return;
 
-      const dateVal = editTimeinDate ? editTimeinDate.value : new Date().toISOString().split('T')[0];
+      const dateVal = editTimeinDate && editTimeinDate.value ? editTimeinDate.value : (store.getLocalDateStr ? store.getLocalDateStr(new Date()) : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`);
       const timeVal = editTimeinTime ? editTimeinTime.value : '09:00';
       const locVal = editTimeinLocation ? editTimeinLocation.value : 'onsite';
       const projId = editTimeinProject ? editTimeinProject.value : 'proj-1';
@@ -3088,6 +3098,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (modalEditTimein) modalEditTimein.classList.remove('active');
       renderAll();
+      renderPaydayWidgets();
     });
   }
 
@@ -3116,7 +3127,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeDev = devId ? store.getDeveloperById(devId) : store.getActiveDeveloper();
     if (!activeDev) return;
 
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = store.getLocalDateStr ? store.getLocalDateStr(new Date()) : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
     if (editTimeoutDate) editTimeoutDate.value = todayStr;
 
     // Find today's completed records for this dev
@@ -3219,6 +3230,7 @@ document.addEventListener('DOMContentLoaded', () => {
           showToast(`✅ Shift reopened for ${dev.name}! Active clock-in resumed.`, 'success');
           if (modalEditTimeout) modalEditTimeout.classList.remove('active');
           renderAll();
+          renderPaydayWidgets();
         } else {
           showToast('Could not find completed shift record to reopen.', 'warning');
         }
@@ -3233,7 +3245,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const dev = store.getDeveloperById(devId);
       if (!dev) return;
 
-      const dateVal = editTimeoutDate ? editTimeoutDate.value : new Date().toISOString().split('T')[0];
+      const dateVal = editTimeoutDate && editTimeoutDate.value ? editTimeoutDate.value : (store.getLocalDateStr ? store.getLocalDateStr(new Date()) : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`);
       const startTimeVal = editTimeoutStartTime ? editTimeoutStartTime.value : '09:00';
       const endTimeVal = editTimeoutTime ? editTimeoutTime.value : '17:00';
       const breakMins = parseInt(editTimeoutBreak ? editTimeoutBreak.value : 0) || 0;
@@ -3272,6 +3284,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const record = {
+          id: 'rec-' + dev.id + '-' + Date.now(),
           developerId: dev.id,
           date: dateVal,
           startTime: startDateTime.toISOString(),
@@ -3287,10 +3300,9 @@ document.addEventListener('DOMContentLoaded', () => {
           gps: dev.activeSession ? dev.activeSession.gps : null
         };
 
-        store.addAttendanceRecord(record);
         dev.status = 'offline';
         dev.activeSession = null;
-        store.saveState();
+        store.addAttendanceRecord(record);
         showToast(`✅ Shift finalized with Time OUT at ${endTimeVal} for ${dev.name}!`, 'success');
       } else {
         // Create manual completed shift record for today
@@ -3304,6 +3316,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const record = {
+          id: 'rec-' + dev.id + '-' + Date.now(),
           developerId: dev.id,
           date: dateVal,
           startTime: startDateTime.toISOString(),
@@ -3324,6 +3337,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (modalEditTimeout) modalEditTimeout.classList.remove('active');
       renderAll();
+      renderPaydayWidgets();
     });
   }
 
@@ -3392,7 +3406,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (editRecordNotes) editRecordNotes.value = rec.taskNote || '';
 
     // If record is from today and dev is offline, allow reopening shift
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = store.getLocalDateStr ? store.getLocalDateStr(new Date()) : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
     if (btnReopenShiftRecord) {
       btnReopenShiftRecord.style.display = (rec.date === todayStr && dev.status === 'offline') ? 'inline-block' : 'none';
     }
@@ -3507,7 +3521,7 @@ document.addEventListener('DOMContentLoaded', () => {
       attachProjectAddListener(manualProjectSelect);
     }
 
-    document.getElementById('manual-date-input').value = new Date().toISOString().split('T')[0];
+    document.getElementById('manual-date-input').value = store.getLocalDateStr ? store.getLocalDateStr(new Date()) : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
     if (manualStartTimeInput) manualStartTimeInput.value = '09:00';
     if (manualEndTimeInput) manualEndTimeInput.value = '17:00';
     calculateManualHours();
@@ -3883,7 +3897,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateHeaderAuthProfile();
       }
       formAddHoliday.reset();
-      document.getElementById('holiday-date-input').value = new Date().toISOString().split('T')[0];
+      document.getElementById('holiday-date-input').value = store.getLocalDateStr ? store.getLocalDateStr(new Date()) : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
       modalAddHoliday.classList.add('active');
     });
   }
@@ -3947,7 +3961,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Helper to open specific Sprout Request modal
   window.openSpecificRequestModal = function(type) {
     applyMenuDropdown.classList.remove('active');
-    document.getElementById('req-start-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('req-start-date').value = store.getLocalDateStr ? store.getLocalDateStr(new Date()) : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
 
     if (type === 'Leave' && !store.isFeatureEnabled('leaveCreditsEnabled')) {
       showToast('⚖️ Paid leave tracking is disabled under No Work, No Pay. Switched to Certificate of Attendance (COA).', 'info');
@@ -3984,75 +3998,137 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderPaydayWidgets() {
     const auth = store.getAuth();
+    if (!store.isAdmin() && auth && auth.devId) {
+      store.setActiveDeveloper(auth.devId);
+    }
     const activeDev = store.getActiveDeveloper();
+    if (!activeDev) return;
     const now = new Date();
 
     if (greetingTodayDate) {
       greetingTodayDate.textContent = `📅 Today is ${now.getMonth() + 1}/${now.getDate()}/${String(now.getFullYear()).slice(-2)}`;
     }
 
+    // Keep Card 1 profile details in sync with activeDev
+    if (terminalDevAvatar) {
+      terminalDevAvatar.textContent = activeDev.initials || 'DV';
+      terminalDevAvatar.style.background = activeDev.avatarColor || '#6366f1';
+    }
+    if (terminalDevName) terminalDevName.textContent = activeDev.name || 'Developer';
+    if (terminalDevRole) terminalDevRole.textContent = activeDev.role || 'Software Developer';
+    if (terminalDevRate) terminalDevRate.textContent = `Rate: Confidential 🔒`;
+
     // Render Leave credits in My Stuff card
-    if (activeDev && activeDev.leaveCredits) {
+    if (activeDev.leaveCredits) {
       const vl = document.getElementById('mystuff-credit-vl');
       const sl = document.getElementById('mystuff-credit-sl');
       const el = document.getElementById('mystuff-credit-el');
-      if (vl) vl.textContent = activeDev.leaveCredits.vacation;
-      if (sl) sl.textContent = activeDev.leaveCredits.sick;
-      if (el) el.textContent = activeDev.leaveCredits.emergency;
+      if (vl) vl.textContent = activeDev.leaveCredits.vacation ?? 14;
+      if (sl) sl.textContent = activeDev.leaveCredits.sick ?? 10;
+      if (el) el.textContent = activeDev.leaveCredits.emergency ?? 5;
     }
 
     // Render Recent IN / OUT logs in Attendance card (PayDay style) - All Days / All Time
     if (paydayRecentTimelogs) {
-      const records = store.getState().attendanceRecords.filter(r => r.developerId === activeDev.id);
+      const allRecords = store.getState().attendanceRecords || [];
+      const records = allRecords
+        .filter(r => r && r.developerId === activeDev.id)
+        .sort((a, b) => {
+          const timeA = new Date(a.startTime || a.date).getTime();
+          const timeB = new Date(b.startTime || b.date).getTime();
+          return timeB - timeA;
+        });
+
+      const isCurrentlyActive = activeDev && activeDev.activeSession && (activeDev.status === 'working' || activeDev.status === 'break');
       const badgeTimelog = document.getElementById('badge-timelog-count');
       if (badgeTimelog) {
-        badgeTimelog.textContent = `All Time (${records.length} days)`;
+        const totalCount = records.length + (isCurrentlyActive ? 1 : 0);
+        badgeTimelog.textContent = `All Time (${totalCount} ${totalCount === 1 ? 'log' : 'logs'})`;
       }
       paydayRecentTimelogs.innerHTML = '';
 
-      if (records.length === 0) {
-        paydayRecentTimelogs.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); padding: 8px 0;">No attendance records yet.</div>`;
+      if (records.length === 0 && !isCurrentlyActive) {
+        paydayRecentTimelogs.innerHTML = `
+          <div style="font-size: 0.82rem; color: var(--text-muted); padding: 14px 10px; text-align: center; background: var(--bg-tertiary); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">
+            No attendance records yet for <strong>${activeDev.name}</strong>.<br>
+            <span style="font-size: 0.76rem; color: var(--accent-cyan); display: inline-block; margin-top: 4px;">Punch <strong>Time IN</strong> above to log your shift.</span>
+          </div>
+        `;
       } else {
+        // If developer is CURRENTLY clocked in (active session), display the active session live right at the top
+        if (isCurrentlyActive && activeDev.activeSession && activeDev.activeSession.startTime) {
+          const actDate = new Date(activeDev.activeSession.startTime);
+          const datePart = `${String(actDate.getMonth() + 1).padStart(2, '0')}/${String(actDate.getDate()).padStart(2, '0')}/${String(actDate.getFullYear()).slice(-2)}`;
+          const inTime = actDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const locBadge = (activeDev.activeSession.workLocation === 'wfh') ? '🏠 WFH' : '🏢 Onsite';
+
+          const cardOngoing = document.createElement('div');
+          cardOngoing.style.padding = '8px 12px';
+          cardOngoing.style.background = 'rgba(6, 182, 212, 0.08)';
+          cardOngoing.style.border = '1px solid rgba(6, 182, 212, 0.35)';
+          cardOngoing.style.borderRadius = 'var(--radius-md)';
+          cardOngoing.style.marginBottom = '8px';
+          cardOngoing.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <span style="font-weight: 700; font-size: 0.84rem; color: var(--accent-cyan);">📅 ${datePart} (Active Today)</span>
+              <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-secondary);">${locBadge}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.84rem; padding: 2px 0;">
+              <span style="font-weight: 700; color: #10b981; display: inline-flex; align-items: center; gap: 4px;">🟢 IN</span>
+              <span class="font-mono" style="font-weight: 600;">${inTime}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.84rem; padding: 2px 0;">
+              <span style="font-weight: 700; color: #f59e0b; display: inline-flex; align-items: center; gap: 4px;">🟡 OUT</span>
+              <span class="font-mono" style="color: var(--accent-cyan); font-weight: 700;">Shift Ongoing...</span>
+            </div>
+          `;
+          paydayRecentTimelogs.appendChild(cardOngoing);
+        }
+
         records.forEach(r => {
-          const datePart = r.date.split('-').slice(1).join('/') + '/' + r.date.split('-')[0].slice(-2);
-          const inTime = new Date(r.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const datePart = (r.date && r.date.includes('-')) 
+            ? r.date.split('-').slice(1).join('/') + '/' + r.date.split('-')[0].slice(-2)
+            : (r.date || 'Today');
+          const inTime = r.startTime ? new Date(r.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
           const outTime = r.endTime ? new Date(r.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+          const hrs = r.workedMinutes != null ? `${(r.workedMinutes / 60).toFixed(2)} hrs` : '';
+          const loc = r.workLocation === 'wfh' ? '🏠 WFH' : '🏢 Onsite';
 
-          const rowOut = document.createElement('div');
-          rowOut.style.display = 'flex';
-          rowOut.style.justifyContent = 'space-between';
-          rowOut.style.alignItems = 'center';
-          rowOut.style.fontSize = '0.84rem';
-          rowOut.innerHTML = `
-            <span style="color: var(--text-secondary);">${datePart}</span>
-            <span style="font-weight: 700; color: #f59e0b;">OUT</span>
-            <span class="font-mono">${outTime}</span>
+          const entryCard = document.createElement('div');
+          entryCard.style.padding = '8px 12px';
+          entryCard.style.background = 'var(--bg-tertiary)';
+          entryCard.style.border = '1px solid var(--border-color)';
+          entryCard.style.borderRadius = 'var(--radius-md)';
+          entryCard.style.marginBottom = '8px';
+          entryCard.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <span style="font-weight: 600; font-size: 0.84rem; color: var(--text-primary);">📅 ${datePart}</span>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 0.72rem; color: var(--text-muted);">${loc}</span>
+                ${hrs ? `<span class="badge badge-working" style="font-size: 0.68rem; padding: 2px 6px;">${hrs}</span>` : ''}
+              </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.84rem; padding: 2px 0;">
+              <span style="font-weight: 700; color: #10b981; display: inline-flex; align-items: center; gap: 4px;">🟢 IN</span>
+              <span class="font-mono">${inTime}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.84rem; padding: 2px 0;">
+              <span style="font-weight: 700; color: #f59e0b; display: inline-flex; align-items: center; gap: 4px;">🔴 OUT</span>
+              <span class="font-mono">${outTime}</span>
+            </div>
           `;
-
-          const rowIn = document.createElement('div');
-          rowIn.style.display = 'flex';
-          rowIn.style.justifyContent = 'space-between';
-          rowIn.style.alignItems = 'center';
-          rowIn.style.fontSize = '0.84rem';
-          rowIn.innerHTML = `
-            <span style="color: var(--text-secondary);">${datePart}</span>
-            <span style="font-weight: 700; color: #10b981;">IN</span>
-            <span class="font-mono">${inTime}</span>
-          `;
-
-          paydayRecentTimelogs.appendChild(rowOut);
-          paydayRecentTimelogs.appendChild(rowIn);
+          paydayRecentTimelogs.appendChild(entryCard);
         });
       }
     }
 
     // Render Pending Requests in My Stuff card
     if (myStuffPendingList) {
-      const pending = store.getRequests(auth.devId).filter(r => r.status === 'Pending').slice(0, 2);
+      const pending = store.getRequests(activeDev.id).filter(r => r.status === 'Pending').slice(0, 2);
       myStuffPendingList.innerHTML = '';
 
       if (pending.length === 0) {
-        myStuffPendingList.innerHTML = `<div style="font-size: 0.78rem; color: var(--text-muted);">No pending applications</div>`;
+        myStuffPendingList.innerHTML = `<div style="font-size: 0.78rem; color: var(--text-muted); padding: 4px 0;">No pending applications</div>`;
       } else {
         pending.forEach(p => {
           const div = document.createElement('div');
@@ -4123,6 +4199,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderAll() {
     updateForexUI(store.getUsdToPhpRate());
     renderProjectDropdowns();
+    renderEmployeeDropdown();
     setDefaultWorkLocation();
     renderClockTerminal();
     renderAttendanceBoard();
@@ -4131,19 +4208,14 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSettings();
     renderLeavesAndRequests();
     renderPaydayWidgets();
+    updateHeaderAuthProfile();
+    updateTerminalGpsStatus();
     applyFeatureVisibility();
   }
 
   // ==========================================
   // Manager & Admin Onboarding Guide (Operations Manager Tutorial Suite)
   // ==========================================
-  const modalManagerGuide = document.getElementById('modal-manager-guide');
-  const btnHeaderGuide = document.getElementById('btn-header-guide');
-  const btnOpenGuideModalFromSettings = document.getElementById('btn-open-guide-modal-from-settings');
-  const btnCloseManagerGuide = document.getElementById('btn-close-manager-guide');
-  const btnCloseManagerGuideFooter = document.getElementById('btn-close-manager-guide-footer');
-  const btnCopyStaffMsg = document.getElementById('btn-copy-staff-msg');
-  const btnCopyStaffMsgModal = document.getElementById('btn-copy-staff-msg-modal');
 
   function openManagerGuideModal() {
     if (!store.isAdmin()) {
@@ -4220,17 +4292,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // Universal Change PIN Controller (Self-Service)
   // ==========================================
-  const modalChangePin = document.getElementById('modal-change-pin');
-  const formChangePin = document.getElementById('form-change-pin');
-  const btnHeaderChangePin = document.getElementById('btn-header-change-pin');
-  const btnCloseChangePin = document.getElementById('btn-close-change-pin');
-  const btnCancelChangePin = document.getElementById('btn-cancel-change-pin');
-  const inputCurrentPin = document.getElementById('input-current-pin');
-  const inputNewPin = document.getElementById('input-new-pin');
-  const inputConfirmPin = document.getElementById('input-confirm-pin');
-  const changePinAlert = document.getElementById('change-pin-alert');
-  const changePinModalTitle = document.getElementById('change-pin-modal-title');
-  const changePinModalUser = document.getElementById('change-pin-modal-user');
 
   window.openChangePinModal = function() {
     const auth = store.getAuth();
@@ -4359,9 +4420,6 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // Live Database & Server Sync Status Listener
-  const syncStatusIndicator = document.getElementById('sync-status-indicator');
-  const syncStatusDot = document.getElementById('sync-status-dot');
-  const syncStatusText = document.getElementById('sync-status-text');
 
   window.addEventListener('devtrack:syncStatus', (e) => {
     if (!syncStatusIndicator || !syncStatusDot || !syncStatusText) return;

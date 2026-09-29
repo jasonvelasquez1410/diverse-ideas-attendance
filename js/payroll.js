@@ -20,8 +20,9 @@ class PayrollEngine {
 
   // Filter attendance records by preset or custom date range
   filterRecords(rangeType = 'all', devFilter = 'all', projectFilter = 'all', customStart = null, customEnd = null) {
-    const records = this.store.getState().attendanceRecords;
+    const records = this.store.getState().attendanceRecords || [];
     const now = new Date();
+    const todayStr = this.store.getLocalDateStr ? this.store.getLocalDateStr(now) : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
     return records.filter(record => {
       // Developer filter
@@ -30,32 +31,28 @@ class PayrollEngine {
       // Project filter
       if (projectFilter !== 'all' && record.projectId !== projectFilter) return false;
 
-      const recordDate = new Date(record.date);
+      const recDate = record.date || '';
 
       if (rangeType === 'today') {
-        const todayStr = now.toISOString().split('T')[0];
-        return record.date === todayStr;
+        return recDate === todayStr;
       }
 
       if (rangeType === 'week') {
         const dayOfWeek = now.getDay(); // 0 is Sun
         const distanceToMonday = (dayOfWeek + 6) % 7;
-        const monday = new Date(now);
-        monday.setDate(now.getDate() - distanceToMonday);
-        monday.setHours(0, 0, 0, 0);
-        return recordDate >= monday;
+        const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - distanceToMonday, 0, 0, 0, 0);
+        const mondayStr = this.store.getLocalDateStr ? this.store.getLocalDateStr(monday) : `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`;
+        return recDate >= mondayStr;
       }
 
       if (rangeType === 'month') {
-        const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        return recordDate >= firstDayOfMonth;
+        const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+        const firstDayStr = this.store.getLocalDateStr ? this.store.getLocalDateStr(firstDayOfMonth) : `${firstDayOfMonth.getFullYear()}-${String(firstDayOfMonth.getMonth() + 1).padStart(2, '0')}-01`;
+        return recDate >= firstDayStr;
       }
 
       if (rangeType === 'custom' && customStart && customEnd) {
-        const start = new Date(customStart);
-        const end = new Date(customEnd);
-        end.setHours(23, 59, 59, 999);
-        return recordDate >= start && recordDate <= end;
+        return recDate >= customStart && recDate <= customEnd;
       }
 
       return true; // 'all'

@@ -159,10 +159,21 @@ const server = http.createServer((req, res) => {
                 const exDev = existingState.developers.find(d => d.id === inDev.id);
                 if (exDev && (exDev.status === 'working' || exDev.status === 'break') && exDev.activeSession && inDev.status === 'offline') {
                   const exStart = exDev.activeSession.startTime;
-                  const hasClosed = mergedRecords.some(r => r.developerId === exDev.id && r.startTime === exStart && r.endTime);
-                  if (!hasClosed) {
-                    inDev.status = exDev.status;
-                    inDev.activeSession = exDev.activeSession;
+                  const hasClosed = mergedRecords.some(r => 
+                    r.developerId === exDev.id && (
+                      r.startTime === exStart || 
+                      (r.date && exStart && r.date === exStart.split('T')[0] && r.endTime)
+                    ) && r.endTime
+                  );
+                  // Only restore if incoming was an un-clocked-in background poll (missing activeSession without any closed record)
+                  if (!hasClosed && !inDev._isExplicitClockOut) {
+                    // Check if inDev had empty session vs explicit clock out
+                    const inRecords = Array.isArray(parsed.attendanceRecords) ? parsed.attendanceRecords : [];
+                    const hasRecentRecord = inRecords.some(r => r.developerId === inDev.id && r.endTime);
+                    if (!hasRecentRecord && inDev.activeSession === undefined) {
+                      inDev.status = exDev.status;
+                      inDev.activeSession = exDev.activeSession;
+                    }
                   }
                 }
               });

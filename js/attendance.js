@@ -85,11 +85,11 @@ class AttendanceEngine {
     if (!dev || !dev.activeSession) return null;
 
     const session = dev.activeSession;
-    const sessionStart = new Date(session.startTime);
     const end = customEndTime ? new Date(customEndTime) : new Date();
     
-    // Date of record is the shift start date (so if clocked in at 9am today, it logs for today)
-    const recordDate = session.startTime ? session.startTime.split('T')[0] : end.toISOString().split('T')[0];
+    // Date of record is the shift start date (in local timezone)
+    const recDateObj = session.startTime ? new Date(session.startTime) : end;
+    const recordDate = this.store.getLocalDateStr ? this.store.getLocalDateStr(recDateObj) : recDateObj.toISOString().split('T')[0];
 
     if (!Array.isArray(session.breaks)) session.breaks = [];
 
@@ -122,6 +122,7 @@ class AttendanceEngine {
     const hourlyRate = parseFloat(dev.hourlyRate) || 0;
 
     const record = {
+      id: 'rec-' + dev.id + '-' + Date.now(),
       developerId: dev.id,
       date: recordDate,
       startTime: session.startTime,
@@ -138,12 +139,12 @@ class AttendanceEngine {
       autoTimedOut: !!customEndTime
     };
 
-    // Save record & reset active session
-    this.store.addAttendanceRecord(record);
+    // Explicitly set offline state before persisting so state is cleanly atomic
     dev.status = 'offline';
     dev.activeSession = null;
-    this.store.saveState(true);
-    this.store.postStateToServer(this.store.getState());
+
+    // Save record to store and sync
+    this.store.addAttendanceRecord(record);
 
     return record;
   }
@@ -168,7 +169,7 @@ class AttendanceEngine {
     if (recordId) {
       record = records.find(r => r.id === recordId);
     } else {
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = this.store.getLocalDateStr ? this.store.getLocalDateStr(new Date()) : new Date().toISOString().split('T')[0];
       const todayRecords = records.filter(r => r.developerId === devId && r.date === todayStr);
       record = todayRecords[todayRecords.length - 1];
     }
@@ -193,12 +194,13 @@ class AttendanceEngine {
 
     // Remove the finalized attendance record so shift is ongoing
     this.store.deleteAttendanceRecord(record.id);
-    this.store.saveState();
+    this.store.saveState(true);
+    this.store.postStateToServer(this.store.getState());
     return true;
   }
 
   // Automatic Shift Timeout Evaluation Engine
-  // Automatically times out employees who forgot to punch out (15 mins after shift end -> stamped as 17:00)
+  // Automatically times out daytime employees who forgot to punch out (15 mins after shift end -> stamped as 17:00)
   checkAutoTimeouts() {
     const state = this.store.getState();
     const schedules = this.store.getWorkSchedules ? this.store.getWorkSchedules() : (state.workSchedules || {});
@@ -211,10 +213,7 @@ class AttendanceEngine {
     // Cutoff minutes from midnight (e.g. 17:00 + 15m grace = 17:15 -> 1035 mins)
     const cutoffMinutes = (endH * 60 + endM) + graceMins;
     const now = new Date();
-    const nowYear = now.getFullYear();
-    const nowMonth = String(now.getMonth() + 1).padStart(2, '0');
-    const nowDay = String(now.getDate()).padStart(2, '0');
-    const todayDateStr = `${nowYear}-${nowMonth}-${nowDay}`;
+    const todayDateStr = this.store.getLocalDateStr ? this.store.getLocalDateStr(now) : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const currentMinutesToday = now.getHours() * 60 + now.getMinutes();
 
     const timedOutDevs = [];
@@ -225,19 +224,20 @@ class AttendanceEngine {
         const sessionStart = new Date(dev.activeSession.startTime);
         if (isNaN(sessionStart.getTime())) return;
 
-        const sessionDate = new Date(dev.activeSession.startTime);
-        const sYear = sessionDate.getFullYear();
-        const sMonth = String(sessionDate.getMonth() + 1).padStart(2, '0');
-        const sDay = String(sessionDate.getDate()).padStart(2, '0');
-        const sessionStartDateStr = `${sYear}-${sMonth}-${sDay}`;
+        const sessionStartDateStr = this.store.getLocalDateStr ? this.store.getLocalDateStr(sessionStart) : `${sessionStart.getFullYear()}-${String(sessionStart.getMonth() + 1).padStart(2, '0')}-${String(sessionStart.getDate()).padStart(2, '0')}`;
 
         const isPastDay = sessionStartDateStr < todayDateStr;
         const isShiftDay = sessionStartDateStr === todayDateStr;
-        const hasPassedShiftCutoff = isShiftDay && (currentMinutesToday >= cutoffMinutes);
+        const sessionStartMinutes = sessionStart.getHours() * 60 + sessionStart.getMinutes();
+        const sessionStartedBeforeCutoff = sessionStartMinutes < cutoffMinutes;
+        const hasPassedShiftCutoff = isShiftDay && sessionStartedBeforeCutoff && (currentMinutesToday >= cutoffMinutes);
 
         if (isPastDay || hasPassedShiftCutoff) {
+          const sYear = sessionStart.getFullYear();
+          const sMonth = sessionStart.getMonth();
+          const sDay = sessionStart.getDate();
           // Construct target official punch out time (5:00 PM on that shift's date)
-          const targetEndDate = new Date(sYear, parseInt(sMonth) - 1, parseInt(sDay), endH, endM, 0, 0);
+          const targetEndDate = new Date(sYear, sMonth, sDay, endH, endM, 0, 0);
           
           let finalEndISO = targetEndDate.toISOString();
           if (targetEndDate <= sessionStart) {
@@ -248,7 +248,7 @@ class AttendanceEngine {
           const savedRecord = this.clockOut(dev.id, null, finalEndISO);
           if (savedRecord) {
             savedRecord.taskNote = (savedRecord.taskNote ? savedRecord.taskNote + ' ' : '') + '(Auto-timed out at 5:00 PM)';
-            this.store.saveState();
+            this.store.updateAttendanceRecord(savedRecord.id, { taskNote: savedRecord.taskNote });
             timedOutDevs.push({ dev, record: savedRecord });
           }
         }
@@ -285,7 +285,7 @@ class AttendanceEngine {
       totalBreakMs += Math.max(0, now - new Date(session.currentBreakStart));
     }
 
-    const recDate = session.startTime ? session.startTime.split('T')[0] : now.toISOString().split('T')[0];
+    const recDate = session.startTime ? (this.store.getLocalDateStr ? this.store.getLocalDateStr(new Date(session.startTime)) : session.startTime.split('T')[0]) : (this.store.getLocalDateStr ? this.store.getLocalDateStr(now) : now.toISOString().split('T')[0]);
     const rendered = this.store.calculateShiftRenderedTime({
       startTime: session.startTime,
       endTime: now.toISOString(),
