@@ -1325,7 +1325,26 @@ class Store {
   }
 
   notify() {
-    this.listeners.forEach(fn => fn(this.state, this.auth));
+    if (this._isNotifying) {
+      this._pendingNotify = true;
+      return;
+    }
+    this._isNotifying = true;
+    try {
+      this.listeners.forEach(fn => {
+        try {
+          fn(this.state, this.auth);
+        } catch (err) {
+          console.warn('Store subscriber warning:', err);
+        }
+      });
+    } finally {
+      this._isNotifying = false;
+      if (this._pendingNotify) {
+        this._pendingNotify = false;
+        this.notify();
+      }
+    }
   }
 
   getState() {
@@ -1334,13 +1353,14 @@ class Store {
 
   // Developer getters & mutations
   getActiveDeveloper() {
-    if (this.auth.role === 'developer' && this.auth.devId) {
+    if (this.auth && this.auth.role === 'developer' && this.auth.devId) {
       return this.getDeveloperById(this.auth.devId);
     }
     return this.state.developers.find(d => d.id === this.state.activeDeveloperId) || this.state.developers[0];
   }
 
   setActiveDeveloper(devId) {
+    if (!devId || this.state.activeDeveloperId === devId) return;
     this.state.activeDeveloperId = devId;
     this.saveState();
   }

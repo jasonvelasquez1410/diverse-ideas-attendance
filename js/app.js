@@ -232,22 +232,25 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   window.selectAuthDev = selectAuthDev;
 
-  function renderAuthLockScreen() {
+  function renderAuthLockScreen(preserveInput = false) {
     if (!authDevGrid) return;
     const state = store ? store.getState() : null;
     const devs = (state && Array.isArray(state.developers) && state.developers.length > 0)
       ? state.developers
       : (window.DEFAULT_INITIAL_STATE ? window.DEFAULT_INITIAL_STATE.developers : []);
     
+    const existingVal = authPinInput ? authPinInput.value : '';
+    const currentSelected = selectedAuthDevId || 'admin';
+
     authDevGrid.innerHTML = '';
-    if (authErrorMsg) authErrorMsg.textContent = '';
-    if (authPinInput) authPinInput.value = '';
-    selectedAuthDevId = 'admin'; // Always default selection to Administrator
+    if (authErrorMsg && !preserveInput) authErrorMsg.textContent = '';
+    if (authPinInput && !preserveInput) authPinInput.value = '';
+    selectedAuthDevId = currentSelected;
 
     // 1. Admin Master Profile Button (PIN hidden for security)
     const adminBtn = document.createElement('button');
     adminBtn.type = 'button';
-    adminBtn.className = 'auth-dev-btn selected';
+    adminBtn.className = `auth-dev-btn ${selectedAuthDevId === 'admin' ? 'selected' : ''}`;
     adminBtn.setAttribute('data-dev-id', 'admin');
     adminBtn.innerHTML = `
       <div style="width: 28px; height: 28px; border-radius: 50%; background: #ec4899; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: white; box-shadow: 0 0 10px rgba(236,72,153,0.5);">
@@ -547,11 +550,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const developers = store.getState().developers;
     const auth = store.getAuth();
     const isAdmin = store.isAdmin();
-
-    // Lock non-admin users strictly to their own logged-in developer ID
-    if (!isAdmin && auth && auth.devId) {
-      store.setActiveDeveloper(auth.devId);
-    }
     const activeDev = store.getActiveDeveloper();
 
     // Only show employee selector dropdown in Admin mode
@@ -698,10 +696,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderClockTerminal() {
-    const auth = store.getAuth();
-    if (!store.isAdmin() && auth && auth.devId) {
-      store.setActiveDeveloper(auth.devId);
-    }
     const activeDev = store.getActiveDeveloper();
     if (!activeDev) return;
 
@@ -4088,10 +4082,6 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   function renderPaydayWidgets() {
-    const auth = store.getAuth();
-    if (!store.isAdmin() && auth && auth.devId) {
-      store.setActiveDeveloper(auth.devId);
-    }
     const activeDev = store.getActiveDeveloper();
     if (!activeDev) return;
     const now = new Date();
@@ -4551,15 +4541,21 @@ document.addEventListener('DOMContentLoaded', () => {
   store.subscribe(() => {
     try {
       const currentAuth = store.getAuth();
-      if (currentAuth && currentAuth.isAuthenticated && authLockScreen) {
-        authLockScreen.style.display = 'none';
+      if (currentAuth && currentAuth.isAuthenticated) {
+        if (authLockScreen) {
+          authLockScreen.style.setProperty('display', 'none', 'important');
+        }
+        renderClockTerminal();
+        renderAttendanceBoard();
+        renderTimesheetsAndPayroll();
+        renderLeavesAndRequests();
+        renderPaydayWidgets();
+        updateHeaderAuthProfile();
+      } else {
+        if (authLockScreen && authLockScreen.style.display !== 'none') {
+          renderAuthLockScreen(true);
+        }
       }
-      renderClockTerminal();
-      renderAttendanceBoard();
-      renderTimesheetsAndPayroll();
-      renderLeavesAndRequests();
-      renderPaydayWidgets();
-      updateHeaderAuthProfile();
     } catch (err) {
       console.warn('Store subscriber warning:', err);
     }
