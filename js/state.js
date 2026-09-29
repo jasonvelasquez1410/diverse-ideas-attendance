@@ -1657,4 +1657,5 @@ class Store {
 }
 
 // Global state instance
+window.DEFAULT_INITIAL_STATE = DEFAULT_INITIAL_STATE;
 window.DevStore = new Store();

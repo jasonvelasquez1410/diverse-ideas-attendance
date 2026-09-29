@@ -193,24 +193,37 @@ document.addEventListener('DOMContentLoaded', () => {
   // 1. Authentication & PIN Security Engine
   // ==========================================
   function checkAuth() {
-    const auth = store.getAuth();
-    if (!auth.isAuthenticated) {
+    const auth = store ? store.getAuth() : null;
+    if (!auth || !auth.isAuthenticated) {
       renderAuthLockScreen();
-      authLockScreen.style.display = 'flex';
+      if (authLockScreen) {
+        authLockScreen.style.setProperty('display', 'flex', 'important');
+      }
       if (btnHeaderGuide) btnHeaderGuide.style.display = 'none';
     } else {
-      authLockScreen.style.display = 'none';
-      updateHeaderAuthProfile();
-      renderClockTerminal();
-      renderPaydayWidgets();
+      if (authLockScreen) {
+        authLockScreen.style.setProperty('display', 'none', 'important');
+      }
+      try {
+        updateHeaderAuthProfile();
+        renderClockTerminal();
+        renderPaydayWidgets();
+      } catch (e) {
+        console.warn('checkAuth render error:', e);
+      }
     }
   }
 
   function renderAuthLockScreen() {
-    const state = store.getState();
+    if (!authDevGrid) return;
+    const state = store ? store.getState() : null;
+    const devs = (state && Array.isArray(state.developers) && state.developers.length > 0)
+      ? state.developers
+      : (window.DEFAULT_INITIAL_STATE ? window.DEFAULT_INITIAL_STATE.developers : []);
+    
     authDevGrid.innerHTML = '';
-    authErrorMsg.textContent = '';
-    authPinInput.value = '';
+    if (authErrorMsg) authErrorMsg.textContent = '';
+    if (authPinInput) authPinInput.value = '';
     selectedAuthDevId = 'admin'; // Always default selection to Administrator
 
     // 1. Admin Master Profile Button (PIN hidden for security)
@@ -230,28 +243,35 @@ document.addEventListener('DOMContentLoaded', () => {
       selectedAuthDevId = 'admin';
       document.querySelectorAll('.auth-dev-btn').forEach(b => b.classList.remove('selected'));
       adminBtn.classList.add('selected');
-      authPinInput.placeholder = '••••';
-      authPinInput.focus();
+      if (authPinInput) {
+        authPinInput.placeholder = '••••';
+        authPinInput.focus();
+      }
     });
     authDevGrid.appendChild(adminBtn);
 
     // 2. Developer Profile Buttons (PIN hidden for security)
-    state.developers.forEach(dev => {
+    devs.forEach(dev => {
+      if (!dev) return;
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'auth-dev-btn';
       
-      const displayName = dev.name.includes(',') 
-        ? `${dev.name.split(',')[1].trim()} ${dev.name.split(',')[0].trim()}` 
-        : dev.name;
+      const rawName = dev.name || 'Developer';
+      const displayName = rawName.includes(',') 
+        ? `${rawName.split(',')[1].trim()} ${rawName.split(',')[0].trim()}` 
+        : rawName;
+      const rolePrefix = (dev.role && typeof dev.role === 'string') ? dev.role.split(' ')[0] : 'Software';
+      const initials = dev.initials || (rawName ? rawName.slice(0, 2).toUpperCase() : 'DV');
+      const avatarColor = dev.avatarColor || '#6366f1';
 
       btn.innerHTML = `
-        <div style="width: 28px; height: 28px; border-radius: 50%; background: ${dev.avatarColor}; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: white;">
-          ${dev.initials}
+        <div style="width: 28px; height: 28px; border-radius: 50%; background: ${avatarColor}; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: white;">
+          ${initials}
         </div>
         <div style="display: flex; flex-direction: column; text-align: left; line-height: 1.15; overflow: hidden;">
           <span style="font-weight: 600; font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;" title="${displayName}">${displayName}</span>
-          <span style="font-size: 0.65rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;">${dev.role.split(' ')[0]} Developer</span>
+          <span style="font-size: 0.65rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;">${rolePrefix} Developer</span>
         </div>
       `;
 
@@ -259,8 +279,10 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedAuthDevId = dev.id;
         document.querySelectorAll('.auth-dev-btn').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
-        authPinInput.placeholder = '••••';
-        authPinInput.focus();
+        if (authPinInput) {
+          authPinInput.placeholder = '••••';
+          authPinInput.focus();
+        }
       });
 
       authDevGrid.appendChild(btn);
@@ -269,7 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function handleSuccessfulAuth(msg = '') {
     if (authLockScreen) {
-      authLockScreen.style.display = 'none';
+      authLockScreen.style.setProperty('display', 'none', 'important');
     }
     if (authPinInput) {
       authPinInput.value = '';
