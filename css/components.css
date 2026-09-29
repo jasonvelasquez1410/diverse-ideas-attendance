@@ -885,16 +885,79 @@ select.form-control option {
 
 .pin-input-field {
   font-family: var(--font-mono);
-  font-size: 1.6rem;
-  letter-spacing: 0.4em;
+  font-size: 1.4rem;
+  letter-spacing: 0.25em;
   text-align: center;
-  padding: 12px;
+  padding: 10px 14px;
   border-radius: var(--radius-md);
   background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
+  border: 1.5px solid var(--border-color);
   color: var(--text-primary);
   width: 100%;
-  margin: 16px 0;
+  margin: 10px 0;
+  transition: all 150ms ease;
+}
+
+.pin-input-field:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 12px var(--accent-primary-glow);
+  outline: none;
+}
+
+.pin-boxes-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 10px 0 14px 0;
+}
+
+.pin-box-dot {
+  width: 44px;
+  height: 48px;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--accent-primary);
+  transition: all 120ms ease;
+  user-select: none;
+}
+
+.pin-box-dot.filled {
+  border-color: var(--accent-primary);
+  background: rgba(99, 102, 241, 0.18);
+  box-shadow: 0 0 10px var(--accent-primary-glow);
+  color: var(--accent-primary);
+}
+
+.auth-keypad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 10px 0 14px 0;
+}
+
+.auth-key-btn {
+  height: 46px;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  touch-action: manipulation !important;
+  border-radius: var(--radius-md) !important;
+}
+
+.auth-key-btn:active {
+  transform: scale(0.94);
+  background: var(--accent-primary) !important;
+  color: #ffffff !important;
 }
 
 .confidential-mask {
