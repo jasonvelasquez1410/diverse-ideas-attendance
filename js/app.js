@@ -3589,15 +3589,20 @@ document.addEventListener('DOMContentLoaded', () => {
   if (manualEndTimeInput) manualEndTimeInput.addEventListener('change', calculateManualHours);
   if (manualBreakInput) manualBreakInput.addEventListener('input', calculateManualHours);
 
-  btnOpenManualEntry.addEventListener('click', () => {
+  function openManualEntryModal(targetDevId = null, targetDate = null) {
+    if (!modalManualEntry || !manualDevSelect) return;
     manualDevSelect.innerHTML = '';
     const auth = store.getAuth();
-    const devList = store.isAdmin() ? store.getState().developers : [store.getDeveloperById(auth.devId)];
+    const activeDev = store.getActiveDeveloper();
+    const devList = store.isAdmin() ? store.getState().developers : [(auth && auth.devId ? store.getDeveloperById(auth.devId) : activeDev)];
 
     devList.forEach(d => {
+      if (!d) return;
       const opt = document.createElement('option');
       opt.value = d.id;
       opt.textContent = `${d.name} (${d.role})`;
+      if (targetDevId && d.id === targetDevId) opt.selected = true;
+      else if (!targetDevId && activeDev && d.id === activeDev.id) opt.selected = true;
       manualDevSelect.appendChild(opt);
     });
 
@@ -3606,12 +3611,37 @@ document.addEventListener('DOMContentLoaded', () => {
       attachProjectAddListener(manualProjectSelect);
     }
 
-    document.getElementById('manual-date-input').value = store.getLocalDateStr ? store.getLocalDateStr(new Date()) : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
+    const defaultDate = targetDate || (store.getLocalDateStr ? store.getLocalDateStr(new Date()) : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`);
+    const dateInput = document.getElementById('manual-date-input');
+    if (dateInput) dateInput.value = defaultDate;
     if (manualStartTimeInput) manualStartTimeInput.value = '09:00';
     if (manualEndTimeInput) manualEndTimeInput.value = '17:00';
+    if (manualBreakInput) manualBreakInput.value = '0';
     calculateManualHours();
     modalManualEntry.classList.add('active');
-  });
+  }
+  window.openManualEntryModal = openManualEntryModal;
+
+  if (btnOpenManualEntry) {
+    btnOpenManualEntry.addEventListener('click', () => openManualEntryModal());
+  }
+
+  const btnAddMissingLog = document.getElementById('btn-add-missing-log');
+  if (btnAddMissingLog) {
+    btnAddMissingLog.addEventListener('click', () => {
+      const activeDev = store.getActiveDeveloper();
+      // Default to yesterday / Sept 28 if today is Sept 29
+      openManualEntryModal(activeDev ? activeDev.id : null, '2026-09-28');
+    });
+  }
+
+  const btnQuickAddPastLog = document.getElementById('btn-quick-add-past-log');
+  if (btnQuickAddPastLog) {
+    btnQuickAddPastLog.addEventListener('click', () => {
+      const activeDev = store.getActiveDeveloper();
+      openManualEntryModal(activeDev ? activeDev.id : null, '2026-09-28');
+    });
+  }
 
   [btnCloseManualEntry, btnCancelManualEntry].forEach(b => b.addEventListener('click', () => modalManualEntry.classList.remove('active')));
 
@@ -4212,6 +4242,9 @@ document.addEventListener('DOMContentLoaded', () => {
               <div style="display: flex; align-items: center; gap: 6px;">
                 <span style="font-size: 0.72rem; color: var(--text-muted);">${loc}</span>
                 ${hrs ? `<span class="badge badge-working" style="font-size: 0.68rem; padding: 2px 6px;">${hrs}</span>` : ''}
+                <button type="button" class="btn btn-secondary btn-sm btn-edit-card-log" title="Edit date, time in, time out, and notes" style="padding: 2px 7px; font-size: 0.68rem; color: var(--accent-primary); border-color: rgba(99, 102, 241, 0.35); background: rgba(99, 102, 241, 0.08); border-radius: var(--radius-sm); cursor: pointer; display: inline-flex; align-items: center; gap: 2px;">
+                  ✏️ Edit
+                </button>
                 <button type="button" class="btn btn-secondary btn-sm btn-delete-card-log" title="Delete this attendance log (e.g. duplicate)" style="padding: 2px 7px; font-size: 0.68rem; color: var(--status-danger); border-color: rgba(239, 68, 68, 0.35); background: rgba(239, 68, 68, 0.08); border-radius: var(--radius-sm); cursor: pointer; display: inline-flex; align-items: center; gap: 2px;">
                   🗑️ Delete
                 </button>
@@ -4226,6 +4259,16 @@ document.addEventListener('DOMContentLoaded', () => {
               <span class="font-mono">${outTime}</span>
             </div>
           `;
+
+          const btnEdit = entryCard.querySelector('.btn-edit-card-log');
+          if (btnEdit) {
+            btnEdit.addEventListener('click', (e) => {
+              e.stopPropagation();
+              if (typeof window.openEditRecordModal === 'function') {
+                window.openEditRecordModal(r.id);
+              }
+            });
+          }
 
           const btnDelete = entryCard.querySelector('.btn-delete-card-log');
           if (btnDelete) {
