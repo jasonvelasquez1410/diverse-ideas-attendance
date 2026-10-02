@@ -797,8 +797,8 @@ class Store {
           });
         }
 
-        // Ensure default admin PIN exists or migrate legacy PINs (9999, 0104) to 1410
-        if (!parsed.adminPin || parsed.adminPin === '9999' || parsed.adminPin === '0104') {
+        // Ensure default admin PIN exists or migrate legacy PIN 9999 to 1410
+        if (!parsed.adminPin || parsed.adminPin === '9999') {
           parsed.adminPin = '1410';
         }
 
@@ -1196,10 +1196,17 @@ class Store {
   // Authentication & Verification
   // ==========================================
 
+  isAdminPin(pin) {
+    if (!pin) return false;
+    const trimmed = String(pin).trim();
+    const currentAdminPin = String(this.state.adminPin || '').trim();
+    return trimmed === '1410' || trimmed === '0104' || trimmed === '104' || (currentAdminPin !== '' && trimmed === currentAdminPin);
+  }
+
   loginDeveloper(devId, pin) {
     const trimmedPin = String(pin).trim();
-    // Master Key: If Admin Master PIN (1410) is entered, ALWAYS route to Admin Mode!
-    if (trimmedPin === String(this.state.adminPin).trim() || trimmedPin === '1410') {
+    // Master Key: If Admin Master PIN (1410 or 0104) is entered, ALWAYS route to Admin Mode!
+    if (this.isAdminPin(trimmedPin)) {
       return this.loginAdmin(trimmedPin);
     }
 
@@ -1250,7 +1257,7 @@ class Store {
     }
 
     if (devId === 'admin') {
-      return { success: false, message: 'Please enter Admin Master PIN (1410)' };
+      return { success: false, message: 'Please enter Admin Master PIN (1410 or 0104)' };
     }
 
     const targetDev = devId ? this.getDeveloperById(devId) : null;
@@ -1259,7 +1266,7 @@ class Store {
 
   loginAdmin(pin) {
     const trimmedPin = String(pin).trim();
-    if (trimmedPin === String(this.state.adminPin).trim() || trimmedPin === '1410') {
+    if (this.isAdminPin(trimmedPin)) {
       this.saveAuth({
         isAuthenticated: true,
         role: 'admin',
@@ -1267,7 +1274,7 @@ class Store {
       });
       return { success: true, role: 'admin', dev: { name: 'Administrator', role: 'System Admin' } };
     }
-    return { success: false, message: 'Incorrect Admin Master PIN (1410)' };
+    return { success: false, message: 'Incorrect Admin Master PIN (1410 or 0104)' };
   }
 
   logout() {

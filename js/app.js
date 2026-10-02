@@ -333,8 +333,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const pin = (authPinInput ? authPinInput.value : '').trim();
     if (!pin) return;
 
-    // MASTER OVERRIDE: Entering Master PIN 1410 ALWAYS logs in as Administrator regardless of button selected!
-    if (pin === '1410' || pin === String(store.getState().adminPin).trim()) {
+    // MASTER OVERRIDE: Entering Master PIN (1410 or 0104) ALWAYS logs in as Administrator regardless of button selected!
+    if (store.isAdminPin(pin)) {
       const result = store.loginAdmin(pin);
       if (result && result.success) {
         selectedAuthDevId = 'admin';
@@ -375,7 +375,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnAdminLoginModal) {
     btnAdminLoginModal.addEventListener('click', () => {
-      const pin = prompt('Enter Admin Master PIN (1410):');
+      const pin = prompt('Enter Admin Master PIN (1410 or 0104):');
       if (pin !== null) {
         const result = store.loginAdmin(pin.trim());
         if (result && result.success) {
@@ -519,8 +519,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Restrict Settings tab to Admin
       if (targetPaneId === 'tab-settings' && !store.isAdmin()) {
-        const pin = prompt('Team & Rates configuration is confidential.\nEnter Admin Master PIN to access:');
-        if (pin === store.getState().adminPin) {
+        const pin = prompt('Team & Rates configuration is confidential.\nEnter Admin Master PIN (1410 or 0104) to access:');
+        if (pin && store.isAdminPin(pin)) {
           store.loginAdmin(pin);
           updateHeaderAuthProfile();
         } else {
@@ -2418,8 +2418,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const newPin = document.getElementById('setting-new-admin-pin').value.trim();
       const confirmPin = document.getElementById('setting-confirm-admin-pin').value.trim();
 
-      const actualAdminPin = String(store.getState().adminPin || '1410').trim();
-      if (currentPin !== actualAdminPin) {
+      if (!store.isAdminPin(currentPin)) {
         alert('❌ Current Admin PIN is incorrect.');
         document.getElementById('setting-current-admin-pin').focus();
         return;
@@ -2981,8 +2980,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    if (pin === String(store.getState().adminPin).trim()) {
-      alert('❌ Staff PIN cannot be the same as the Admin Master PIN.');
+    if (store.isAdminPin(pin)) {
+      alert('❌ Staff PIN cannot be the same as the Admin Master PIN (1410 / 0104).');
       document.getElementById('edit-dev-pin').focus();
       return;
     }
@@ -3703,8 +3702,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnOpenAddProject) {
     btnOpenAddProject.addEventListener('click', () => {
       if (!store.isAdmin()) {
-        const pin = prompt('Enter Admin Master PIN (1410) to create projects:');
-        if (pin !== store.getState().adminPin) {
+        const pin = prompt('Enter Admin Master PIN (1410 or 0104) to create projects:');
+        if (!pin || !store.isAdminPin(pin)) {
           alert('❌ Access Denied. Admin PIN required.');
           return;
         }
@@ -3744,8 +3743,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.openEditProjectModal = function(projId) {
     if (!store.isAdmin()) {
-      const pin = prompt('Enter Admin Master PIN (1410) to edit projects:');
-      if (pin !== store.getState().adminPin) {
+      const pin = prompt('Enter Admin Master PIN (1410 or 0104) to edit projects:');
+      if (!pin || !store.isAdminPin(pin)) {
         alert('❌ Access Denied. Admin PIN required.');
         return;
       }
@@ -3791,8 +3790,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.deleteProjectConfirm = function(projId) {
     if (!store.isAdmin()) {
-      const pin = prompt('Enter Admin Master PIN (1410) to delete projects:');
-      if (pin !== store.getState().adminPin) {
+      const pin = prompt('Enter Admin Master PIN (1410 or 0104) to delete projects:');
+      if (!pin || !store.isAdminPin(pin)) {
         alert('❌ Access Denied. Admin PIN required.');
         return;
       }
@@ -3959,8 +3958,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.deleteHolidayConfirm = function(date, name) {
     if (!store.isAdmin()) {
-      const pin = prompt('Enter Admin Master PIN (1410) to delete holidays:');
-      if (pin !== store.getState().adminPin) {
+      const pin = prompt('Enter Admin Master PIN (1410 or 0104) to delete holidays:');
+      if (!pin || !store.isAdminPin(pin)) {
         alert('❌ Access Denied. Admin PIN required.');
         return;
       }
@@ -4003,8 +4002,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnOpenAddHoliday) {
     btnOpenAddHoliday.addEventListener('click', () => {
       if (!store.isAdmin()) {
-        const pin = prompt('Enter Admin Master PIN (1410) to add holidays:');
-        if (pin !== store.getState().adminPin) {
+        const pin = prompt('Enter Admin Master PIN (1410 or 0104) to add holidays:');
+        if (!pin || !store.isAdminPin(pin)) {
           alert('❌ Access Denied. Admin PIN required.');
           return;
         }
@@ -4536,8 +4535,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (auth.role === 'admin') {
-        const actualAdminPin = String(store.getState().adminPin || '1410').trim();
-        if (currentPin !== actualAdminPin) {
+        if (!store.isAdminPin(currentPin)) {
           showAlert('❌ Current Admin PIN is incorrect.');
           inputCurrentPin.focus();
           return;
@@ -4557,9 +4555,8 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        const adminPin = String(store.getState().adminPin || '1410').trim();
-        if (newPin === adminPin) {
-          showAlert('❌ This PIN is reserved for the Administrator. Please choose a different 4-digit code.');
+        if (store.isAdminPin(newPin)) {
+          showAlert('❌ This PIN is reserved for the Administrator (1410 / 0104). Please choose a different 4-digit code.');
           inputNewPin.focus();
           return;
         }
