@@ -98,6 +98,11 @@ DevTrack is an in-house **Time & Attendance, Daily Time Record (DTR), Time Off &
 - **Employee Visibility:** Staff can view their **exact rendered hours** (daily timelogs, active shift hours, weekly totals, and period rendered hours) along with the **live USD to PHP exchange rate**. Individual dollar/peso wage calculations and rates remain strictly confidential.
 - **Executive Confidential Payslips:** All payslip generation, payroll vouchers, and wage amounts remain locked behind Admin Master PINs `1410` & `0104` (Operations Manager / Tefanny). Admin can print 1-page Official Payslips for all developers with dual signatures.
 
+### 📜 Module 6: Official Certificate of Employment (COE) with Compensation (Admin Exclusive PIN 1410)
+- **Auto Financing & Bank Loan Ready:** 1-click generator for official bank-ready COEs formatted for Auto Loan / Car Financing, Credit Card, Housing Loan (Pag-IBIG/Bank), Visa/Embassy, and Personal Loan applications.
+- **Dual-Currency Compensation Breakdown:** Automatically computes and presents hourly pay rate ($ USD & ₱ PHP), estimated monthly gross salary (based on standard 40-hr workweek / 160 billable hours per month), 3-month historical average earnings, and active full-time independent developer engagement status.
+- **Interactive Admin Customization:** Administrator can switch developers, customize employment hire date, edit specific loan reference purpose statements, toggle compensation rows, and print/save directly as an executive 1-page A4/Letter PDF with corporate letterhead, verification reference number, authorized signature line, and official company seal.
+
 ---
 
 ## 5. How to Resume After Laptop Restart / Shutdown

@@ -1262,6 +1262,265 @@ select.form-control option {
 }
 
 /* ==========================================================================
+   Certificate of Employment (COE) with Compensation Styles
+   ========================================================================== */
+.coe-modal-controls label {
+  margin-bottom: 4px;
+  display: block;
+}
+
+.coe-document-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  color: var(--text-primary);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.coe-letterhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.coe-letterhead-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.coe-letterhead-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #4f46e5, #06b6d4);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 1.3rem;
+  letter-spacing: -0.02em;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+}
+
+.coe-company-name {
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.coe-company-tagline {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+.coe-company-address {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.coe-letterhead-meta {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+}
+
+.coe-ref-no {
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
+.coe-doc-date {
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.coe-divider {
+  height: 2px;
+  background: linear-gradient(90deg, #4f46e5, #06b6d4, #10b981);
+  margin: 16px 0 18px 0;
+  border-radius: 2px;
+}
+
+.coe-doc-title-box {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.coe-title {
+  font-family: var(--font-heading);
+  font-size: 1.18rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.coe-salutation {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.coe-body-text {
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.coe-body-text p {
+  margin: 0;
+}
+
+.coe-body-text strong {
+  color: var(--text-primary);
+}
+
+.coe-compensation-box {
+  margin: 12px 0;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  background: var(--bg-tertiary);
+}
+
+.coe-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.coe-table th {
+  background: rgba(99, 102, 241, 0.08);
+  padding: 8px 12px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.coe-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.coe-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.coe-table td strong {
+  color: var(--text-primary);
+}
+
+.coe-signatures-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 24px;
+  padding-top: 12px;
+}
+
+.coe-sig-col {
+  width: 260px;
+  text-align: left;
+}
+
+.coe-sig-line {
+  width: 200px;
+  height: 1.5px;
+  background: var(--border-color);
+  margin-bottom: 6px;
+}
+
+.coe-sig-name {
+  font-weight: 800;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+}
+
+.coe-sig-title {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--accent-cyan);
+}
+
+.coe-sig-company {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.coe-sig-contact {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  margin-top: 2px;
+}
+
+.coe-stamp-col {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.coe-official-seal {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  border: 2px dashed rgba(99, 102, 241, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-10deg);
+  opacity: 0.85;
+}
+
+.coe-seal-inner {
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(99, 102, 241, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.52rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  line-height: 1.15;
+  text-align: center;
+}
+
+.coe-footer-note {
+  margin-top: 18px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* ==========================================================================
    Enterprise Settings Sub-Navigation & Panes (Jibble Style)
    ========================================================================== */
 .settings-subnav {
@@ -1757,6 +2016,8 @@ select.form-control option {
   .modal-close-btn,
   .payslip-modal-controls,
   #payslip-modal-controls,
+  .coe-modal-controls,
+  #coe-modal-controls,
   .theme-toggle-btn,
   #modal-file-request,
   #modal-add-holiday,
@@ -1768,8 +2029,9 @@ select.form-control option {
     display: none !important;
   }
 
-  /* Make ONLY the payslip modal container visible and format as 1 single sheet */
-  #modal-payslip-preview {
+  /* Modal print display rules */
+  #modal-payslip-preview.active,
+  #modal-coe-preview.active {
     display: block !important;
     position: relative !important;
     top: 0 !important;
@@ -1783,6 +2045,188 @@ select.form-control option {
     padding: 0 !important;
     margin: 0 !important;
     z-index: 99999 !important;
+  }
+
+  body:not(.printing-coe) #modal-payslip-preview:not(.active) {
+    display: none !important;
+  }
+
+  body.printing-coe #modal-payslip-preview {
+    display: none !important;
+  }
+
+  #modal-coe-preview:not(.active) {
+    display: none !important;
+  }
+
+  #modal-coe-preview .modal-dialog {
+    display: block !important;
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: #ffffff !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  #modal-coe-preview .modal-body {
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+  }
+
+  .coe-document-card {
+    border: 1.5px solid #0f172a !important;
+    border-radius: 8px !important;
+    padding: 22px 28px !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-after: avoid !important;
+    margin: 0 auto !important;
+    max-width: 100% !important;
+  }
+
+  .coe-letterhead {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+  }
+
+  .coe-letterhead-logo {
+    background: #0f172a !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .coe-company-name {
+    color: #0f172a !important;
+    font-size: 14pt !important;
+    font-weight: 800 !important;
+  }
+
+  .coe-company-tagline {
+    color: #475569 !important;
+    font-size: 8pt !important;
+  }
+
+  .coe-company-address {
+    color: #64748b !important;
+    font-size: 7.5pt !important;
+  }
+
+  .coe-divider {
+    height: 2px !important;
+    background: #0f172a !important;
+    margin: 12px 0 16px 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .coe-title {
+    color: #0f172a !important;
+    font-size: 13pt !important;
+    font-weight: 900 !important;
+  }
+
+  .coe-salutation {
+    font-size: 10pt !important;
+    font-weight: 800 !important;
+    color: #0f172a !important;
+  }
+
+  .coe-body-text {
+    font-size: 9.5pt !important;
+    line-height: 1.6 !important;
+    color: #1e293b !important;
+  }
+
+  .coe-body-text strong {
+    color: #000000 !important;
+  }
+
+  .coe-compensation-box {
+    border: 1px solid #cbd5e1 !important;
+    background: #f8fafc !important;
+    margin: 12px 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .coe-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  .coe-table th {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+    font-size: 8pt !important;
+    padding: 6px 10px !important;
+    border: 1px solid #cbd5e1 !important;
+    font-weight: 700 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .coe-table td {
+    padding: 7px 10px !important;
+    font-size: 8.5pt !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #000000 !important;
+  }
+
+  .coe-signatures-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-end !important;
+    margin-top: 22px !important;
+    page-break-inside: avoid !important;
+  }
+
+  .coe-sig-line {
+    border-top: 1px solid #000000 !important;
+    background: transparent !important;
+  }
+
+  .coe-sig-name {
+    font-size: 9.5pt !important;
+    font-weight: 800 !important;
+    color: #000000 !important;
+  }
+
+  .coe-sig-title {
+    font-size: 8pt !important;
+    color: #334155 !important;
+    font-weight: 700 !important;
+  }
+
+  .coe-sig-company {
+    font-size: 7.5pt !important;
+    color: #64748b !important;
+  }
+
+  .coe-official-seal {
+    border: 1.5px dashed #475569 !important;
+  }
+
+  .coe-seal-inner {
+    border: 1.5px solid #475569 !important;
+    color: #0f172a !important;
+  }
+
+  .coe-footer-note {
+    font-size: 7pt !important;
+    color: #64748b !important;
+    border-top: 1px solid #e2e8f0 !important;
+    margin-top: 14px !important;
+    padding-top: 6px !important;
   }
 
   #modal-payslip-preview .modal-dialog {

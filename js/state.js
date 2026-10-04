@@ -70,6 +70,7 @@ const DEFAULT_INITIAL_STATE = {
       avatarColor: '#6366f1',
       initials: 'BC',
       email: 'cyreh.bayson@diverseideas.de',
+      startDate: '2024-06-01',
       status: 'offline',
       activeSession: null,
       leaveCredits: { vacation: 12, sick: 10, emergency: 5 }
@@ -85,6 +86,7 @@ const DEFAULT_INITIAL_STATE = {
       avatarColor: '#06b6d4',
       initials: 'IE',
       email: 'ella.ibanez@diverseideas.de',
+      startDate: '2024-06-01',
       status: 'offline',
       activeSession: null,
       leaveCredits: { vacation: 15, sick: 10, emergency: 5 }
@@ -100,6 +102,7 @@ const DEFAULT_INITIAL_STATE = {
       avatarColor: '#10b981',
       initials: 'NA',
       email: 'abner.nalugon@diverseideas.de',
+      startDate: '2023-05-01',
       status: 'offline',
       activeSession: null,
       leaveCredits: { vacation: 10, sick: 8, emergency: 5 }
@@ -115,6 +118,7 @@ const DEFAULT_INITIAL_STATE = {
       avatarColor: '#f59e0b',
       initials: 'VJ',
       email: 'jason.velasquez@diverseideas.de',
+      startDate: '2023-10-01',
       status: 'offline',
       activeSession: null,
       leaveCredits: { vacation: 14, sick: 10, emergency: 5 }
@@ -913,8 +917,11 @@ class Store {
       stateObj.developers = JSON.parse(JSON.stringify(DEFAULT_INITIAL_STATE.developers));
     } else {
       DEFAULT_INITIAL_STATE.developers.forEach(defDev => {
-        if (!stateObj.developers.some(d => d.id === defDev.id)) {
+        const existingDev = stateObj.developers.find(d => d.id === defDev.id);
+        if (!existingDev) {
           stateObj.developers.push(JSON.parse(JSON.stringify(defDev)));
+        } else if (!existingDev.startDate) {
+          existingDev.startDate = defDev.startDate;
         }
       });
     }

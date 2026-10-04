@@ -169,6 +169,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const payslipNetPhp = document.getElementById('payslip-net-php');
   const payslipVoucherNo = document.getElementById('payslip-voucher-no');
 
+  // Certificate of Employment (COE) Modal Elements (Admin Exclusive)
+  const modalCoePreview = document.getElementById('modal-coe-preview');
+  const btnCloseCoe = document.getElementById('btn-close-coe');
+  const btnCloseCoeFooter = document.getElementById('btn-close-coe-footer');
+  const btnPrintCoeDirect = document.getElementById('btn-print-coe-direct');
+  const btnOpenCoeModal = document.getElementById('btn-open-coe-modal');
+  const btnQuickRunCoe = document.getElementById('btn-quick-run-coe');
+  const btnCardMyCoe = document.getElementById('btn-card-my-coe');
+
   // DOM Elements - Settings View
   const settingsDevTableBody = document.getElementById('settings-dev-table-body');
   const settingsProjectTableBody = document.getElementById('settings-project-table-body');
@@ -403,9 +412,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (btnHeaderGuide) {
         btnHeaderGuide.style.display = 'inline-flex';
       }
-      // Payslip generation is strictly exclusive to Admin (Master PIN 1410)
+      // Payslip & COE generation are strictly exclusive to Admin (Master PIN 1410)
       if (btnCardPayslip) {
         btnCardPayslip.style.display = 'inline-flex';
+      }
+      if (btnCardMyCoe) {
+        btnCardMyCoe.style.display = 'inline-flex';
       }
       if (btnHeaderChangePin) {
         btnHeaderChangePin.style.display = 'inline-flex';
@@ -420,12 +432,15 @@ document.addEventListener('DOMContentLoaded', () => {
         headerUserRoleBadge.style.background = 'rgba(99, 102, 241, 0.2)';
         headerUserRoleBadge.style.color = 'var(--accent-cyan)';
       }
-      // Hide Manager Guide and Payslip buttons completely for individual staff logins (Rates/Payslips confidential)
+      // Hide Manager Guide, Payslip, and COE buttons completely for individual staff logins (Rates/Payslips/COE confidential)
       if (btnHeaderGuide) {
         btnHeaderGuide.style.display = 'none';
       }
       if (btnCardPayslip) {
         btnCardPayslip.style.display = 'none';
+      }
+      if (btnCardMyCoe) {
+        btnCardMyCoe.style.display = 'none';
       }
       if (btnHeaderChangePin) {
         btnHeaderChangePin.style.display = 'inline-flex';
@@ -1960,6 +1975,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnPrintReport) {
       btnPrintReport.style.display = store.isAdmin() ? 'inline-flex' : 'none';
     }
+    if (btnOpenCoeModal) {
+      btnOpenCoeModal.style.display = store.isAdmin() ? 'inline-flex' : 'none';
+    }
 
     // Render Table Rows
     timesheetTableBody.innerHTML = '';
@@ -2353,10 +2371,287 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   window.addEventListener('beforeprint', () => {
-    if (store.isAdmin() && !modalPayslipPreview.classList.contains('active')) {
+    if (store.isAdmin() && modalCoePreview && modalCoePreview.classList.contains('active')) {
+      document.body.classList.add('printing-coe');
+    } else if (store.isAdmin() && modalPayslipPreview && !modalPayslipPreview.classList.contains('active') && (!modalCoePreview || !modalCoePreview.classList.contains('active'))) {
+      document.body.classList.remove('printing-coe');
       window.openPayslipModal();
     }
   });
+
+  window.addEventListener('afterprint', () => {
+    document.body.classList.remove('printing-coe');
+  });
+
+  // ==========================================
+  // 8B. Official Certificate of Employment (COE) Generator & Print Controller (Admin Exclusive PIN 1410)
+  // ==========================================
+  window.openCOEModal = function(targetDevId = null) {
+    if (!store.isAdmin()) {
+      showToast('🔒 Access Restricted: Certificate of Employment (COE) generation is confidential and strictly exclusive to Administrator (Master PIN 1410).', 'warning');
+      return;
+    }
+
+    const state = store.getState();
+    const rate = store.getUsdToPhpRate();
+
+    let devId = targetDevId;
+    if (!devId) {
+      devId = (payrollDevFilter && payrollDevFilter.value !== 'all') ? payrollDevFilter.value : state.activeDeveloperId;
+    }
+
+    let dev = store.getDeveloperById(devId) || state.developers[0];
+
+    const coeSelectDev = document.getElementById('coe-select-dev');
+    const coeInputStartDate = document.getElementById('coe-input-start-date');
+    const coeSelectPurpose = document.getElementById('coe-select-purpose');
+    const coeInputCustomPurpose = document.getElementById('coe-input-custom-purpose');
+    const coeCustomPurposeRow = document.getElementById('coe-custom-purpose-row');
+    const coeToggleMonthlyGross = document.getElementById('coe-toggle-monthly-gross');
+    const coeToggleHourlyRate = document.getElementById('coe-toggle-hourly-rate');
+    const coeToggleAvgHistory = document.getElementById('coe-toggle-avg-history');
+    const coeForexIndicator = document.getElementById('coe-forex-indicator');
+
+    if (coeForexIndicator) {
+      coeForexIndicator.textContent = `1 USD = ₱${rate.toFixed(2)} PHP`;
+    }
+
+    // Populate developer dropdown
+    if (coeSelectDev) {
+      coeSelectDev.innerHTML = '';
+      state.developers.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.id;
+        opt.textContent = `${d.name} — ${d.role}`;
+        if (d.id === dev.id) opt.selected = true;
+        coeSelectDev.appendChild(opt);
+      });
+      coeSelectDev.onchange = (e) => {
+        const selectedDev = store.getDeveloperById(e.target.value);
+        if (selectedDev) {
+          dev = selectedDev;
+          if (coeInputStartDate) coeInputStartDate.value = dev.startDate || '2023-10-01';
+          renderCOEDocument();
+        }
+      };
+    }
+
+    if (coeInputStartDate) {
+      coeInputStartDate.value = dev.startDate || '2023-10-01';
+      coeInputStartDate.onchange = renderCOEDocument;
+    }
+
+    if (coeSelectPurpose) {
+      coeSelectPurpose.onchange = (e) => {
+        if (e.target.value === 'custom') {
+          if (coeCustomPurposeRow) coeCustomPurposeRow.style.display = 'block';
+        } else {
+          if (coeCustomPurposeRow) coeCustomPurposeRow.style.display = 'none';
+        }
+        renderCOEDocument();
+      };
+    }
+
+    if (coeInputCustomPurpose) {
+      coeInputCustomPurpose.oninput = renderCOEDocument;
+    }
+
+    [coeToggleMonthlyGross, coeToggleHourlyRate, coeToggleAvgHistory].forEach(chk => {
+      if (chk) chk.onchange = renderCOEDocument;
+    });
+
+    function getOrdinal(n) {
+      const s = ['th', 'st', 'nd', 'rd'];
+      const v = n % 100;
+      return n + (s[(v - 20) % 10] || s[v] || s[0]);
+    }
+
+    function renderCOEDocument() {
+      const currentRate = store.getUsdToPhpRate();
+      const devHourlyRate = parseFloat(dev.hourlyRate) || 0;
+      const hourlyPhp = devHourlyRate * currentRate;
+
+      // Clean developer name
+      const rawName = dev.name || 'Developer';
+      let fullName = rawName;
+      let firstName = rawName;
+      let politeName = `Mr. ${rawName}`;
+      if (rawName.includes(',')) {
+        const parts = rawName.split(',');
+        const lName = parts[0].trim();
+        const fName = parts[1].trim();
+        fullName = `${fName} ${lName}`;
+        firstName = fName.split(' ')[0];
+        const isFemale = ['Cyreh', 'Ella', 'Tefanny'].some(n => fName.includes(n));
+        politeName = `${isFemale ? 'Ms.' : 'Mr.'} ${fName} ${lName}`;
+      } else {
+        firstName = rawName.split(' ')[0];
+        const isFemale = ['Cyreh', 'Ella', 'Tefanny'].some(n => rawName.includes(n));
+        politeName = `${isFemale ? 'Ms.' : 'Mr.'} ${rawName}`;
+      }
+
+      // Start Date formatting
+      const startVal = coeInputStartDate ? coeInputStartDate.value : (dev.startDate || '2023-10-01');
+      let formattedStartDate = 'October 1, 2023';
+      if (startVal) {
+        const sD = new Date(startVal + 'T00:00:00');
+        if (!isNaN(sD.getTime())) {
+          formattedStartDate = sD.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        }
+      }
+
+      // Purpose resolution
+      let purposeText = 'Auto Loan / Car Financing Application';
+      if (coeSelectPurpose) {
+        if (coeSelectPurpose.value === 'custom') {
+          purposeText = (coeInputCustomPurpose && coeInputCustomPurpose.value.trim()) ? coeInputCustomPurpose.value.trim() : 'Loan & Financial Verification';
+        } else {
+          purposeText = coeSelectPurpose.value;
+        }
+      }
+
+      // Document reference & date
+      const today = new Date();
+      const issueDayStr = getOrdinal(today.getDate());
+      const issueMonthYearStr = today.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      const fullDateStr = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      const refCode = `COE-DIV-${today.getFullYear()}-${dev.id.toUpperCase().replace(/[^A-Z0-9]/g, '')}-${String(Date.now()).slice(-4)}`;
+
+      // Update text nodes
+      const elDocRef = document.getElementById('coe-doc-ref');
+      if (elDocRef) elDocRef.textContent = `REF: ${refCode}`;
+
+      const elDocDate = document.getElementById('coe-doc-date');
+      if (elDocDate) elDocDate.textContent = fullDateStr;
+
+      const elEmpFullName = document.getElementById('coe-emp-fullname');
+      if (elEmpFullName) elEmpFullName.textContent = fullName.toUpperCase();
+
+      const elEmpRole = document.getElementById('coe-emp-role');
+      if (elEmpRole) elEmpRole.textContent = dev.role;
+
+      const elEmpStartDate = document.getElementById('coe-emp-startdate');
+      if (elEmpStartDate) elEmpStartDate.textContent = formattedStartDate;
+
+      const elEmpFirstName = document.getElementById('coe-emp-firstname');
+      if (elEmpFirstName) elEmpFirstName.textContent = firstName;
+
+      const elPurposeEmpName = document.getElementById('coe-purpose-emp-name');
+      if (elPurposeEmpName) elPurposeEmpName.textContent = politeName;
+
+      const elPurposeText = document.getElementById('coe-purpose-text');
+      if (elPurposeText) elPurposeText.textContent = purposeText;
+
+      const elIssueDay = document.getElementById('coe-issue-day');
+      if (elIssueDay) elIssueDay.textContent = issueDayStr;
+
+      const elIssueMonthYear = document.getElementById('coe-issue-month-year');
+      if (elIssueMonthYear) elIssueMonthYear.textContent = issueMonthYearStr;
+
+      const elFooterRef = document.getElementById('coe-footer-ref');
+      if (elFooterRef) elFooterRef.textContent = `#${refCode}`;
+
+      // Calculate monthly regular earnings (standard 40 hrs/week = 160.00 hrs/month)
+      const monthlyHours = 160;
+      const monthlyGrossUsd = devHourlyRate * monthlyHours;
+      const monthlyGrossPhp = monthlyGrossUsd * currentRate;
+
+      // Calculate recent actual earnings
+      const allDevRecords = (state.attendanceRecords || []).filter(r => r.developerId === dev.id);
+      let totalPastGrossUsd = 0;
+      allDevRecords.forEach(r => {
+        totalPastGrossUsd += (r.totalEarnings || 0);
+      });
+      const avgMonthlyUsd = totalPastGrossUsd > 0 ? (totalPastGrossUsd > monthlyGrossUsd ? totalPastGrossUsd : monthlyGrossUsd) : monthlyGrossUsd;
+      const avgMonthlyPhp = avgMonthlyUsd * currentRate;
+
+      // Populate Compensation rows
+      const compRows = document.getElementById('coe-compensation-rows');
+      if (compRows) {
+        compRows.innerHTML = '';
+
+        if (!coeToggleMonthlyGross || coeToggleMonthlyGross.checked) {
+          const tr1 = document.createElement('tr');
+          tr1.innerHTML = `
+            <td><strong>Monthly Gross Compensation</strong> (Estimated)</td>
+            <td style="text-align: right; font-weight: 800; font-family: var(--font-mono); color: var(--text-primary);">$${monthlyGrossUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD</td>
+            <td style="text-align: right; font-weight: 800; font-family: var(--font-mono); color: var(--status-working);">₱${monthlyGrossPhp.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} PHP</td>
+            <td>Based on regular 40 hrs/week (160 billable hrs/month)</td>
+          `;
+          compRows.appendChild(tr1);
+        }
+
+        if (!coeToggleHourlyRate || coeToggleHourlyRate.checked) {
+          const tr2 = document.createElement('tr');
+          tr2.innerHTML = `
+            <td><strong>Regular Hourly Pay Rate</strong></td>
+            <td style="text-align: right; font-family: var(--font-mono); font-weight: 700;">$${devHourlyRate.toFixed(2)} / hr</td>
+            <td style="text-align: right; font-family: var(--font-mono); font-weight: 700; color: var(--status-working);">₱${hourlyPhp.toFixed(2)} / hr</td>
+            <td>Prevailing Forex: $1.00 USD = ₱${currentRate.toFixed(2)} PHP</td>
+          `;
+          compRows.appendChild(tr2);
+        }
+
+        if (!coeToggleAvgHistory || coeToggleAvgHistory.checked) {
+          const tr3 = document.createElement('tr');
+          tr3.innerHTML = `
+            <td><strong>Average Monthly Net Remuneration</strong></td>
+            <td style="text-align: right; font-family: var(--font-mono); font-weight: 700;">$${avgMonthlyUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD</td>
+            <td style="text-align: right; font-family: var(--font-mono); font-weight: 700; color: var(--status-working);">₱${avgMonthlyPhp.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} PHP</td>
+            <td>Verified historical rendered project milestones</td>
+          `;
+          compRows.appendChild(tr3);
+        }
+
+        const tr4 = document.createElement('tr');
+        tr4.innerHTML = `
+          <td><strong>Employment Status & Nature</strong></td>
+          <td colspan="2" style="font-weight: 700; color: var(--accent-cyan); text-align: center;">Active / Full-Time Software Developer</td>
+          <td>Direct Developer Services (No Work, No Pay)</td>
+        `;
+        compRows.appendChild(tr4);
+      }
+    }
+
+    renderCOEDocument();
+    modalCoePreview.classList.add('active');
+  };
+
+  // Bind COE Action Buttons
+  if (btnOpenCoeModal) {
+    btnOpenCoeModal.addEventListener('click', () => {
+      window.openCOEModal();
+    });
+  }
+
+  if (btnQuickRunCoe) {
+    btnQuickRunCoe.addEventListener('click', () => {
+      const select = document.getElementById('quick-payslip-dev-select');
+      const devId = select ? select.value : null;
+      window.openCOEModal(devId);
+    });
+  }
+
+  if (btnCardMyCoe) {
+    btnCardMyCoe.addEventListener('click', () => {
+      window.openCOEModal();
+    });
+  }
+
+  if (btnCloseCoe) {
+    btnCloseCoe.addEventListener('click', () => modalCoePreview.classList.remove('active'));
+  }
+
+  if (btnCloseCoeFooter) {
+    btnCloseCoeFooter.addEventListener('click', () => modalCoePreview.classList.remove('active'));
+  }
+
+  if (btnPrintCoeDirect) {
+    btnPrintCoeDirect.addEventListener('click', () => {
+      document.body.classList.add('printing-coe');
+      window.print();
+    });
+  }
 
   // ==========================================
   // 7. Enterprise Settings View (Jibble Suite Style)
@@ -2528,6 +2823,9 @@ document.addEventListener('DOMContentLoaded', () => {
           <div style="display: flex; gap: 6px; flex-wrap: wrap;">
             <button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.78rem;" onclick="openPayslipModal('${dev.id}')" title="Generate and print official payslip for ${dev.name}">
               📄 Run Payslip
+            </button>
+            <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.78rem; color: #818cf8; border-color: rgba(99, 102, 241, 0.4);" onclick="openCOEModal('${dev.id}')" title="Generate Certificate of Employment with Compensation for ${dev.name}">
+              📜 COE
             </button>
             <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.78rem;" onclick="editDeveloperModal('${dev.id}')" title="Edit rate, PIN, and leave credits">
               ✏️ Edit Profile

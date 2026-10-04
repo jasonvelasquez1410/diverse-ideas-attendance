@@ -351,7 +351,10 @@
                 ➕ Add Missing Shift
               </button>
               <button class="btn btn-secondary" id="btn-card-my-payslip" style="display: none; padding: 4px 10px; font-size: 0.78rem; color: var(--accent-cyan);" onclick="openPayslipModal()" title="Admin: View and generate staff payslips">
-                📄 Staff Payslip
+                📄 Payslip
+              </button>
+              <button class="btn btn-secondary" id="btn-card-my-coe" style="display: none; padding: 4px 10px; font-size: 0.78rem; color: #818cf8; border-color: rgba(99, 102, 241, 0.4);" onclick="openCOEModal()" title="Admin: Generate Certificate of Employment (COE) with Compensation">
+                📜 COE
               </button>
             </div>
           </div>
@@ -664,6 +667,10 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             Export CSV (USD + PHP)
           </button>
+          <button class="btn btn-secondary" id="btn-open-coe-modal" style="display: none; color: #818cf8; border-color: rgba(99, 102, 241, 0.4);" title="Admin Exclusive: Generate Certificate of Employment (COE) with Compensation for auto loans & financing">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            📜 Generate COE (Compensation)
+          </button>
           <button class="btn btn-primary" id="btn-print-report" style="display: none;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
             View / Print Payslip
@@ -755,6 +762,9 @@
           <button class="btn btn-primary" id="btn-quick-run-payslip" style="padding: 10px 20px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
             Run & Print Payslip
+          </button>
+          <button class="btn btn-secondary" id="btn-quick-run-coe" style="padding: 10px 16px; color: #818cf8; border-color: rgba(99, 102, 241, 0.4);" title="Generate Official Certificate of Employment (COE) with Compensation">
+            📜 Generate COE
           </button>
         </div>
       </div>
@@ -2445,6 +2455,185 @@
           <button type="submit" class="btn btn-primary">Apply Exchange Rate</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal: Official Certificate of Employment (COE) with Compensation (Admin Exclusive) -->
+  <div class="modal-overlay" id="modal-coe-preview">
+    <div class="modal-dialog" style="max-width: 780px; width: 95%;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 34px; height: 34px; border-radius: var(--radius-sm); background: linear-gradient(135deg, #4f46e5, #06b6d4); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.1rem;">
+            📜
+          </div>
+          <div>
+            <h3 class="modal-title" style="margin: 0;">Certificate of Employment & Compensation</h3>
+            <span style="font-size: 0.76rem; color: var(--text-muted);">Admin Exclusive • Official Bank & Auto Financing Ready Document</span>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btn-close-coe">&times;</button>
+      </div>
+
+      <!-- Admin Interactive Generator Controls Bar -->
+      <div class="coe-modal-controls" id="coe-modal-controls" style="padding: 14px 20px; background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
+          <div style="flex: 1; min-width: 180px;">
+            <label style="font-size: 0.74rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Employee / Developer</label>
+            <select id="coe-select-dev" class="form-control" style="width: 100%; padding: 6px 10px; font-size: 0.85rem; font-weight: 600;">
+              <!-- Populated by JS -->
+            </select>
+          </div>
+          <div style="flex: 1; min-width: 140px;">
+            <label style="font-size: 0.74rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Date of Employment (Hire Date)</label>
+            <input type="date" id="coe-input-start-date" class="form-control" style="width: 100%; padding: 6px 10px; font-size: 0.85rem;" />
+          </div>
+          <div style="flex: 1.5; min-width: 220px;">
+            <label style="font-size: 0.74rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Purpose of Certification</label>
+            <select id="coe-select-purpose" class="form-control" style="width: 100%; padding: 6px 10px; font-size: 0.85rem; font-weight: 600;">
+              <option value="Auto Loan / Car Financing Application" selected>🚗 Auto Loan / Car Financing Application</option>
+              <option value="Credit Card Application">💳 Credit Card Application</option>
+              <option value="Housing / Home Loan Application">🏠 Housing / Home Loan Application</option>
+              <option value="Visa / Travel Embassy Application">✈️ Visa / Travel Embassy Application</option>
+              <option value="Bank Account / Personal Loan Verification">💼 Bank Account / Personal Loan Verification</option>
+              <option value="General Employment & Income Verification">📝 General Employment & Income Verification</option>
+              <option value="custom">✏️ Custom Specific Purpose...</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="coe-custom-purpose-row" style="display: none;">
+          <label style="font-size: 0.74rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Custom Purpose Statement</label>
+          <input type="text" id="coe-input-custom-purpose" class="form-control" placeholder="e.g. For BDO Auto Financing Loan Ref #..." style="width: 100%; font-size: 0.85rem;" />
+        </div>
+
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; font-size: 0.78rem;">
+          <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-secondary);">
+              <input type="checkbox" id="coe-toggle-monthly-gross" checked />
+              <span>Show Monthly Gross Est. (40h/wk)</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-secondary);">
+              <input type="checkbox" id="coe-toggle-hourly-rate" checked />
+              <span>Show Hourly Rate ($ & ₱)</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-secondary);">
+              <input type="checkbox" id="coe-toggle-avg-history" checked />
+              <span>Show 3-Month Average Earnings</span>
+            </label>
+          </div>
+          <div style="color: var(--accent-cyan); font-weight: 600;">
+            ⚡ Live Forex: <span id="coe-forex-indicator">1 USD = ₱58.50 PHP</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-body" style="padding: 24px;" id="coe-printable-content">
+        <!-- Printable Corporate COE Document Sheet -->
+        <div class="coe-document-card">
+          <!-- Corporate Letterhead -->
+          <div class="coe-letterhead">
+            <div class="coe-letterhead-brand">
+              <div class="coe-letterhead-logo">
+                <span>DI</span>
+              </div>
+              <div>
+                <h2 class="coe-company-name">DIVERSE IDEAS GMBH</h2>
+                <div class="coe-company-tagline">Software Engineering & Global IT Consulting Services</div>
+                <div class="coe-company-address">Frankfurt am Main, Germany • Global Remote Tech Hub • CDO Hub, Philippines</div>
+              </div>
+            </div>
+            <div class="coe-letterhead-meta">
+              <div class="coe-ref-no" id="coe-doc-ref">REF: COE-DIV-2026-0042</div>
+              <div class="coe-doc-date" id="coe-doc-date">October 4, 2026</div>
+            </div>
+          </div>
+
+          <div class="coe-divider"></div>
+
+          <!-- Document Title -->
+          <div class="coe-doc-title-box">
+            <h1 class="coe-title">CERTIFICATE OF EMPLOYMENT AND COMPENSATION</h1>
+          </div>
+
+          <!-- Salutation -->
+          <div class="coe-salutation">
+            <strong>TO WHOM IT MAY CONCERN:</strong>
+          </div>
+
+          <!-- Main Body -->
+          <div class="coe-body-text">
+            <p id="coe-para-employment">
+              This is to certify that <strong><span id="coe-emp-fullname">JASON JEFF VELASQUEZ</span></strong> is currently engaged and employed with <strong>Diverse Ideas GMBH</strong> as <strong><span id="coe-emp-role">Senior Software Developer</span></strong>, having commenced employment on <strong><span id="coe-emp-startdate">October 1, 2023</span></strong> up to the present date.
+            </p>
+            <p>
+              During their tenure with the company, <span id="coe-emp-firstname">Jason Jeff</span> has demonstrated exemplary technical proficiency, professional reliability, and high ethical conduct in software engineering and system delivery.
+            </p>
+            <p>
+              As of this certification date, the employee's official compensation structure and financial remuneration details are certified as follows:
+            </p>
+          </div>
+
+          <!-- Compensation Table / Breakdown Box -->
+          <div class="coe-compensation-box">
+            <table class="coe-table">
+              <thead>
+                <tr>
+                  <th style="text-align: left;">Remuneration Item</th>
+                  <th style="text-align: right;">Amount ($ USD)</th>
+                  <th style="text-align: right;">Philippine Peso Equivalent (₱ PHP)</th>
+                  <th style="text-align: left;">Basis / Remarks</th>
+                </tr>
+              </thead>
+              <tbody id="coe-compensation-rows">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="coe-body-text" style="margin-top: 14px;">
+            <p id="coe-para-purpose">
+              This certification is issued upon the formal request of <strong><span id="coe-purpose-emp-name">Mr. Jason Jeff Velasquez</span></strong> for the purpose of <strong><span id="coe-purpose-text">Auto Loan / Car Financing Application</span></strong> and for whatever legal and financial verification purposes it may serve.
+            </p>
+            <p style="font-size: 0.82rem; color: #475569; font-style: italic; margin-top: 6px;">
+              Issued this <span id="coe-issue-day">4th</span> day of <span id="coe-issue-month-year">October 2026</span> at Diverse Ideas GMBH Operations Management.
+            </p>
+          </div>
+
+          <!-- Signature Section -->
+          <div class="coe-signatures-row">
+            <div class="coe-sig-col">
+              <div class="coe-sig-line"></div>
+              <div class="coe-sig-name">TEFANNY D.</div>
+              <div class="coe-sig-title">Operations & HR Manager</div>
+              <div class="coe-sig-company">Diverse Ideas GMBH</div>
+              <div class="coe-sig-contact">hr@diverseideas.de • admin@diverseideas.de</div>
+            </div>
+            <div class="coe-stamp-col">
+              <div class="coe-official-seal">
+                <div class="coe-seal-inner">
+                  <span>★ OFFICIAL ★</span>
+                  <span style="font-weight: 800; font-size: 0.72rem;">DIVERSE IDEAS</span>
+                  <span>GMBH</span>
+                  <span style="font-size: 0.6rem;">VERIFIED</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Verification Footer -->
+          <div class="coe-footer-note">
+            <span>Official Document Verification: For authenticity inquiries, please contact Operations/HR at <strong>hr@diverseideas.de</strong> quoting document reference <strong id="coe-footer-ref">#COE-DIV-2026-0042</strong>.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-close-coe-footer">Close</button>
+        <button type="button" class="btn btn-primary" id="btn-print-coe-direct">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          Print / Save Official COE (PDF)
+        </button>
+      </div>
     </div>
   </div>
 

@@ -106,6 +106,22 @@ class ExportUtility {
       window.print();
     }, 150);
   }
+
+  // Trigger Print Certificate of Employment (Admin Exclusive PIN 1410)
+  printCOEReport(devId = null) {
+    if (!this.store.isAdmin()) {
+      if (window.showToast) {
+        window.showToast('🔒 Access Restricted: COE generation is confidential and strictly exclusive to Administrator (Master PIN 1410).', 'warning');
+      }
+      return;
+    }
+    if (window.openCOEModal) {
+      window.openCOEModal(devId);
+    }
+    setTimeout(() => {
+      window.print();
+    }, 150);
+  }
 }
 
 // Global export instance
