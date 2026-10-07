@@ -1876,6 +1876,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (bottomActiveRateBadge) {
       bottomActiveRateBadge.textContent = `Conversion Rate: 1 USD = ₱${formatted} PHP`;
     }
+    const payslipBadgeRateNum = document.getElementById('payslip-badge-rate-num');
+    if (payslipBadgeRateNum) {
+      payslipBadgeRateNum.textContent = formatted;
+    }
+    const settingForexRate = document.getElementById('setting-forex-rate');
+    if (settingForexRate) {
+      settingForexRate.value = formatted;
+    }
   }
 
   if (btnRefreshExchangeRate) {
@@ -1886,6 +1894,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnCustomExchangeRate) {
     btnCustomExchangeRate.addEventListener('click', () => {
+      inputCustomRate.value = store.getUsdToPhpRate().toFixed(2);
+      modalCustomRate.classList.add('active');
+      inputCustomRate.focus();
+    });
+  }
+
+  // Quick edit button in Payslip Modal
+  const btnPayslipEditRate = document.getElementById('btn-payslip-edit-rate');
+  if (btnPayslipEditRate) {
+    btnPayslipEditRate.addEventListener('click', () => {
       inputCustomRate.value = store.getUsdToPhpRate().toFixed(2);
       modalCustomRate.classList.add('active');
       inputCustomRate.focus();
@@ -1922,8 +1940,54 @@ document.addEventListener('DOMContentLoaded', () => {
       store.setUsdToPhpRate(newRate, new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
       updateForexUI(newRate, 'Custom Manual', false);
       modalCustomRate.classList.remove('active');
-      showToast(`Applied custom conversion rate: ₱${newRate.toFixed(2)}/USD`, 'success');
+      showToast(`Applied conversion rate: ₱${newRate.toFixed(2)} / $1.00 USD`, 'success');
       renderTimesheetsAndPayroll();
+      if (modalPayslipPreview && modalPayslipPreview.classList.contains('active')) {
+        const devId = payslipSelectDev ? payslipSelectDev.value : null;
+        window.openPayslipModal(devId, null, payslipStartDate ? payslipStartDate.value : null, payslipEndDate ? payslipEndDate.value : null, payslipPeriodPreset ? payslipPeriodPreset.value : null);
+      }
+    });
+  }
+
+  // Settings Tab: Currency & Dollar Exchange Rate Settings Handlers
+  const formSettingsForex = document.getElementById('form-settings-forex');
+  const settingForexRate = document.getElementById('setting-forex-rate');
+  const btnSettingsFetchForex = document.getElementById('btn-settings-fetch-forex');
+  const btnSettingsResetForex = document.getElementById('btn-settings-reset-forex');
+
+  if (settingForexRate) {
+    settingForexRate.value = store.getUsdToPhpRate().toFixed(2);
+  }
+
+  if (formSettingsForex) {
+    formSettingsForex.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const newRate = parseFloat(settingForexRate.value);
+      if (isNaN(newRate) || newRate <= 0) {
+        showToast('Please enter a valid dollar exchange rate', 'error');
+        return;
+      }
+      store.setUsdToPhpRate(newRate, new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      updateForexUI(newRate, 'Settings Update', false);
+      showToast(`Saved Dollar Exchange Rate: $1.00 USD = ₱${newRate.toFixed(2)} PHP`, 'success');
+      renderTimesheetsAndPayroll();
+      if (modalPayslipPreview && modalPayslipPreview.classList.contains('active')) {
+        const devId = payslipSelectDev ? payslipSelectDev.value : null;
+        window.openPayslipModal(devId, null, payslipStartDate ? payslipStartDate.value : null, payslipEndDate ? payslipEndDate.value : null, payslipPeriodPreset ? payslipPeriodPreset.value : null);
+      }
+    });
+  }
+
+  if (btnSettingsFetchForex) {
+    btnSettingsFetchForex.addEventListener('click', async () => {
+      await fetchLiveExchangeRate(true);
+      if (settingForexRate) settingForexRate.value = store.getUsdToPhpRate().toFixed(2);
+    });
+  }
+
+  if (btnSettingsResetForex) {
+    btnSettingsResetForex.addEventListener('click', () => {
+      if (settingForexRate) settingForexRate.value = '58.50';
     });
   }
 
@@ -2657,14 +2721,32 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   if (btnPrintPayslipDirect) {
     btnPrintPayslipDirect.addEventListener('click', () => {
-      window.print();
+      // Ensure statement view is active and history is hidden before printing
+      if (payslipPrintableContent) payslipPrintableContent.style.display = 'block';
+      if (payslipHistoryContent) payslipHistoryContent.style.display = 'none';
+      if (payslipTabBtnStatement) {
+        payslipTabBtnStatement.className = 'btn btn-sm btn-primary';
+        payslipTabBtnStatement.style.fontWeight = '700';
+      }
+      if (payslipTabBtnHistory) {
+        payslipTabBtnHistory.className = 'btn btn-sm btn-secondary';
+        payslipTabBtnHistory.style.fontWeight = '600';
+      }
+      setTimeout(() => {
+        window.print();
+      }, 50);
     });
   }
 
   window.addEventListener('beforeprint', () => {
+    // Force history tab to hide and printable payslip voucher to show
+    if (modalPayslipPreview && modalPayslipPreview.classList.contains('active')) {
+      if (payslipPrintableContent) payslipPrintableContent.style.display = 'block';
+      if (payslipHistoryContent) payslipHistoryContent.style.display = 'none';
+    }
     if (store.isAdmin() && modalCoePreview && modalCoePreview.classList.contains('active')) {
       document.body.classList.add('printing-coe');
-    } else if (store.isAdmin() && modalPayslipPreview && !modalPayslipPreview.classList.contains('active') && (!modalCoePreview || !modalCoePreview.classList.contains('active'))) {
+    } else if (modalPayslipPreview && !modalPayslipPreview.classList.contains('active') && (!modalCoePreview || !modalCoePreview.classList.contains('active'))) {
       document.body.classList.remove('printing-coe');
       window.openPayslipModal();
     }

@@ -2245,10 +2245,24 @@ select.form-control option {
     overflow: visible !important;
   }
 
-  #modal-payslip-preview .modal-body {
+  #modal-payslip-preview #payslip-printable-content {
     padding: 0 !important;
     margin: 0 !important;
     display: block !important;
+    visibility: visible !important;
+  }
+
+  #modal-payslip-preview #payslip-history-content,
+  #modal-payslip-preview .payslip-history-body,
+  #payslip-history-content,
+  .payslip-history-body {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    overflow: hidden !important;
   }
 
   /* Clean, executive 1-page Payslip Voucher styling */

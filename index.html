@@ -994,6 +994,50 @@
           </form>
         </div>
 
+        <!-- Currency & Dollar Exchange Rate Settings Card -->
+        <div class="glass-card" style="margin-top: 24px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <h3 style="font-family: var(--font-heading); font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
+              💵 Currency & Dollar Exchange Rate (USD ⇄ PHP)
+            </h3>
+            <span class="badge badge-working" style="font-size: 0.72rem; font-weight: 700;">Live Forex & Dual Currency</span>
+          </div>
+          <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 16px;">
+            Configure the conversion rate used across all timesheets, wage computations, and official payslip vouchers. You can edit the rate manually or fetch real-time market rates.
+          </p>
+
+          <form id="form-settings-forex" style="max-width: 560px;">
+            <div class="grid-2" style="gap: 16px;">
+              <div class="form-group">
+                <label class="form-label" for="setting-forex-rate">Exchange Rate (1 USD to PHP ₱) *</label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 1.2rem; font-weight: 800; color: var(--status-working);">₱</span>
+                  <input type="number" id="setting-forex-rate" class="form-control font-mono" step="0.01" min="1" max="500" placeholder="58.50" required style="font-size: 1.1rem; font-weight: 700;">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="setting-forex-currency">Base Currency</label>
+                <select id="setting-forex-currency" class="form-control font-mono" style="font-weight: 700;">
+                  <option value="USD" selected>USD ($) — United States Dollar</option>
+                  <option value="PHP">PHP (₱) — Philippine Peso</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;">
+              <button type="submit" class="btn btn-primary">
+                💾 Save Exchange Rate
+              </button>
+              <button type="button" class="btn btn-secondary" id="btn-settings-fetch-forex">
+                🔄 Sync Live Web Rate
+              </button>
+              <button type="button" class="btn btn-secondary" id="btn-settings-reset-forex">
+                Reset (₱58.50)
+              </button>
+            </div>
+          </form>
+        </div>
+
         <!-- Admin Master PIN Security Card -->
         <div class="glass-card" style="margin-top: 24px;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
@@ -2701,6 +2745,11 @@
               ⚡ Compute
             </button>
           </div>
+
+          <!-- Dollar Exchange Rate Setting/Edit Action Button -->
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-payslip-edit-rate" style="padding: 5px 10px; font-size: 0.78rem; font-weight: 700; color: var(--status-working);" title="Click to edit or adjust USD to PHP exchange rate">
+            💵 1 USD = ₱<span id="payslip-badge-rate-num">58.50</span> ✏️
+          </button>
         </div>
       </div>
 
@@ -2811,7 +2860,7 @@
       </div>
 
       <!-- VIEW 2: Previous Computed Payslips & Historical Pay Cycles -->
-      <div class="modal-body" style="padding: 24px; display: none;" id="payslip-history-content">
+      <div class="payslip-history-body" style="padding: 24px; display: none;" id="payslip-history-content">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
           <div>
             <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin: 0;">
