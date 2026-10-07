@@ -168,6 +168,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const payslipNetUsd = document.getElementById('payslip-net-usd');
   const payslipNetPhp = document.getElementById('payslip-net-php');
   const payslipVoucherNo = document.getElementById('payslip-voucher-no');
+  const payslipTabBtnStatement = document.getElementById('payslip-tab-btn-statement');
+  const payslipTabBtnHistory = document.getElementById('payslip-tab-btn-history');
+  const payslipPrintableContent = document.getElementById('payslip-printable-content');
+  const payslipHistoryContent = document.getElementById('payslip-history-content');
+  const payslipPeriodPreset = document.getElementById('payslip-period-preset');
+  const payslipStartDate = document.getElementById('payslip-start-date');
+  const payslipEndDate = document.getElementById('payslip-end-date');
+  const btnPayslipApplyDates = document.getElementById('btn-payslip-apply-dates');
+  const payslipHistoryTableBody = document.getElementById('payslip-history-table-body');
+  const payslipHistoryCount = document.getElementById('payslip-history-count');
+  const payslipDevBadgeStatic = document.getElementById('payslip-dev-badge-static');
+  const payslipSelectDev = document.getElementById('payslip-select-dev');
 
   // Certificate of Employment (COE) Modal Elements (Admin Exclusive)
   const modalCoePreview = document.getElementById('modal-coe-preview');
@@ -412,9 +424,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (btnHeaderGuide) {
         btnHeaderGuide.style.display = 'inline-flex';
       }
-      // Payslip & COE generation are strictly exclusive to Admin (Master PIN 1410)
+      // Payslip & COE generation buttons
       if (btnCardPayslip) {
         btnCardPayslip.style.display = 'inline-flex';
+        btnCardPayslip.innerHTML = '📄 Staff Payslips';
+        btnCardPayslip.title = 'Admin: View, filter date range, and generate staff payslips';
       }
       if (btnCardMyCoe) {
         btnCardMyCoe.style.display = 'inline-flex';
@@ -432,12 +446,14 @@ document.addEventListener('DOMContentLoaded', () => {
         headerUserRoleBadge.style.background = 'rgba(99, 102, 241, 0.2)';
         headerUserRoleBadge.style.color = 'var(--accent-cyan)';
       }
-      // Hide Manager Guide, Payslip, and COE buttons completely for individual staff logins (Rates/Payslips/COE confidential)
       if (btnHeaderGuide) {
         btnHeaderGuide.style.display = 'none';
       }
+      // Allow developer to view & generate their own payslips & history for any date range
       if (btnCardPayslip) {
-        btnCardPayslip.style.display = 'none';
+        btnCardPayslip.style.display = 'inline-flex';
+        btnCardPayslip.innerHTML = '📄 My Payslip & History';
+        btnCardPayslip.title = 'Generate your official payslip from any date range or view past computed cycles';
       }
       if (btnCardMyCoe) {
         btnCardMyCoe.style.display = 'none';
@@ -1967,10 +1983,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Hide dev selector for regular developers
     payrollDevFilter.style.display = store.isAdmin() ? 'block' : 'none';
 
-    // Payslip quick bar and export buttons strictly exclusive to Admin (PIN 1410)
+    // Payslip quick bar for Admin and Staff Developers
     const quickPayslipBar = document.getElementById('quick-payslip-bar');
     if (quickPayslipBar) {
-      quickPayslipBar.style.display = store.isAdmin() ? 'flex' : 'none';
+      quickPayslipBar.style.display = (store.isAdmin() || (auth && auth.isAuthenticated && auth.role === 'developer')) ? 'flex' : 'none';
     }
     if (btnPrintReport) {
       btnPrintReport.style.display = store.isAdmin() ? 'inline-flex' : 'none';
@@ -2011,6 +2027,8 @@ document.addEventListener('DOMContentLoaded', () => {
           ? `<span style="color: var(--status-working); font-weight: 700;">$${grossUsdVal.toFixed(2)}</span><span class="php-subtext" style="color: var(--status-working);">≈ ₱${grossPhpVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>`
           : '<span class="confidential-pill">Confidential</span>';
 
+        const isRowOwnerOrAdmin = store.isAdmin() || (auth && auth.isAuthenticated && auth.role === 'developer' && auth.devId === rec.developerId);
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>
@@ -2044,7 +2062,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.72rem; color: var(--accent-cyan);" onclick="openEditRecordModal('${rec.id}')" title="Edit timesheet record">
                 ✏️ Edit
               </button>
-              ${store.isAdmin() ? `
+              ${isRowOwnerOrAdmin ? `
               <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.72rem; color: var(--status-working);" onclick="generateSinglePayslip('${rec.developerId}', '${rec.id}')" title="Generate and print payslip for this entry">
                 📄 Slip
               </button>
@@ -2140,6 +2158,11 @@ document.addEventListener('DOMContentLoaded', () => {
       quickDevSelect.innerHTML = '';
       if (!store.isAdmin()) {
         quickDevSelect.style.display = 'none';
+        if (quickBarTitle) quickBarTitle.textContent = 'My Official Payslip & Previous Cycles';
+        if (quickBarDesc) quickBarDesc.textContent = 'Generate your official payslip statement from any date range, or view your past computed cycles.';
+        if (btnQuickRun) {
+          btnQuickRun.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> 📄 View My Payslip & History';
+        }
       } else {
         quickDevSelect.style.display = 'inline-block';
         quickDevSelect.disabled = false;
@@ -2161,12 +2184,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnQuickRunPayslip = document.getElementById('btn-quick-run-payslip');
   if (btnQuickRunPayslip) {
     btnQuickRunPayslip.addEventListener('click', () => {
-      if (!store.isAdmin()) {
-        showToast('🔒 Access Restricted: Payslip generation is confidential and strictly exclusive to Administrator (Master PIN 1410).', 'warning');
+      const auth = store.getAuth();
+      if (!store.isAdmin() && !(auth && auth.isAuthenticated && auth.role === 'developer')) {
+        showToast('🔒 Please enter your PIN to access payslips.', 'warning');
+        openPinModal();
         return;
       }
       const select = document.getElementById('quick-payslip-dev-select');
-      const devId = select ? select.value : null;
+      const devId = store.isAdmin() ? (select ? select.value : null) : auth.devId;
       window.openPayslipModal(devId);
     });
   }
@@ -2199,35 +2224,144 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================================
-  // 8. Official Payslip Generator & Print Controller (Admin Exclusive PIN 1410)
+  // Helper: Date Presets Calculation for Payslip
   // ==========================================
-  window.openPayslipModal = function(targetDevId = null, targetRecordId = null) {
-    if (!store.isAdmin()) {
-      showToast('🔒 Access Restricted: Payslip generation is confidential and strictly exclusive to Administrator (Master PIN 1410).', 'warning');
+  function computePayslipDatesByPreset(preset) {
+    const now = new Date();
+    const curYear = now.getFullYear();
+    const curMonth = now.getMonth(); // 0-indexed
+    const curDay = now.getDate();
+
+    let start = '';
+    let end = '';
+
+    if (preset === 'current-cutoff') {
+      if (curDay <= 15) {
+        start = `${curYear}-${String(curMonth + 1).padStart(2, '0')}-01`;
+        end = `${curYear}-${String(curMonth + 1).padStart(2, '0')}-15`;
+      } else {
+        const lastDay = new Date(curYear, curMonth + 1, 0).getDate();
+        start = `${curYear}-${String(curMonth + 1).padStart(2, '0')}-16`;
+        end = `${curYear}-${String(curMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+      }
+    } else if (preset === 'prev-cutoff') {
+      if (curDay > 15) {
+        start = `${curYear}-${String(curMonth + 1).padStart(2, '0')}-01`;
+        end = `${curYear}-${String(curMonth + 1).padStart(2, '0')}-15`;
+      } else {
+        const prevMonthDate = new Date(curYear, curMonth, 0);
+        const pYear = prevMonthDate.getFullYear();
+        const pMonth = prevMonthDate.getMonth() + 1;
+        const pLastDay = prevMonthDate.getDate();
+        start = `${pYear}-${String(pMonth).padStart(2, '0')}-16`;
+        end = `${pYear}-${String(pMonth).padStart(2, '0')}-${String(pLastDay).padStart(2, '0')}`;
+      }
+    } else if (preset === 'this-month') {
+      const lastDay = new Date(curYear, curMonth + 1, 0).getDate();
+      start = `${curYear}-${String(curMonth + 1).padStart(2, '0')}-01`;
+      end = `${curYear}-${String(curMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+    } else if (preset === 'prev-month') {
+      const prevMonthDate = new Date(curYear, curMonth, 0);
+      const pYear = prevMonthDate.getFullYear();
+      const pMonth = prevMonthDate.getMonth() + 1;
+      const pLastDay = prevMonthDate.getDate();
+      start = `${pYear}-${String(pMonth).padStart(2, '0')}-01`;
+      end = `${pYear}-${String(pMonth).padStart(2, '0')}-${String(pLastDay).padStart(2, '0')}`;
+    } else if (preset === 'all') {
+      start = '';
+      end = '';
+    }
+
+    return { start, end };
+  }
+
+  // ==========================================
+  // 8. Official Payslip Generator & Historical Cycles View
+  // ==========================================
+  window.openPayslipModal = function(targetDevId = null, targetRecordId = null, customStart = null, customEnd = null, activePreset = null) {
+    const auth = store.getAuth();
+    const isAdmin = store.isAdmin();
+    const isDev = (auth && auth.isAuthenticated && auth.role === 'developer');
+
+    if (!isAdmin && !isDev) {
+      showToast('🔒 Please enter your 4-digit PIN to access payslips.', 'warning');
+      openPinModal();
       return;
     }
 
     const state = store.getState();
     const rate = store.getUsdToPhpRate();
-    
-    // Choose developer (Admin mode)
-    let devId = targetDevId;
+
+    // Determine target developer (staff is strictly bound to own account)
+    let devId = isDev ? auth.devId : targetDevId;
     if (!devId) {
       devId = (payrollDevFilter && payrollDevFilter.value !== 'all') ? payrollDevFilter.value : state.activeDeveloperId;
     }
 
     const dev = store.getDeveloperById(devId) || state.developers[0];
-    let records = currentFilteredRecords.filter(r => r.developerId === dev.id);
+
+    // Configure developer selector/badge
+    if (payslipSelectDev && payslipDevBadgeStatic) {
+      if (isAdmin) {
+        payslipSelectDev.style.display = 'block';
+        payslipDevBadgeStatic.style.display = 'none';
+        payslipSelectDev.innerHTML = '';
+        state.developers.forEach(d => {
+          const opt = document.createElement('option');
+          opt.value = d.id;
+          opt.textContent = `${d.name} — ${d.role}`;
+          if (d.id === dev.id) opt.selected = true;
+          payslipSelectDev.appendChild(opt);
+        });
+        payslipSelectDev.onchange = (e) => {
+          window.openPayslipModal(e.target.value, null, payslipStartDate ? payslipStartDate.value : null, payslipEndDate ? payslipEndDate.value : null, payslipPeriodPreset ? payslipPeriodPreset.value : null);
+        };
+      } else {
+        payslipSelectDev.style.display = 'none';
+        payslipDevBadgeStatic.style.display = 'inline-block';
+        payslipDevBadgeStatic.textContent = `👤 ${dev.name} (${dev.role})`;
+      }
+    }
+
+    // Determine & set date range
+    if (payslipPeriodPreset && payslipStartDate && payslipEndDate) {
+      if (customStart !== null || customEnd !== null) {
+        payslipStartDate.value = customStart || '';
+        payslipEndDate.value = customEnd || '';
+        payslipPeriodPreset.value = activePreset || 'custom';
+      } else if (activePreset) {
+        payslipPeriodPreset.value = activePreset;
+        const pDates = computePayslipDatesByPreset(activePreset);
+        payslipStartDate.value = pDates.start;
+        payslipEndDate.value = pDates.end;
+      } else if (!payslipStartDate.value || !payslipEndDate.value) {
+        const pDates = computePayslipDatesByPreset('current-cutoff');
+        payslipStartDate.value = pDates.start;
+        payslipEndDate.value = pDates.end;
+        payslipPeriodPreset.value = 'current-cutoff';
+      }
+    }
+
+    const startVal = payslipStartDate ? payslipStartDate.value : '';
+    const endVal = payslipEndDate ? payslipEndDate.value : '';
+    const selectedPreset = payslipPeriodPreset ? payslipPeriodPreset.value : 'current-cutoff';
+
+    // Filter dev's records for statement
+    let records = state.attendanceRecords.filter(r => r.developerId === dev.id);
 
     if (targetRecordId) {
-      records = currentFilteredRecords.filter(r => r.id === targetRecordId);
+      records = records.filter(r => r.id === targetRecordId);
+    } else if (selectedPreset !== 'all') {
+      if (startVal && endVal) {
+        records = records.filter(r => r.date >= startVal && r.date <= endVal);
+      } else if (startVal) {
+        records = records.filter(r => r.date >= startVal);
+      } else if (endVal) {
+        records = records.filter(r => r.date <= endVal);
+      }
     }
 
-    if (records.length === 0) {
-      // Fallback to all records of dev if filtered subset is empty
-      records = state.attendanceRecords.filter(r => r.developerId === dev.id);
-    }
-
+    // Calculate wages and breakdown
     let totalMinutes = 0;
     let totalGrossUsd = 0;
     const projectBreakdown = {};
@@ -2245,35 +2379,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const totalGrossPhp = totalGrossUsd * rate;
     const totalHours = (totalMinutes / 60).toFixed(2);
-    const dateRangeLabel = payrollDateFilter.options[payrollDateFilter.selectedIndex]?.text || 'Current Period';
 
-    // Populate Payslip Modal fields
+    let dateRangeLabel = 'Custom Range';
+    if (targetRecordId && records.length > 0) {
+      dateRangeLabel = `Shift Record: ${records[0].date}`;
+    } else if (startVal && endVal) {
+      dateRangeLabel = `${startVal} to ${endVal}`;
+    } else if (selectedPreset === 'all') {
+      dateRangeLabel = 'All Work History';
+    }
+
+    // Populate Payslip Statement fields
     payslipEmpName.textContent = dev.name;
     payslipEmpRole.textContent = `${dev.role} (${dev.email || 'Diverse Ideas Remote'})`;
     payslipPeriodDates.textContent = `${dateRangeLabel} • ${records.length} Work Session(s)`;
     payslipRateApplied.textContent = `$1.00 USD = ₱${rate.toFixed(2)} PHP`;
-    payslipVoucherNo.textContent = `VOUCHER #DIV-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}`;
 
-    // Populate and bind Employee Selector in Modal for Admin
-    const payslipSelectDev = document.getElementById('payslip-select-dev');
-    if (payslipSelectDev) {
-      payslipSelectDev.innerHTML = '';
-      state.developers.forEach(d => {
-        const opt = document.createElement('option');
-        opt.value = d.id;
-        opt.textContent = `${d.name} — ${d.role}`;
-        if (d.id === dev.id) opt.selected = true;
-        payslipSelectDev.appendChild(opt);
-      });
-      payslipSelectDev.onchange = (e) => {
-        window.openPayslipModal(e.target.value);
-      };
-      // Only show selector for Admin
-      const controlsBar = document.getElementById('payslip-modal-controls');
-      if (controlsBar) {
-        controlsBar.style.display = 'flex';
-      }
-    }
+    const cleanDateStamp = (startVal || new Date().toISOString().slice(0, 10)).replace(/-/g, '');
+    payslipVoucherNo.textContent = `VOUCHER #DIV-${cleanDateStamp}-${dev.id.toUpperCase()}`;
 
     // Populate rows
     payslipBreakdownRows.innerHTML = '';
@@ -2281,7 +2404,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (projKeys.length === 0) {
       payslipBreakdownRows.innerHTML = `
         <tr>
-          <td>Standard Development Services</td>
+          <td>Standard Development Services (No shifts recorded in range)</td>
           <td style="text-align: center;">0.00 hrs</td>
           <td style="text-align: right;">$${dev.hourlyRate.toFixed(2)}</td>
           <td style="text-align: right;">₱${(dev.hourlyRate * rate).toFixed(2)}</td>
@@ -2337,16 +2460,184 @@ document.addEventListener('DOMContentLoaded', () => {
       elNetFormula.textContent = `Auto-computed: ${totalHours} hrs rendered × $${hourlyRateVal.toFixed(2)}/hr = $${totalGrossUsd.toFixed(2)} USD (≈ ₱${totalGrossPhp.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} PHP @ ₱${rate.toFixed(2)}/$)`;
     }
 
+    // ==========================================
+    // Render Previous Computed Payslips & Cutoff History
+    // ==========================================
+    const allDevRecords = state.attendanceRecords.filter(r => r.developerId === dev.id);
+    const historyDevBadge = document.getElementById('payslip-history-dev-badge');
+    if (historyDevBadge) historyDevBadge.textContent = `Employee: ${dev.name} (${dev.role})`;
+
+    // Group records by semi-monthly pay periods
+    const cycleMap = {};
+    allDevRecords.forEach(r => {
+      if (!r.date) return;
+      const parts = r.date.split('-');
+      if (parts.length < 3) return;
+      const y = parts[0];
+      const m = parts[1];
+      const d = parseInt(parts[2], 10);
+      const isCutoff1 = (d <= 15);
+      const cycleKey = `${y}-${m}-${isCutoff1 ? 'C1' : 'C2'}`;
+
+      if (!cycleMap[cycleKey]) {
+        const lastDayOfMonth = new Date(parseInt(y, 10), parseInt(m, 10), 0).getDate();
+        const cStart = `${y}-${m}-${isCutoff1 ? '01' : '16'}`;
+        const cEnd = `${y}-${m}-${isCutoff1 ? '15' : String(lastDayOfMonth).padStart(2, '0')}`;
+        const label = `${y}-${m} ${isCutoff1 ? '1st Half (01–15)' : '2nd Half (16–End)'}`;
+        cycleMap[cycleKey] = {
+          key: cycleKey,
+          start: cStart,
+          end: cEnd,
+          label,
+          minutes: 0,
+          grossUsd: 0,
+          sessions: 0,
+          year: parseInt(y, 10),
+          month: parseInt(m, 10),
+          cutoff: isCutoff1 ? 1 : 2
+        };
+      }
+
+      cycleMap[cycleKey].minutes += (r.workedMinutes || 0);
+      cycleMap[cycleKey].grossUsd += (r.totalEarnings || 0);
+      cycleMap[cycleKey].sessions += 1;
+    });
+
+    const sortedCycles = Object.values(cycleMap).sort((a, b) => {
+      if (a.year !== b.year) return b.year - a.year;
+      if (a.month !== b.month) return b.month - a.month;
+      return b.cutoff - a.cutoff;
+    });
+
+    if (payslipHistoryCount) payslipHistoryCount.textContent = sortedCycles.length;
+
+    if (payslipHistoryTableBody) {
+      payslipHistoryTableBody.innerHTML = '';
+      if (sortedCycles.length === 0) {
+        payslipHistoryTableBody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">
+              No historical pay periods or attendance logs found for ${dev.name}.
+            </td>
+          </tr>
+        `;
+      } else {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        sortedCycles.forEach(c => {
+          const cHours = (c.minutes / 60).toFixed(2);
+          const cPhp = c.grossUsd * rate;
+          const isActive = (todayStr >= c.start && todayStr <= c.end);
+          const isSelected = (startVal === c.start && endVal === c.end);
+
+          const tr = document.createElement('tr');
+          if (isSelected) tr.style.background = 'rgba(99, 102, 241, 0.08)';
+          tr.innerHTML = `
+            <td>
+              <strong>${c.label}</strong>
+              <div style="font-size: 0.74rem; color: var(--text-muted); font-family: var(--font-mono);">${c.start} to ${c.end}</div>
+            </td>
+            <td style="text-align: center;">${c.sessions} shift(s)</td>
+            <td style="font-weight: 700; color: var(--accent-cyan);">${cHours} hrs</td>
+            <td style="font-weight: 700; color: var(--text-primary);">$${c.grossUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            <td style="font-weight: 700; color: var(--status-working);">₱${cPhp.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            <td>
+              <span class="badge ${isActive ? 'badge-working' : ''}" style="${isActive ? '' : 'background: rgba(148, 163, 184, 0.15); color: var(--text-secondary);'} font-size: 0.72rem;">
+                ${isActive ? '⚡ Active Cycle' : '✅ Closed Cutoff'}
+              </span>
+            </td>
+            <td>
+              <button class="btn btn-primary btn-sm" style="padding: 4px 10px; font-size: 0.74rem;" onclick="loadPayslipHistoryCycle('${dev.id}', '${c.start}', '${c.end}')" title="Load this pay cycle into the printable payslip statement">
+                📄 View / Print
+              </button>
+            </td>
+          `;
+          payslipHistoryTableBody.appendChild(tr);
+        });
+      }
+    }
+
+    // Reset view to Statement tab
+    if (payslipTabBtnStatement && payslipTabBtnHistory && payslipPrintableContent && payslipHistoryContent) {
+      payslipTabBtnStatement.className = 'btn btn-sm btn-primary';
+      payslipTabBtnStatement.style.fontWeight = '700';
+      payslipTabBtnHistory.className = 'btn btn-sm btn-secondary';
+      payslipTabBtnHistory.style.fontWeight = '600';
+      payslipPrintableContent.style.display = 'block';
+      payslipHistoryContent.style.display = 'none';
+      if (btnPrintPayslipDirect) btnPrintPayslipDirect.style.display = 'inline-flex';
+    }
+
     modalPayslipPreview.classList.add('active');
   };
 
+  window.loadPayslipHistoryCycle = function(devId, startDate, endDate) {
+    window.openPayslipModal(devId, null, startDate, endDate, 'custom');
+    showToast(`Loaded pay cycle ${startDate} to ${endDate}`, 'info');
+  };
+
   window.generateSinglePayslip = function(devId, recordId) {
-    if (!store.isAdmin()) {
-      showToast('🔒 Access Restricted: Payslip generation is confidential and strictly exclusive to Administrator (Master PIN 1410).', 'warning');
+    const auth = store.getAuth();
+    if (!store.isAdmin() && !(auth && auth.isAuthenticated && auth.role === 'developer' && auth.devId === devId)) {
+      showToast('🔒 Please enter your PIN to access this payslip.', 'warning');
+      openPinModal();
       return;
     }
     window.openPayslipModal(devId, recordId);
   };
+
+  // Payslip Modal Event Handlers (Preset, Custom Date, Tabs)
+  if (payslipPeriodPreset) {
+    payslipPeriodPreset.addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (val !== 'custom') {
+        const pDates = computePayslipDatesByPreset(val);
+        if (payslipStartDate) payslipStartDate.value = pDates.start;
+        if (payslipEndDate) payslipEndDate.value = pDates.end;
+      }
+      const devId = payslipSelectDev ? payslipSelectDev.value : null;
+      window.openPayslipModal(devId, null, payslipStartDate.value, payslipEndDate.value, val);
+    });
+  }
+
+  if (btnPayslipApplyDates) {
+    btnPayslipApplyDates.addEventListener('click', () => {
+      const devId = payslipSelectDev ? payslipSelectDev.value : null;
+      window.openPayslipModal(devId, null, payslipStartDate.value, payslipEndDate.value, 'custom');
+    });
+  }
+
+  if (payslipStartDate) {
+    payslipStartDate.addEventListener('change', () => {
+      if (payslipPeriodPreset) payslipPeriodPreset.value = 'custom';
+    });
+  }
+
+  if (payslipEndDate) {
+    payslipEndDate.addEventListener('change', () => {
+      if (payslipPeriodPreset) payslipPeriodPreset.value = 'custom';
+    });
+  }
+
+  if (payslipTabBtnStatement && payslipTabBtnHistory) {
+    payslipTabBtnStatement.addEventListener('click', () => {
+      payslipTabBtnStatement.className = 'btn btn-sm btn-primary';
+      payslipTabBtnStatement.style.fontWeight = '700';
+      payslipTabBtnHistory.className = 'btn btn-sm btn-secondary';
+      payslipTabBtnHistory.style.fontWeight = '600';
+      payslipPrintableContent.style.display = 'block';
+      payslipHistoryContent.style.display = 'none';
+      if (btnPrintPayslipDirect) btnPrintPayslipDirect.style.display = 'inline-flex';
+    });
+    payslipTabBtnHistory.addEventListener('click', () => {
+      payslipTabBtnHistory.className = 'btn btn-sm btn-primary';
+      payslipTabBtnHistory.style.fontWeight = '700';
+      payslipTabBtnStatement.className = 'btn btn-sm btn-secondary';
+      payslipTabBtnStatement.style.fontWeight = '600';
+      payslipHistoryContent.style.display = 'block';
+      payslipPrintableContent.style.display = 'none';
+      if (btnPrintPayslipDirect) btnPrintPayslipDirect.style.display = 'none';
+    });
+  }
 
   if (btnPrintReport) {
     btnPrintReport.addEventListener('click', () => {

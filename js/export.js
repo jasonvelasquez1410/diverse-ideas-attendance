@@ -91,16 +91,17 @@ class ExportUtility {
     downloadAnchor.remove();
   }
 
-  // Trigger Print Payroll Slip (Admin Exclusive PIN 1410)
-  printPayrollReport() {
-    if (!this.store.isAdmin()) {
+  // Trigger Print Payroll Slip (Admin & Authenticated Developer)
+  printPayrollReport(devId = null) {
+    const auth = this.store.getAuth();
+    if (!this.store.isAdmin() && !(auth && auth.isAuthenticated && auth.role === 'developer')) {
       if (window.showToast) {
-        window.showToast('🔒 Access Restricted: Payslip generation is confidential and exclusive to Administrator (Master PIN 1410).', 'warning');
+        window.showToast('🔒 Access Restricted: Please enter your PIN to access your payslip.', 'warning');
       }
       return;
     }
     if (window.openPayslipModal) {
-      window.openPayslipModal();
+      window.openPayslipModal(devId);
     }
     setTimeout(() => {
       window.print();

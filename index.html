@@ -2653,19 +2653,58 @@
         <button class="modal-close-btn" id="btn-close-payslip">&times;</button>
       </div>
 
-      <!-- Quick Employee Selector Control Bar (Admin) -->
-      <div class="payslip-modal-controls" id="payslip-modal-controls" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 24px; background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color); gap: 12px; flex-wrap: wrap;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Employee / Developer:</label>
-          <select id="payslip-select-dev" class="form-control" style="width: auto; min-width: 190px; padding: 6px 12px; font-size: 0.86rem; font-weight: 600;">
+      <!-- Sub-Tabs: Statement Generator & Previous Computed Payslips History -->
+      <div class="payslip-modal-tabs" id="payslip-modal-tabs" style="display: flex; gap: 8px; padding: 10px 24px 0 24px; background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color);">
+        <button type="button" class="btn btn-sm btn-primary" id="payslip-tab-btn-statement" style="border-radius: var(--radius-sm) var(--radius-sm) 0 0; padding: 6px 16px; font-weight: 700; font-size: 0.82rem;">
+          📄 Current Payslip Statement
+        </button>
+        <button type="button" class="btn btn-sm btn-secondary" id="payslip-tab-btn-history" style="border-radius: var(--radius-sm) var(--radius-sm) 0 0; padding: 6px 16px; font-weight: 600; font-size: 0.82rem; color: var(--accent-cyan);">
+          📜 Previous Payslips & Pay Cycles (<span id="payslip-history-count">0</span>)
+        </button>
+      </div>
+
+      <!-- Quick Date Range & Employee Selector Control Bar -->
+      <div class="payslip-modal-controls" id="payslip-modal-controls" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); gap: 12px; flex-wrap: wrap;">
+        <!-- Employee Selector (Admin / Dev Info) -->
+        <div style="display: flex; align-items: center; gap: 8px;" id="payslip-dev-select-group">
+          <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Employee:</label>
+          <select id="payslip-select-dev" class="form-control" style="width: auto; min-width: 170px; padding: 5px 10px; font-size: 0.84rem; font-weight: 600;">
             <!-- Populated by JS -->
           </select>
+          <span id="payslip-dev-badge-static" class="badge badge-working" style="display: none; font-size: 0.84rem; padding: 6px 12px;"></span>
         </div>
-        <div style="font-size: 0.78rem; font-weight: 600; color: var(--accent-cyan);">
-          ⚡ Live USD ⇄ PHP Conversion
+
+        <!-- Date Range Filter Controls -->
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;" id="payslip-date-range-controls">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Period:</label>
+            <select id="payslip-period-preset" class="form-control" style="width: auto; padding: 5px 10px; font-size: 0.84rem;">
+              <option value="custom">Custom Date Range</option>
+              <option value="current-cutoff" selected>Current Cutoff (1st-15th / 16th-End)</option>
+              <option value="prev-cutoff">Previous Cutoff</option>
+              <option value="this-month">This Full Month</option>
+              <option value="prev-month">Previous Full Month</option>
+              <option value="all">All Time Records</option>
+            </select>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 6px;" id="payslip-custom-dates-group">
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <span style="font-size: 0.76rem; color: var(--text-muted); font-weight: 600;">From:</span>
+              <input type="date" id="payslip-start-date" class="form-control" style="width: auto; padding: 4px 8px; font-size: 0.82rem;">
+            </div>
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <span style="font-size: 0.76rem; color: var(--text-muted); font-weight: 600;">To:</span>
+              <input type="date" id="payslip-end-date" class="form-control" style="width: auto; padding: 4px 8px; font-size: 0.82rem;">
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" id="btn-payslip-apply-dates" style="padding: 5px 12px; font-size: 0.8rem; font-weight: 700;" title="Generate payslip for this exact date range">
+              ⚡ Compute
+            </button>
+          </div>
         </div>
       </div>
 
+      <!-- VIEW 1: Printable Payslip Statement Content -->
       <div class="modal-body" style="padding: 24px;" id="payslip-printable-content">
         <!-- Printable Payslip Voucher Container -->
         <div class="payslip-voucher-card">
@@ -2768,6 +2807,40 @@
             </div>
           </div>
 
+        </div>
+      </div>
+
+      <!-- VIEW 2: Previous Computed Payslips & Historical Pay Cycles -->
+      <div class="modal-body" style="padding: 24px; display: none;" id="payslip-history-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin: 0;">
+              Previous Computed Payslips & Cutoff Cycles
+            </h3>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
+              View, print, and audit your bi-weekly cutoffs and monthly salary records.
+            </p>
+          </div>
+          <span class="badge badge-working" style="font-size: 0.78rem;" id="payslip-history-dev-badge">Employee: All</span>
+        </div>
+
+        <div class="table-responsive" style="border: 1px solid var(--border-color); border-radius: var(--radius-md); max-height: 380px; overflow-y: auto;">
+          <table class="custom-table" style="font-size: 0.85rem;">
+            <thead>
+              <tr>
+                <th>Pay Period / Cycle</th>
+                <th>Work Sessions</th>
+                <th>Rendered Hours</th>
+                <th>Gross Pay ($ USD)</th>
+                <th>Converted Pay (₱ PHP)</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="payslip-history-table-body">
+              <!-- Rendered dynamically by JS -->
+            </tbody>
+          </table>
         </div>
       </div>
 
