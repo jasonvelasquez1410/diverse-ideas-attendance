@@ -735,35 +735,48 @@ class Store {
 
       // 3. Compute/verify workedMinutes and totalEarnings accurately (Shift Clamped & Paid Lunch)
       if (rec.startTime && rec.endTime) {
-        const rendered = this.calculateShiftRenderedTime({
-          startTime: rec.startTime,
-          endTime: rec.endTime,
-          breakDurationMinutes: rec.breakDurationMinutes || 0,
-          developerId: rec.developerId,
-          date: rec.date,
-          workLocation: rec.workLocation || 'onsite'
-        });
-        rec.workedMinutes = rendered.workedMinutes;
-        rec.breakDurationMinutes = rendered.breakMinutes;
-        rec.totalEarnings = rendered.totalEarnings;
-        if (!rec.hourlyRate) rec.hourlyRate = rendered.hourlyRate;
+        if (!rec.isManual || rec.workedMinutes == null) {
+          const rendered = this.calculateShiftRenderedTime({
+            startTime: rec.startTime,
+            endTime: rec.endTime,
+            breakDurationMinutes: rec.breakDurationMinutes || 0,
+            developerId: rec.developerId,
+            date: rec.date,
+            workLocation: rec.workLocation || 'onsite'
+          });
+          rec.workedMinutes = rendered.workedMinutes;
+          rec.breakDurationMinutes = rendered.breakMinutes;
+          rec.totalEarnings = rendered.totalEarnings;
+          if (!rec.hourlyRate) rec.hourlyRate = rendered.hourlyRate;
+        } else {
+          const rate = parseFloat(rec.hourlyRate) || (devRateMap[rec.developerId] || 5.00);
+          rec.hourlyRate = rate;
+          rec.totalEarnings = parseFloat(((rec.workedMinutes / 60) * rate).toFixed(2));
+        }
       }
 
-      // 4. Duplicate removal: Key by devId + date
-      const key = `${rec.developerId}_${rec.date}`;
-      if (!seenKeyMap.has(key)) {
-        seenKeyMap.set(key, rec);
+      // 4. Duplicate removal: Key by unique record ID or specific punch session timestamp
+      if (!rec.id) {
+        rec.id = 'rec-' + rec.developerId + '-' + (rec.date || '') + '-' + (rec.startTime ? new Date(rec.startTime).getTime() : Date.now());
+      }
+      const startIso = rec.startTime ? new Date(rec.startTime).toISOString() : '';
+      const sessionKey = startIso ? `${rec.developerId}_${rec.date}_${startIso}` : rec.id;
+
+      if (!seenKeyMap.has(rec.id) && !seenKeyMap.has(sessionKey)) {
+        seenKeyMap.set(rec.id, rec);
+        if (sessionKey !== rec.id) seenKeyMap.set(sessionKey, rec);
       } else {
-        const existing = seenKeyMap.get(key);
+        const existing = seenKeyMap.get(rec.id) || seenKeyMap.get(sessionKey);
         const existingEndMs = existing.endTime ? new Date(existing.endTime).getTime() : 0;
         const currentEndMs = rec.endTime ? new Date(rec.endTime).getTime() : 0;
         if (currentEndMs >= existingEndMs || (rec.workedMinutes || 0) >= (existing.workedMinutes || 0)) {
-          seenKeyMap.set(key, rec);
+          seenKeyMap.set(rec.id, rec);
+          if (sessionKey !== rec.id) seenKeyMap.set(sessionKey, rec);
         }
       }
     });
 
-    const result = Array.from(seenKeyMap.values());
+    const result = Array.from(new Set(seenKeyMap.values()));
     // Sort descending: newest date and newest time first
     result.sort((a, b) => {
       const cmpDate = (b.date || '').localeCompare(a.date || '');
@@ -1479,13 +1492,15 @@ class Store {
 
   addAttendanceRecord(record) {
     if (!this.state.attendanceRecords) this.state.attendanceRecords = [];
-    this.state.attendanceRecords.unshift({
-      id: record.id || ('rec-' + Date.now()),
+    const newRecord = {
+      id: record.id || ('rec-' + (record.developerId || 'dev') + '-' + Date.now()),
       ...record
-    });
+    };
+    this.state.attendanceRecords.unshift(newRecord);
     this.state.attendanceRecords = this.sanitizeAndDeduplicateAttendanceRecords(this.state.attendanceRecords);
     this.saveState(true);
     this.postStateToServer(this.state);
+    return newRecord;
   }
 
   updateAttendanceRecord(id, updates) {

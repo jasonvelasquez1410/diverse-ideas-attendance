@@ -797,7 +797,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const inDate = new Date(latest.startTime);
         const outDate = new Date(latest.endTime);
         if (dtrTimeIn) dtrTimeIn.textContent = inDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        if (dtrDateIn) dtrDateIn.textContent = `Time IN (${latest.workLocation.toUpperCase()})`;
+        if (dtrDateIn) dtrDateIn.textContent = `Time IN (${(latest.workLocation || 'onsite').toUpperCase()})`;
         if (dtrTimeOut) dtrTimeOut.textContent = outDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         if (dtrDateOut) dtrDateOut.textContent = `Time OUT logged`;
         if (dtrTotalRendered) dtrTotalRendered.textContent = `${(latest.workedMinutes / 60).toFixed(2)} hrs`;
@@ -832,6 +832,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     records.forEach(r => {
       const proj = store.getProjectById(r.projectId);
+      const projName = proj ? proj.name : 'Diverse Ideas Core Portal';
       const start = new Date(r.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       const end = new Date(r.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       const duration = (r.workedMinutes / 60).toFixed(2);
@@ -850,7 +851,7 @@ document.addEventListener('DOMContentLoaded', () => {
       div.innerHTML = `
         <div>
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
-            <strong style="font-size: 0.95rem; color: var(--text-primary);">${proj.name}</strong>
+            <strong style="font-size: 0.95rem; color: var(--text-primary);">${projName}</strong>
             <span class="badge badge-working" style="font-size: 0.72rem;">${duration} hrs</span>
             <span class="badge" style="font-size: 0.72rem; background: ${isWfh ? 'rgba(99, 102, 241, 0.15)' : 'rgba(16, 185, 129, 0.15)'}; color: ${isWfh ? 'var(--accent-cyan)' : 'var(--status-working)'};">
               ${isWfh ? '🏠 WFH (Home)' : (r.gps && r.gps.distanceMeters != null ? `🏢 Onsite (${r.gps.distanceMeters}m)` : '🏢 Onsite (Office)')}
@@ -4276,12 +4277,19 @@ document.addEventListener('DOMContentLoaded', () => {
       manualDevSelect.appendChild(opt);
     });
 
+    if (targetDevId) {
+      manualDevSelect.value = targetDevId;
+    } else if (activeDev) {
+      manualDevSelect.value = activeDev.id;
+    }
+
     if (manualProjectSelect) {
       populateProjectSelect(manualProjectSelect, 'proj-1', true);
       attachProjectAddListener(manualProjectSelect);
     }
 
-    const defaultDate = targetDate || (store.getLocalDateStr ? store.getLocalDateStr(new Date()) : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`);
+    const todayStr = store.getLocalDateStr ? store.getLocalDateStr(new Date()) : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
+    const defaultDate = targetDate || todayStr;
     const dateInput = document.getElementById('manual-date-input');
     if (dateInput) dateInput.value = defaultDate;
     if (manualStartTimeInput) manualStartTimeInput.value = '09:00';
@@ -4300,8 +4308,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnAddMissingLog) {
     btnAddMissingLog.addEventListener('click', () => {
       const activeDev = store.getActiveDeveloper();
-      // Default to yesterday / Sept 28 if today is Sept 29
-      openManualEntryModal(activeDev ? activeDev.id : null, '2026-09-28');
+      const todayStr = store.getLocalDateStr ? store.getLocalDateStr(new Date()) : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
+      openManualEntryModal(activeDev ? activeDev.id : null, todayStr);
     });
   }
 
@@ -4309,7 +4317,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnQuickAddPastLog) {
     btnQuickAddPastLog.addEventListener('click', () => {
       const activeDev = store.getActiveDeveloper();
-      openManualEntryModal(activeDev ? activeDev.id : null, '2026-09-28');
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = store.getLocalDateStr ? store.getLocalDateStr(yesterday) : `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+      openManualEntryModal(activeDev ? activeDev.id : null, yesterdayStr);
     });
   }
 
@@ -4318,42 +4329,63 @@ document.addEventListener('DOMContentLoaded', () => {
   formManualEntry.addEventListener('submit', (e) => {
     e.preventDefault();
     const devId = manualDevSelect.value;
-    const dev = store.getDeveloperById(devId);
-    const projId = manualProjectSelect.value;
-    const location = document.getElementById('manual-location-select').value || 'onsite';
-    const date = document.getElementById('manual-date-input').value;
+    const dev = store.getDeveloperById(devId) || store.getActiveDeveloper() || (store.getState().developers && store.getState().developers[0]);
+    const projId = (manualProjectSelect && manualProjectSelect.value && manualProjectSelect.value !== '__add_new__') ? manualProjectSelect.value : 'proj-1';
+    const location = (document.getElementById('manual-location-select') && document.getElementById('manual-location-select').value) || 'onsite';
+    const dateInputEl = document.getElementById('manual-date-input');
+    const todayStr = store.getLocalDateStr ? store.getLocalDateStr(new Date()) : `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
+    const date = (dateInputEl && dateInputEl.value) ? dateInputEl.value : todayStr;
     const startTimeVal = manualStartTimeInput ? manualStartTimeInput.value : '09:00';
     const endTimeVal = manualEndTimeInput ? manualEndTimeInput.value : '17:00';
     const hours = parseFloat(document.getElementById('manual-hours-input').value) || 0;
     const breakMins = parseInt(document.getElementById('manual-break-input').value) || 0;
     const notes = document.getElementById('manual-notes-input').value.trim() || 'Manual timesheet entry';
 
-    const [sh, sm] = startTimeVal.split(':');
-    const [eh, em] = endTimeVal.split(':');
+    const [sh, sm] = (startTimeVal || '09:00').split(':');
+    const [eh, em] = (endTimeVal || '17:00').split(':');
 
     const startDateTime = new Date(`${date}T${sh || '09'}:${sm || '00'}:00`);
-    const endDateTime = new Date(`${date}T${eh || '17'}:${em || '00'}:00`);
+    let endDateTime = new Date(`${date}T${eh || '17'}:${em || '00'}:00`);
+    if (endDateTime <= startDateTime) {
+      endDateTime = new Date(endDateTime.getTime() + 24 * 60 * 60 * 1000);
+    }
 
+    const devHourlyRate = dev ? (parseFloat(dev.hourlyRate) || 0) : 5.00;
+    const devCurrency = dev ? (dev.currencySymbol || '$') : '$';
+    const devName = dev ? dev.name : 'Developer';
     const workedMinutes = Math.round(hours * 60);
-    const totalEarnings = parseFloat(((hours) * dev.hourlyRate).toFixed(2));
+    const totalEarnings = parseFloat(((hours) * devHourlyRate).toFixed(2));
+    const recId = 'rec-' + (dev ? dev.id : devId) + '-' + Date.now();
 
     const rec = {
-      developerId: devId,
+      id: recId,
+      developerId: dev ? dev.id : devId,
       date,
       startTime: startDateTime.toISOString(),
       endTime: endDateTime.toISOString(),
       breakDurationMinutes: breakMins,
       workedMinutes,
-      hourlyRate: dev.hourlyRate,
-      currencySymbol: dev.currencySymbol,
+      hourlyRate: devHourlyRate,
+      currencySymbol: devCurrency,
       totalEarnings,
       projectId: projId,
       workLocation: location,
-      taskNote: notes
+      taskNote: notes,
+      isManual: true
     };
 
     store.addAttendanceRecord(rec);
-    showToast(`✅ Saved timesheet record for ${dev.name}`, 'success');
+
+    // Switch active developer in store so the dashboard immediately shows the employee's new log
+    if (dev && dev.id) {
+      store.setActiveDeveloper(dev.id);
+      const cardDevSelect = document.getElementById('card-dev-select');
+      if (cardDevSelect) cardDevSelect.value = dev.id;
+      const terminalDevSelect = document.getElementById('terminal-dev-select');
+      if (terminalDevSelect) terminalDevSelect.value = dev.id;
+    }
+
+    showToast(`✅ Saved attendance log for ${devName}`, 'success');
     modalManualEntry.classList.remove('active');
     formManualEntry.reset();
     renderAll();

@@ -134,19 +134,26 @@ const server = http.createServer((req, res) => {
               ];
               allRecords.forEach(rawRec => {
                 if (!rawRec || !rawRec.developerId || !rawRec.date || rawRec.date <= '2026-09-18') return;
-                const key = `${rawRec.developerId}_${rawRec.date}`;
-                if (!recordMap.has(key)) {
-                  recordMap.set(key, rawRec);
+                if (!rawRec.id) {
+                  rawRec.id = 'rec-' + rawRec.developerId + '-' + rawRec.date + '-' + (rawRec.startTime ? new Date(rawRec.startTime).getTime() : Date.now());
+                }
+                const startIso = rawRec.startTime ? new Date(rawRec.startTime).toISOString() : '';
+                const sessionKey = startIso ? `${rawRec.developerId}_${rawRec.date}_${startIso}` : rawRec.id;
+
+                if (!recordMap.has(rawRec.id) && !recordMap.has(sessionKey)) {
+                  recordMap.set(rawRec.id, rawRec);
+                  if (sessionKey !== rawRec.id) recordMap.set(sessionKey, rawRec);
                 } else {
-                  const existing = recordMap.get(key);
+                  const existing = recordMap.get(rawRec.id) || recordMap.get(sessionKey);
                   const existingEnd = existing.endTime ? new Date(existing.endTime).getTime() : 0;
                   const currentEnd = rawRec.endTime ? new Date(rawRec.endTime).getTime() : 0;
                   if (currentEnd >= existingEnd || (rawRec.workedMinutes || 0) >= (existing.workedMinutes || 0)) {
-                    recordMap.set(key, rawRec);
+                    recordMap.set(rawRec.id, rawRec);
+                    if (sessionKey !== rawRec.id) recordMap.set(sessionKey, rawRec);
                   }
                 }
               });
-              const mergedRecords = Array.from(recordMap.values());
+              const mergedRecords = Array.from(new Set(recordMap.values()));
               mergedRecords.sort((a, b) => {
                 const cmp = (b.date || '').localeCompare(a.date || '');
                 if (cmp !== 0) return cmp;
