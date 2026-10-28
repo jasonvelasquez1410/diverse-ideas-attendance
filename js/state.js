@@ -762,20 +762,19 @@ class Store {
         }
       }
 
-      // 4. Duplicate removal: Key by minute-level timestamp so sub-minute drift or double punches collapse into 1 record
+      // 4. Duplicate removal: Key by developer and date (one shift record per developer per day)
       if (!rec.id) {
         rec.id = 'rec-' + rec.developerId + '-' + (rec.date || '') + '-' + (rec.startTime ? new Date(rec.startTime).getTime() : Date.now());
       }
-      const startMin = rec.startTime ? (rec.startTime.length >= 16 ? rec.startTime.slice(0, 16) : rec.startTime) : rec.id;
-      const sessionKey = `${rec.developerId}_${rec.date}_${startMin}`;
+      const sessionKey = `${rec.developerId}_${rec.date}`;
 
       if (!seenKeyMap.has(sessionKey)) {
         seenKeyMap.set(sessionKey, rec);
       } else {
         const existing = seenKeyMap.get(sessionKey);
-        const existingEndMs = existing.endTime ? new Date(existing.endTime).getTime() : 0;
-        const currentEndMs = rec.endTime ? new Date(rec.endTime).getTime() : 0;
-        if (currentEndMs >= existingEndMs || (rec.workedMinutes || 0) >= (existing.workedMinutes || 0)) {
+        const existingScore = (existing.autoTimedOut ? 0 : 2) + (existing.workedMinutes || 0) + (existing.isManual ? 1 : 0);
+        const currentScore = (rec.autoTimedOut ? 0 : 2) + (rec.workedMinutes || 0) + (rec.isManual ? 1 : 0);
+        if (currentScore >= existingScore) {
           seenKeyMap.set(sessionKey, rec);
         }
       }
@@ -1184,10 +1183,8 @@ class Store {
         }
         const missingOnServer = localRecords.some(lr => {
           if (!lr || !lr.developerId || !lr.date) return false;
-          const startMin = lr.startTime ? (lr.startTime.length >= 16 ? lr.startTime.slice(0, 16) : lr.startTime) : (lr.id || '');
           return !serverRecords.some(sr => {
-            const srStartMin = sr.startTime ? (sr.startTime.length >= 16 ? sr.startTime.slice(0, 16) : sr.startTime) : (sr.id || '');
-            return (sr.id === lr.id) || (sr.developerId === lr.developerId && sr.date === lr.date && srStartMin === startMin);
+            return (sr.id === lr.id) || (sr.developerId === lr.developerId && sr.date === lr.date);
           });
         });
         if (missingOnServer) {

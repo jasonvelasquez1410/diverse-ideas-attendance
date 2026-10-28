@@ -143,19 +143,19 @@ const server = http.createServer((req, res) => {
               allRecords.forEach(rawRec => {
                 if (!rawRec || !rawRec.developerId || !rawRec.date || rawRec.date <= '2026-09-18') return;
                 if (rawRec.id && deletedSet.has(rawRec.id)) return; // Permanently omit deleted records
+                // 1. Merge attendance records: Deduplicate by developer and date (1 shift record per day)
                 if (!rawRec.id) {
                   rawRec.id = 'rec-' + rawRec.developerId + '-' + rawRec.date + '-' + (rawRec.startTime ? new Date(rawRec.startTime).getTime() : Date.now());
                 }
-                const startMin = rawRec.startTime ? (rawRec.startTime.length >= 16 ? rawRec.startTime.slice(0, 16) : rawRec.startTime) : rawRec.id;
-                const sessionKey = `${rawRec.developerId}_${rawRec.date}_${startMin}`;
+                const sessionKey = `${rawRec.developerId}_${rawRec.date}`;
 
                 if (!sessionMap.has(sessionKey)) {
                   sessionMap.set(sessionKey, rawRec);
                 } else {
                   const existing = sessionMap.get(sessionKey);
-                  const existingEnd = existing.endTime ? new Date(existing.endTime).getTime() : 0;
-                  const currentEnd = rawRec.endTime ? new Date(rawRec.endTime).getTime() : 0;
-                  if (currentEnd >= existingEnd || (rawRec.workedMinutes || 0) >= (existing.workedMinutes || 0)) {
+                  const existingScore = (existing.autoTimedOut ? 0 : 2) + (existing.workedMinutes || 0) + (existing.isManual ? 1 : 0);
+                  const currentScore = (rawRec.autoTimedOut ? 0 : 2) + (rawRec.workedMinutes || 0) + (rawRec.isManual ? 1 : 0);
+                  if (currentScore >= existingScore) {
                     sessionMap.set(sessionKey, rawRec);
                   }
                 }
