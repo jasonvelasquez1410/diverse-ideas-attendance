@@ -17,6 +17,7 @@ const DEFAULT_INITIAL_STATE = {
   usdToPhpRate: 58.50, // Live USD to PHP exchange rate (PHP per 1 USD)
   lastRateUpdate: null,
   isLiveExchangeActive: true,
+  deletedRecordIds: [],
   organization: {
     companyName: 'Diverse Ideas GMBH',
     industry: 'Software Engineering & IT Consulting',
@@ -700,14 +701,20 @@ class Store {
     };
   }
 
-  sanitizeAndDeduplicateAttendanceRecords(records) {
+  sanitizeAndDeduplicateAttendanceRecords(records, extraDeletedIds = []) {
     if (!Array.isArray(records)) return [];
 
     const seenKeyMap = new Map();
     const devRateMap = { 'dev-1': 5.00, 'dev-2': 5.00, 'dev-3': 18.00, 'dev-4': 12.00 };
+    const deletedIds = [
+      ...(this.state && Array.isArray(this.state.deletedRecordIds) ? this.state.deletedRecordIds : []),
+      ...(Array.isArray(extraDeletedIds) ? extraDeletedIds : [])
+    ];
+    const deletedSet = new Set(deletedIds);
 
     records.forEach(rawRec => {
       if (!rawRec || !rawRec.developerId) return;
+      if (rawRec.id && deletedSet.has(rawRec.id)) return;
       const rec = { ...rawRec };
 
       // 0. Exclude dates 18 and below (historical cutoff)
@@ -755,12 +762,12 @@ class Store {
         }
       }
 
-      // 4. Duplicate removal: Key by unique punch session timestamp (or record ID)
+      // 4. Duplicate removal: Key by minute-level timestamp so sub-minute drift or double punches collapse into 1 record
       if (!rec.id) {
         rec.id = 'rec-' + rec.developerId + '-' + (rec.date || '') + '-' + (rec.startTime ? new Date(rec.startTime).getTime() : Date.now());
       }
-      const startIso = rec.startTime ? new Date(rec.startTime).toISOString() : rec.id;
-      const sessionKey = `${rec.developerId}_${rec.date}_${startIso}`;
+      const startMin = rec.startTime ? (rec.startTime.length >= 16 ? rec.startTime.slice(0, 16) : rec.startTime) : rec.id;
+      const sessionKey = `${rec.developerId}_${rec.date}_${startMin}`;
 
       if (!seenKeyMap.has(sessionKey)) {
         seenKeyMap.set(sessionKey, rec);
@@ -774,7 +781,7 @@ class Store {
       }
     });
 
-    const result = Array.from(seenKeyMap.values());
+    const result = Array.from(seenKeyMap.values()).filter(r => !deletedSet.has(r.id));
     // Sort descending: newest date and newest time first
     result.sort((a, b) => {
       const cmpDate = (b.date || '').localeCompare(a.date || '');
@@ -791,6 +798,9 @@ class Store {
       if (serialized) {
         const parsed = JSON.parse(serialized);
         if (!parsed.usdToPhpRate) parsed.usdToPhpRate = 58.50;
+        if (!Array.isArray(parsed.deletedRecordIds)) {
+          parsed.deletedRecordIds = [];
+        }
         
         // Ensure holidays array exists
         if (!parsed.holidays || !Array.isArray(parsed.holidays) || parsed.holidays.length === 0) {
@@ -953,18 +963,20 @@ class Store {
       '2026-09-14'
     ];
 
+    const stateDeletedSet = new Set(Array.isArray(stateObj.deletedRecordIds) ? stateObj.deletedRecordIds : []);
+
     allDevs.forEach(devId => {
       requiredDates.forEach(dStr => {
         const hasDateRecord = stateObj.attendanceRecords.some(r => r.developerId === devId && r.date === dStr);
         if (!hasDateRecord) {
           const seed = DEFAULT_INITIAL_STATE.attendanceRecords.find(r => r.developerId === devId && r.date === dStr);
-          if (seed) stateObj.attendanceRecords.push({ ...seed });
+          if (seed && !stateDeletedSet.has(seed.id)) stateObj.attendanceRecords.push({ ...seed });
         }
       });
     });
 
     // Final clean sort and deduplication
-    stateObj.attendanceRecords = this.sanitizeAndDeduplicateAttendanceRecords(stateObj.attendanceRecords);
+    stateObj.attendanceRecords = this.sanitizeAndDeduplicateAttendanceRecords(stateObj.attendanceRecords, stateObj.deletedRecordIds);
 
     // Reset corrupted/empty working sessions without clearing legitimate active punches
     this.sanitizeDeveloperStatuses(stateObj);
@@ -1041,6 +1053,10 @@ class Store {
 
   hasMeaningfulServerChanges(localState, serverData) {
     if (!localState || !serverData) return true;
+    const lDeleted = localState.deletedRecordIds || [];
+    const sDeleted = serverData.deletedRecordIds || [];
+    if (lDeleted.length !== sDeleted.length) return true;
+
     const lRecords = localState.attendanceRecords || [];
     const sRecords = serverData.attendanceRecords || [];
     if (lRecords.length !== sRecords.length) return true;
@@ -1139,24 +1155,39 @@ class Store {
         this.sanitizeProjects(serverData);
         this.ensureAllDevelopersAttendanceRecords(serverData);
 
-        const localRecords = this.state.attendanceRecords || [];
-        const serverRecords = serverData.attendanceRecords || [];
+        // 0. Merge deleted record tombstones so deletions persist across cloud and devices
+        const mergedDeletedIds = Array.from(new Set([
+          ...(Array.isArray(this.state.deletedRecordIds) ? this.state.deletedRecordIds : []),
+          ...(Array.isArray(serverData.deletedRecordIds) ? serverData.deletedRecordIds : [])
+        ]));
+        this.state.deletedRecordIds = mergedDeletedIds;
+        serverData.deletedRecordIds = mergedDeletedIds;
+        const deletedSet = new Set(mergedDeletedIds);
 
-        // 1. Merge attendance records: Union with deduplication so NO record is ever lost
+        const localRecords = (this.state.attendanceRecords || []).filter(r => r && !deletedSet.has(r.id));
+        const serverRecords = (serverData.attendanceRecords || []).filter(r => r && !deletedSet.has(r.id));
+
+        // 1. Merge attendance records: Union with minute-level deduplication so valid records are kept
         const mergedRecords = this.sanitizeAndDeduplicateAttendanceRecords([
           ...localRecords,
           ...serverRecords
-        ]);
+        ], mergedDeletedIds);
         serverData.attendanceRecords = mergedRecords;
 
-        // Check if local device has attendance records the cloud database was missing
+        // Check if local device has attendance records or tombstones the cloud database was missing
         let needsServerPush = false;
+        if (mergedDeletedIds.length > (Array.isArray(serverData.deletedRecordIds) ? serverData.deletedRecordIds.length : 0)) {
+          needsServerPush = true;
+        }
+        if ((serverData.attendanceRecords || []).length !== serverRecords.length) {
+          needsServerPush = true;
+        }
         const missingOnServer = localRecords.some(lr => {
           if (!lr || !lr.developerId || !lr.date) return false;
-          const startIso = lr.startTime ? new Date(lr.startTime).toISOString() : (lr.id || '');
+          const startMin = lr.startTime ? (lr.startTime.length >= 16 ? lr.startTime.slice(0, 16) : lr.startTime) : (lr.id || '');
           return !serverRecords.some(sr => {
-            const srStartIso = sr.startTime ? new Date(sr.startTime).toISOString() : (sr.id || '');
-            return (sr.id === lr.id) || (sr.developerId === lr.developerId && sr.date === lr.date && srStartIso === startIso);
+            const srStartMin = sr.startTime ? (sr.startTime.length >= 16 ? sr.startTime.slice(0, 16) : sr.startTime) : (sr.id || '');
+            return (sr.id === lr.id) || (sr.developerId === lr.developerId && sr.date === lr.date && srStartMin === startMin);
           });
         });
         if (missingOnServer) {
@@ -1174,7 +1205,10 @@ class Store {
             if ((localDev.status === 'working' || localDev.status === 'break') && localDev.activeSession) {
               const localStart = localDev.activeSession.startTime;
               const hasCompleted = mergedRecords.some(
-                r => r.developerId === localDev.id && r.startTime === localStart && r.endTime
+                r => r.developerId === localDev.id && (
+                  r.startTime === localStart ||
+                  (r.date && localStart && r.date === localStart.split('T')[0] && r.endTime)
+                ) && r.endTime
               );
               if (!hasCompleted) {
                 serverDev.status = localDev.status;
@@ -1262,8 +1296,16 @@ class Store {
           const resData = await apiRes.json();
           // If server returned merged state with more attendance records, adopt them!
           if (resData && resData.state && Array.isArray(resData.state.attendanceRecords)) {
-            if (resData.state.attendanceRecords.length >= (this.state.attendanceRecords || []).length) {
-              this.state.attendanceRecords = resData.state.attendanceRecords;
+            if (Array.isArray(resData.state.deletedRecordIds)) {
+              this.state.deletedRecordIds = Array.from(new Set([
+                ...(Array.isArray(this.state.deletedRecordIds) ? this.state.deletedRecordIds : []),
+                ...resData.state.deletedRecordIds
+              ]));
+            }
+            const curDeleted = new Set(this.state.deletedRecordIds || []);
+            const validIncoming = resData.state.attendanceRecords.filter(r => r && !curDeleted.has(r.id));
+            if (validIncoming.length >= (this.state.attendanceRecords || []).length) {
+              this.state.attendanceRecords = this.sanitizeAndDeduplicateAttendanceRecords(validIncoming, this.state.deletedRecordIds);
               try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
               } catch (e) {}
@@ -1620,8 +1662,16 @@ class Store {
   }
 
   deleteAttendanceRecord(id) {
-    if (!this.state.attendanceRecords) return;
-    this.state.attendanceRecords = this.state.attendanceRecords.filter(r => r.id !== id);
+    if (!id) return;
+    if (!Array.isArray(this.state.deletedRecordIds)) {
+      this.state.deletedRecordIds = [];
+    }
+    if (!this.state.deletedRecordIds.includes(id)) {
+      this.state.deletedRecordIds.push(id);
+    }
+    if (this.state.attendanceRecords) {
+      this.state.attendanceRecords = this.state.attendanceRecords.filter(r => r.id !== id);
+    }
     this.saveState(true);
     this.postStateToServer(this.state);
   }

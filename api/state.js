@@ -36,7 +36,15 @@ function mergeCloudAndClientState(existingData, incomingData) {
   sanitizeStateProjects(existingData);
   sanitizeStateProjects(incomingData);
 
-  // 1. Merge attendance records: Union with deduplication by session key
+  // Merge deleted record tombstones so deletions persist across cloud and devices
+  const deletedIds = Array.from(new Set([
+    ...(Array.isArray(existingData.deletedRecordIds) ? existingData.deletedRecordIds : []),
+    ...(Array.isArray(incomingData.deletedRecordIds) ? incomingData.deletedRecordIds : [])
+  ]));
+  incomingData.deletedRecordIds = deletedIds;
+  const deletedSet = new Set(deletedIds);
+
+  // 1. Merge attendance records: Union with minute-level deduplication
   const sessionMap = new Map();
   const allRecords = [
     ...(Array.isArray(existingData.attendanceRecords) ? existingData.attendanceRecords : []),
@@ -45,11 +53,12 @@ function mergeCloudAndClientState(existingData, incomingData) {
 
   allRecords.forEach(rawRec => {
     if (!rawRec || !rawRec.developerId || !rawRec.date || rawRec.date <= '2026-09-18') return;
+    if (rawRec.id && deletedSet.has(rawRec.id)) return; // Permanently omit deleted records
     if (!rawRec.id) {
       rawRec.id = 'rec-' + rawRec.developerId + '-' + rawRec.date + '-' + (rawRec.startTime ? new Date(rawRec.startTime).getTime() : Date.now());
     }
-    const startIso = rawRec.startTime ? new Date(rawRec.startTime).toISOString() : rawRec.id;
-    const sessionKey = `${rawRec.developerId}_${rawRec.date}_${startIso}`;
+    const startMin = rawRec.startTime ? (rawRec.startTime.length >= 16 ? rawRec.startTime.slice(0, 16) : rawRec.startTime) : rawRec.id;
+    const sessionKey = `${rawRec.developerId}_${rawRec.date}_${startMin}`;
 
     if (!sessionMap.has(sessionKey)) {
       sessionMap.set(sessionKey, rawRec);
@@ -63,7 +72,7 @@ function mergeCloudAndClientState(existingData, incomingData) {
     }
   });
 
-  const mergedRecords = Array.from(sessionMap.values());
+  const mergedRecords = Array.from(sessionMap.values()).filter(r => !deletedSet.has(r.id));
   mergedRecords.sort((a, b) => {
     const cmp = (b.date || '').localeCompare(a.date || '');
     if (cmp !== 0) return cmp;
