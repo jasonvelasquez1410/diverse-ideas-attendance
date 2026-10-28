@@ -126,8 +126,8 @@ const server = http.createServer((req, res) => {
             const rawExisting = fs.readFileSync(DB_FILE, 'utf8');
             const existingState = JSON.parse(rawExisting);
             if (existingState && Array.isArray(existingState.developers)) {
-              // 1. Merge attendance records
-              const recordMap = new Map();
+              // 1. Merge attendance records: Union with deduplication by session key
+              const sessionMap = new Map();
               const allRecords = [
                 ...(Array.isArray(existingState.attendanceRecords) ? existingState.attendanceRecords : []),
                 ...(Array.isArray(parsed.attendanceRecords) ? parsed.attendanceRecords : [])
@@ -137,23 +137,21 @@ const server = http.createServer((req, res) => {
                 if (!rawRec.id) {
                   rawRec.id = 'rec-' + rawRec.developerId + '-' + rawRec.date + '-' + (rawRec.startTime ? new Date(rawRec.startTime).getTime() : Date.now());
                 }
-                const startIso = rawRec.startTime ? new Date(rawRec.startTime).toISOString() : '';
-                const sessionKey = startIso ? `${rawRec.developerId}_${rawRec.date}_${startIso}` : rawRec.id;
+                const startIso = rawRec.startTime ? new Date(rawRec.startTime).toISOString() : rawRec.id;
+                const sessionKey = `${rawRec.developerId}_${rawRec.date}_${startIso}`;
 
-                if (!recordMap.has(rawRec.id) && !recordMap.has(sessionKey)) {
-                  recordMap.set(rawRec.id, rawRec);
-                  if (sessionKey !== rawRec.id) recordMap.set(sessionKey, rawRec);
+                if (!sessionMap.has(sessionKey)) {
+                  sessionMap.set(sessionKey, rawRec);
                 } else {
-                  const existing = recordMap.get(rawRec.id) || recordMap.get(sessionKey);
+                  const existing = sessionMap.get(sessionKey);
                   const existingEnd = existing.endTime ? new Date(existing.endTime).getTime() : 0;
                   const currentEnd = rawRec.endTime ? new Date(rawRec.endTime).getTime() : 0;
                   if (currentEnd >= existingEnd || (rawRec.workedMinutes || 0) >= (existing.workedMinutes || 0)) {
-                    recordMap.set(rawRec.id, rawRec);
-                    if (sessionKey !== rawRec.id) recordMap.set(sessionKey, rawRec);
+                    sessionMap.set(sessionKey, rawRec);
                   }
                 }
               });
-              const mergedRecords = Array.from(new Set(recordMap.values()));
+              const mergedRecords = Array.from(sessionMap.values());
               mergedRecords.sort((a, b) => {
                 const cmp = (b.date || '').localeCompare(a.date || '');
                 if (cmp !== 0) return cmp;
@@ -174,13 +172,8 @@ const server = http.createServer((req, res) => {
                   );
                   // Only restore if incoming was an un-clocked-in background poll (missing activeSession without any closed record)
                   if (!hasClosed && !inDev._isExplicitClockOut) {
-                    // Check if inDev had empty session vs explicit clock out
-                    const inRecords = Array.isArray(parsed.attendanceRecords) ? parsed.attendanceRecords : [];
-                    const hasRecentRecord = inRecords.some(r => r.developerId === inDev.id && r.endTime);
-                    if (!hasRecentRecord && inDev.activeSession === undefined) {
-                      inDev.status = exDev.status;
-                      inDev.activeSession = exDev.activeSession;
-                    }
+                    inDev.status = exDev.status;
+                    inDev.activeSession = exDev.activeSession;
                   }
                 }
               });

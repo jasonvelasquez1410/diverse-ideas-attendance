@@ -755,28 +755,26 @@ class Store {
         }
       }
 
-      // 4. Duplicate removal: Key by unique record ID or specific punch session timestamp
+      // 4. Duplicate removal: Key by unique punch session timestamp (or record ID)
       if (!rec.id) {
         rec.id = 'rec-' + rec.developerId + '-' + (rec.date || '') + '-' + (rec.startTime ? new Date(rec.startTime).getTime() : Date.now());
       }
-      const startIso = rec.startTime ? new Date(rec.startTime).toISOString() : '';
-      const sessionKey = startIso ? `${rec.developerId}_${rec.date}_${startIso}` : rec.id;
+      const startIso = rec.startTime ? new Date(rec.startTime).toISOString() : rec.id;
+      const sessionKey = `${rec.developerId}_${rec.date}_${startIso}`;
 
-      if (!seenKeyMap.has(rec.id) && !seenKeyMap.has(sessionKey)) {
-        seenKeyMap.set(rec.id, rec);
-        if (sessionKey !== rec.id) seenKeyMap.set(sessionKey, rec);
+      if (!seenKeyMap.has(sessionKey)) {
+        seenKeyMap.set(sessionKey, rec);
       } else {
-        const existing = seenKeyMap.get(rec.id) || seenKeyMap.get(sessionKey);
+        const existing = seenKeyMap.get(sessionKey);
         const existingEndMs = existing.endTime ? new Date(existing.endTime).getTime() : 0;
         const currentEndMs = rec.endTime ? new Date(rec.endTime).getTime() : 0;
         if (currentEndMs >= existingEndMs || (rec.workedMinutes || 0) >= (existing.workedMinutes || 0)) {
-          seenKeyMap.set(rec.id, rec);
-          if (sessionKey !== rec.id) seenKeyMap.set(sessionKey, rec);
+          seenKeyMap.set(sessionKey, rec);
         }
       }
     });
 
-    const result = Array.from(new Set(seenKeyMap.values()));
+    const result = Array.from(seenKeyMap.values());
     // Sort descending: newest date and newest time first
     result.sort((a, b) => {
       const cmpDate = (b.date || '').localeCompare(a.date || '');
@@ -1043,7 +1041,16 @@ class Store {
 
   hasMeaningfulServerChanges(localState, serverData) {
     if (!localState || !serverData) return true;
-    if ((localState.attendanceRecords || []).length !== (serverData.attendanceRecords || []).length) return true;
+    const lRecords = localState.attendanceRecords || [];
+    const sRecords = serverData.attendanceRecords || [];
+    if (lRecords.length !== sRecords.length) return true;
+
+    if (lRecords.length > 0 && sRecords.length > 0) {
+      if (lRecords[0].id !== sRecords[0].id) return true;
+      if (lRecords[0].endTime !== sRecords[0].endTime) return true;
+      if (lRecords[0].workedMinutes !== sRecords[0].workedMinutes) return true;
+    }
+
     for (let i = 0; i < (serverData.developers || []).length; i++) {
       const sDev = serverData.developers[i];
       const lDev = (localState.developers || []).find(d => d.id === sDev.id);
@@ -1059,6 +1066,7 @@ class Store {
   async fetchServerState(isInitial = false) {
     try {
       let serverData = null;
+      let isPermissionDenied = false;
 
       // 1. Direct fetch from Firebase Realtime Database with 3.5s timeout
       try {
@@ -1071,6 +1079,8 @@ class Store {
         clearTimeout(timeoutId);
         if (fbRes.ok) {
           serverData = await fbRes.json();
+        } else if (fbRes.status === 401) {
+          isPermissionDenied = true;
         }
       } catch (fbErr) {
         // Silent fallback to local/API
@@ -1088,9 +1098,25 @@ class Store {
           });
           clearTimeout(timeoutId);
           if (response.ok) {
-            serverData = await response.json();
+            const data = await response.json();
+            if (data && !data.locked) {
+              serverData = data;
+            } else if (data && data.locked) {
+              isPermissionDenied = true;
+            }
+          } else if (response.status === 401) {
+            isPermissionDenied = true;
           }
         } catch (apiErr) {}
+      }
+
+      if (isPermissionDenied && !serverData) {
+        this.isServerConnected = false;
+        this.dispatchSyncStatus('locked', { 
+          error: 'Firebase database permission denied (401)',
+          message: '⚠️ Cloud Locked: Rules need to be set to true in Firebase Console'
+        });
+        return;
       }
 
       if (!serverData) {
@@ -1102,7 +1128,7 @@ class Store {
       if (serverData.exists === false || !Array.isArray(serverData.developers)) {
         // Cloud database is empty -> push local state to seed
         await this.postStateToServer(this.state);
-        this.dispatchSyncStatus('synced', { message: 'Cloud database initialized' });
+        this.dispatchSyncStatus('synced', { message: '🟢 Cloud Synced (Firebase)' });
         return;
       }
 
@@ -1113,12 +1139,29 @@ class Store {
         this.sanitizeProjects(serverData);
         this.ensureAllDevelopersAttendanceRecords(serverData);
 
+        const localRecords = this.state.attendanceRecords || [];
+        const serverRecords = serverData.attendanceRecords || [];
+
         // 1. Merge attendance records: Union with deduplication so NO record is ever lost
         const mergedRecords = this.sanitizeAndDeduplicateAttendanceRecords([
-          ...(this.state.attendanceRecords || []),
-          ...(serverData.attendanceRecords || [])
+          ...localRecords,
+          ...serverRecords
         ]);
         serverData.attendanceRecords = mergedRecords;
+
+        // Check if local device has attendance records the cloud database was missing
+        let needsServerPush = false;
+        const missingOnServer = localRecords.some(lr => {
+          if (!lr || !lr.developerId || !lr.date) return false;
+          const startIso = lr.startTime ? new Date(lr.startTime).toISOString() : (lr.id || '');
+          return !serverRecords.some(sr => {
+            const srStartIso = sr.startTime ? new Date(sr.startTime).toISOString() : (sr.id || '');
+            return (sr.id === lr.id) || (sr.developerId === lr.developerId && sr.date === lr.date && srStartIso === startIso);
+          });
+        });
+        if (missingOnServer) {
+          needsServerPush = true;
+        }
 
         // 2. Intelligent developer active session merge across all developers
         if (Array.isArray(this.state.developers) && Array.isArray(serverData.developers)) {
@@ -1136,6 +1179,7 @@ class Store {
               if (!hasCompleted) {
                 serverDev.status = localDev.status;
                 serverDev.activeSession = localDev.activeSession;
+                needsServerPush = true;
               }
             }
           });
@@ -1150,6 +1194,11 @@ class Store {
 
         this.notify();
         this.dispatchSyncStatus('synced', { message: '🟢 Cloud Synced (Firebase)' });
+
+        // If local device had punches or records the server needed, push merged state up
+        if (needsServerPush) {
+          this.postStateToServer(this.state);
+        }
       }
     } catch (err) {
       this.isServerConnected = false;
@@ -1173,25 +1222,32 @@ class Store {
       this.sanitizeProjects(stateData);
       stateData._serverTimestamp = Date.now();
       const payload = JSON.stringify(stateData);
+      let saveSuccess = false;
+      let isPermissionDenied = false;
 
-      // Direct Firebase PUT (Instant sub-second cloud sync)
+      // 1. Direct Firebase PUT (Instant sub-second cloud sync)
       try {
         const c1 = new AbortController();
         const t1 = setTimeout(() => c1.abort(), 4000);
-        await fetch(FIREBASE_DB_URL, {
+        const fbRes = await fetch(FIREBASE_DB_URL, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: payload,
           signal: c1.signal
         });
         clearTimeout(t1);
+        if (fbRes.ok) {
+          saveSuccess = true;
+        } else if (fbRes.status === 401) {
+          isPermissionDenied = true;
+        }
       } catch (e) {}
 
-      // Also notify /api/state proxy
+      // 2. Also notify /api/state proxy
       try {
         const c2 = new AbortController();
         const t2 = setTimeout(() => c2.abort(), 4000);
-        await fetch('/api/state', {
+        const apiRes = await fetch('/api/state', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1201,11 +1257,38 @@ class Store {
           signal: c2.signal
         });
         clearTimeout(t2);
+        if (apiRes.ok) {
+          saveSuccess = true;
+          const resData = await apiRes.json();
+          // If server returned merged state with more attendance records, adopt them!
+          if (resData && resData.state && Array.isArray(resData.state.attendanceRecords)) {
+            if (resData.state.attendanceRecords.length >= (this.state.attendanceRecords || []).length) {
+              this.state.attendanceRecords = resData.state.attendanceRecords;
+              try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+              } catch (e) {}
+              this.notify();
+            }
+          }
+        } else if (apiRes.status === 401) {
+          isPermissionDenied = true;
+        }
       } catch (e) {}
 
-      this.isServerConnected = true;
-      this.lastServerSyncTimestamp = stateData._serverTimestamp;
-      this.dispatchSyncStatus('synced', { timestamp: this.lastServerSyncTimestamp, message: '🟢 Cloud Synced (Firebase)' });
+      if (saveSuccess) {
+        this.isServerConnected = true;
+        this.lastServerSyncTimestamp = stateData._serverTimestamp;
+        this.dispatchSyncStatus('synced', { timestamp: this.lastServerSyncTimestamp, message: '🟢 Cloud Synced (Firebase)' });
+      } else if (isPermissionDenied) {
+        this.isServerConnected = false;
+        this.dispatchSyncStatus('locked', { 
+          error: 'Firebase database permission denied (401)',
+          message: '⚠️ Cloud Locked: Rules need to be set to true in Firebase Console'
+        });
+      } else {
+        this.isServerConnected = false;
+        this.dispatchSyncStatus('local', { message: '🟡 Local Mode (Offline)' });
+      }
     } catch (err) {
       this.isServerConnected = false;
       this.dispatchSyncStatus('local', { error: err.message });

@@ -36,8 +36,8 @@ function mergeCloudAndClientState(existingData, incomingData) {
   sanitizeStateProjects(existingData);
   sanitizeStateProjects(incomingData);
 
-  // 1. Merge attendance records: Union with deduplication
-  const recordMap = new Map();
+  // 1. Merge attendance records: Union with deduplication by session key
+  const sessionMap = new Map();
   const allRecords = [
     ...(Array.isArray(existingData.attendanceRecords) ? existingData.attendanceRecords : []),
     ...(Array.isArray(incomingData.attendanceRecords) ? incomingData.attendanceRecords : [])
@@ -48,24 +48,22 @@ function mergeCloudAndClientState(existingData, incomingData) {
     if (!rawRec.id) {
       rawRec.id = 'rec-' + rawRec.developerId + '-' + rawRec.date + '-' + (rawRec.startTime ? new Date(rawRec.startTime).getTime() : Date.now());
     }
-    const startIso = rawRec.startTime ? new Date(rawRec.startTime).toISOString() : '';
-    const sessionKey = startIso ? `${rawRec.developerId}_${rawRec.date}_${startIso}` : rawRec.id;
+    const startIso = rawRec.startTime ? new Date(rawRec.startTime).toISOString() : rawRec.id;
+    const sessionKey = `${rawRec.developerId}_${rawRec.date}_${startIso}`;
 
-    if (!recordMap.has(rawRec.id) && !recordMap.has(sessionKey)) {
-      recordMap.set(rawRec.id, rawRec);
-      if (sessionKey !== rawRec.id) recordMap.set(sessionKey, rawRec);
+    if (!sessionMap.has(sessionKey)) {
+      sessionMap.set(sessionKey, rawRec);
     } else {
-      const existing = recordMap.get(rawRec.id) || recordMap.get(sessionKey);
+      const existing = sessionMap.get(sessionKey);
       const existingEnd = existing.endTime ? new Date(existing.endTime).getTime() : 0;
       const currentEnd = rawRec.endTime ? new Date(rawRec.endTime).getTime() : 0;
       if (currentEnd >= existingEnd || (rawRec.workedMinutes || 0) >= (existing.workedMinutes || 0)) {
-        recordMap.set(rawRec.id, rawRec);
-        if (sessionKey !== rawRec.id) recordMap.set(sessionKey, rawRec);
+        sessionMap.set(sessionKey, rawRec);
       }
     }
   });
 
-  const mergedRecords = Array.from(new Set(recordMap.values()));
+  const mergedRecords = Array.from(sessionMap.values());
   mergedRecords.sort((a, b) => {
     const cmp = (b.date || '').localeCompare(a.date || '');
     if (cmp !== 0) return cmp;
@@ -89,12 +87,8 @@ function mergeCloudAndClientState(existingData, incomingData) {
             ) && r.endTime
           );
           if (!hasClosedRecord && !inDev._isExplicitClockOut) {
-            const inRecords = Array.isArray(incomingData.attendanceRecords) ? incomingData.attendanceRecords : [];
-            const hasRecentRecord = inRecords.some(r => r.developerId === inDev.id && r.endTime);
-            if (!hasRecentRecord && inDev.activeSession === undefined) {
-              inDev.status = exDev.status;
-              inDev.activeSession = exDev.activeSession;
-            }
+            inDev.status = exDev.status;
+            inDev.activeSession = exDev.activeSession;
           }
         }
       }
@@ -124,6 +118,13 @@ module.exports = async (req, res) => {
           cloudData._serverTimestamp = Date.now();
           return res.status(200).json(cloudData);
         }
+      } else if (fbRes.status === 401) {
+        return res.status(401).json({
+          error: 'Firebase database permission denied (401)',
+          details: 'Realtime Database rules must be set to .read: true, .write: true in Firebase Console.',
+          locked: true,
+          exists: false
+        });
       }
     } catch (err) {
       console.warn('Firebase fetch fallback in api/state:', err.message);
@@ -154,11 +155,24 @@ module.exports = async (req, res) => {
       sanitizeStateProjects(data);
       data._serverTimestamp = Date.now();
 
-      await fetch(FIREBASE_DB_URL, {
+      const putRes = await fetch(FIREBASE_DB_URL, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
+
+      if (!putRes.ok) {
+        const errText = await putRes.text();
+        if (putRes.status === 401) {
+          return res.status(401).json({
+            error: 'Firebase database permission denied (401)',
+            details: 'Realtime Database rules must be set to .read: true, .write: true in Firebase Console.',
+            locked: true,
+            raw: errText
+          });
+        }
+        return res.status(502).json({ error: 'Failed to write to cloud database', details: errText });
+      }
 
       return res.status(200).json({ success: true, timestamp: data._serverTimestamp, state: data });
     } catch (err) {

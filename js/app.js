@@ -5285,10 +5285,44 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // Live Database & Server Sync Status Listener
+  const modalSyncInfo = document.getElementById('modal-sync-info');
+  const btnCloseSyncInfo = document.getElementById('btn-close-sync-info');
+  const btnCloseSyncInfoFooter = document.getElementById('btn-close-sync-info-footer');
+  const btnModalForceSync = document.getElementById('btn-modal-force-sync');
+  const btnSettingsForceSync = document.getElementById('btn-settings-force-sync');
+  const btnOpenSyncGuideSettings = document.getElementById('btn-open-sync-guide-settings');
+  const btnCopyFirebaseRules = document.getElementById('btn-copy-firebase-rules');
+  const syncModalStatusBadge = document.getElementById('sync-modal-status-badge');
+  const syncModalRulesGuide = document.getElementById('sync-modal-rules-guide');
+  const settingsSyncStatusBadge = document.getElementById('settings-sync-status-badge');
+
+  function updateSyncBadgeElements(badgeEl, status, isConnected) {
+    if (!badgeEl) return;
+    if (status === 'saving') {
+      badgeEl.textContent = 'Syncing...';
+      badgeEl.style.background = 'rgba(245, 158, 11, 0.15)';
+      badgeEl.style.color = '#d97706';
+    } else if (status === 'locked') {
+      badgeEl.textContent = '⚠️ Locked (Firebase 401)';
+      badgeEl.style.background = 'rgba(239, 68, 68, 0.15)';
+      badgeEl.style.color = '#ef4444';
+    } else if (isConnected || status === 'synced') {
+      badgeEl.textContent = '🟢 Cloud Synced (Firebase)';
+      badgeEl.style.background = 'rgba(16, 185, 129, 0.15)';
+      badgeEl.style.color = '#10b981';
+    } else {
+      badgeEl.textContent = '🟡 Local Mode (Offline)';
+      badgeEl.style.background = 'rgba(99, 102, 241, 0.15)';
+      badgeEl.style.color = '#6366f1';
+    }
+  }
 
   window.addEventListener('devtrack:syncStatus', (e) => {
     if (!syncStatusIndicator || !syncStatusDot || !syncStatusText) return;
     const { status, isServerConnected } = e.detail || {};
+
+    updateSyncBadgeElements(syncModalStatusBadge, status, isServerConnected);
+    updateSyncBadgeElements(settingsSyncStatusBadge, status, isServerConnected);
 
     if (status === 'saving') {
       syncStatusIndicator.style.background = 'rgba(245, 158, 11, 0.12)';
@@ -5296,20 +5330,88 @@ document.addEventListener('DOMContentLoaded', () => {
       syncStatusIndicator.style.color = '#d97706';
       syncStatusDot.style.background = '#f59e0b';
       syncStatusText.textContent = 'Syncing...';
+      syncStatusIndicator.title = 'Syncing changes to cloud...';
+    } else if (status === 'locked') {
+      syncStatusIndicator.style.background = 'rgba(239, 68, 68, 0.12)';
+      syncStatusIndicator.style.borderColor = 'rgba(239, 68, 68, 0.35)';
+      syncStatusIndicator.style.color = '#ef4444';
+      syncStatusDot.style.background = '#ef4444';
+      syncStatusText.textContent = '⚠️ Cloud Locked (401)';
+      syncStatusIndicator.title = 'Firebase rules locked. Click for 30-second fix to unlock live sync.';
     } else if (isServerConnected || status === 'synced') {
       syncStatusIndicator.style.background = 'rgba(16, 185, 129, 0.12)';
       syncStatusIndicator.style.borderColor = 'rgba(16, 185, 129, 0.25)';
       syncStatusIndicator.style.color = '#10b981';
       syncStatusDot.style.background = '#10b981';
       syncStatusText.textContent = 'Cloud Synced (Firebase)';
+      syncStatusIndicator.title = 'Real-time Cloud Sync Active. Click to inspect or force refresh.';
     } else {
       syncStatusIndicator.style.background = 'rgba(99, 102, 241, 0.12)';
       syncStatusIndicator.style.borderColor = 'rgba(99, 102, 241, 0.25)';
       syncStatusIndicator.style.color = '#6366f1';
       syncStatusDot.style.background = '#6366f1';
       syncStatusText.textContent = 'Saved (Local)';
+      syncStatusIndicator.title = 'Data saved locally. Click to inspect cloud sync status.';
     }
   });
+
+  // Open Cloud Sync modal on clicking status indicator
+  if (syncStatusIndicator) {
+    syncStatusIndicator.style.cursor = 'pointer';
+    syncStatusIndicator.addEventListener('click', () => {
+      if (modalSyncInfo) modalSyncInfo.classList.add('active');
+    });
+  }
+
+  if (btnCloseSyncInfo) {
+    btnCloseSyncInfo.addEventListener('click', () => {
+      if (modalSyncInfo) modalSyncInfo.classList.remove('active');
+    });
+  }
+  if (btnCloseSyncInfoFooter) {
+    btnCloseSyncInfoFooter.addEventListener('click', () => {
+      if (modalSyncInfo) modalSyncInfo.classList.remove('active');
+    });
+  }
+  if (btnOpenSyncGuideSettings) {
+    btnOpenSyncGuideSettings.addEventListener('click', () => {
+      if (modalSyncInfo) modalSyncInfo.classList.add('active');
+    });
+  }
+
+  async function triggerManualForceSync() {
+    showToast('🔄 Synchronizing with Firebase Cloud...', 'info');
+    try {
+      await store.fetchServerState(true);
+      await store.postStateToServer(store.getState());
+      if (store.isServerConnected) {
+        showToast('✅ Cloud Sync Successful! Data is identical across all devices.', 'success');
+      } else {
+        showToast('⚠️ Cloud database returned 401 (Rules locked in Firebase Console).', 'warning');
+      }
+      renderAll();
+    } catch (e) {
+      showToast('⚠️ Could not connect to cloud: ' + e.message, 'warning');
+    }
+  }
+
+  if (btnModalForceSync) {
+    btnModalForceSync.addEventListener('click', triggerManualForceSync);
+  }
+  if (btnSettingsForceSync) {
+    btnSettingsForceSync.addEventListener('click', triggerManualForceSync);
+  }
+
+  if (btnCopyFirebaseRules) {
+    btnCopyFirebaseRules.addEventListener('click', () => {
+      const rules = `{\n  "rules": {\n    ".read": true,\n    ".write": true\n  }\n}`;
+      navigator.clipboard.writeText(rules).then(() => {
+        showToast('📋 Copied Firebase Rules to clipboard!', 'success');
+      }).catch(() => {
+        showToast('Select and copy the rules text manually.', 'info');
+      });
+    });
+  }
 
   // Auto-Timeout Broadcast Listener
   window.addEventListener('devtrack:autoTimedOut', (e) => {
